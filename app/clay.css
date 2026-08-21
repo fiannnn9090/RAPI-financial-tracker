@@ -1460,3 +1460,142 @@
     transform: none;
   }
 }
+
+/* === M3 — Overhaul mobile === */
+
+.clay-button {
+  min-height: 44px;
+}
+
+.app-frame {
+  padding-top: calc(18px + env(safe-area-inset-top));
+}
+
+/* Touch target ≥44px untuk kontrol kecil */
+.filters button,
+.type-switch button {
+  min-height: 44px;
+}
+
+.delete-transaction,
+.budget-item button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+}
+
+.clay-modal .close-modal {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  right: 8px;
+  top: 4px;
+}
+
+/* Auth: dvh, input zoom-safe (16px), switch touch target */
+.auth-page.clay-auth,
+.auth-page.clay-auth .auth-intro,
+.auth-page.clay-auth .auth-panel {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.auth-page.clay-auth .form-wrap input {
+  min-height: 46px;
+  font-size: 16px;
+}
+
+.auth-page.clay-auth .switch-form button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: var(--clay-radius-sm);
+  font-weight: 600;
+}
+
+@media (max-width: 770px) {
+  /* Auth fold-first: intro kompres agar form terlihat tanpa scroll */
+  .auth-page.clay-auth .auth-intro {
+    min-height: auto;
+    padding: calc(20px + env(safe-area-inset-top)) 22px 22px;
+  }
+
+  .auth-page.clay-auth .auth-intro:after {
+    width: 380px;
+    height: 380px;
+    right: -190px;
+    bottom: -210px;
+  }
+
+  .auth-page.clay-auth .intro-copy h1 {
+    font-size: clamp(28px, 9vw, 34px);
+  }
+
+  .auth-page.clay-auth .intro-copy > p:last-child {
+    margin-top: 12px;
+    font-size: 15px;
+  }
+
+  .auth-page.clay-auth .feature-note {
+    margin-top: 16px;
+  }
+
+  .auth-page.clay-auth .auth-panel {
+    padding: 24px 18px calc(30px + env(safe-area-inset-bottom));
+  }
+
+  .form-wrap.clay-card {
+    padding: 22px 18px;
+  }
+
+  /* Bottom-sheet untuk form modal (LevelUpModal tetap dialog tengah) */
+  .modal-backdrop.clay-modal:not(.levelup-backdrop) {
+    align-items: end;
+    padding: 0;
+    animation: clay-fade-in .2s ease;
+  }
+
+  .modal.clay-card:not(.levelup-modal) {
+    width: 100%;
+    max-width: none;
+    max-height: 88vh;
+    max-height: 88dvh;
+    overflow-y: auto;
+    border-radius: var(--clay-radius-lg) var(--clay-radius-lg) 0 0;
+    padding-bottom: calc(27px + env(safe-area-inset-bottom));
+    animation: clay-sheet-up .3s cubic-bezier(.32, .72, .24, 1);
+  }
+
+  .modal.clay-card:not(.levelup-modal)::before {
+    content: '';
+    position: sticky;
+    top: 10px;
+    z-index: 1;
+    display: block;
+    width: 44px;
+    height: 5px;
+    margin: -19px auto 12px;
+    border-radius: 99px;
+    background: rgba(96, 62, 110, .22);
+  }
+}
+
+@keyframes clay-sheet-up {
+  from { transform: translateY(100%); }
+}
+
+@keyframes clay-fade-in {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop.clay-modal,
+  .modal.clay-card {
+    animation: none;
+  }
+}

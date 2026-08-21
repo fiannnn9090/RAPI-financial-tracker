@@ -57,7 +57,19 @@ lanjut ke fase berikutnya.
 
 ## Fase Mobile — Konversi Android (Capacitor)
 - [x] M1 Static export: `output: 'export'` di next.config.js, build sukses ke folder `out/`
-- [ ] M2 Restrukturisasi navigasi tab-based: Beranda/Transaksi/Target/Profil dengan bottom nav
-- [ ] M3 Overhaul CSS mobile: safe-area inset, touch target ≥44px, bottom-sheet untuk form/modal
-- [ ] M4 Integrasi Capacitor: init platform Android, sinkronisasi build statis, ikon & splash screen
-- [ ] M5 Polish native: styling status bar, penanganan tombol back Android, transisi splash → app
+- [x] M2 Restrukturisasi navigasi tab-based: Beranda/Transaksi/Target/Profil dengan bottom nav
+- [ ] M3 Overhaul CSS mobile:
+  - [x] M3a Auth mobile: kompress intro agar form di atas fold, safe-area padding, min-height
+        100dvh (anti-tertutup keyboard), touch target ≥44px (input & tombol switch)
+  - [x] M3b `viewport-fit=cover` via export viewport di layout.js (wajib agar env(safe-area-inset)
+        aktif — memengaruhi juga hasil M2)
+  - [x] M3c Safe-area inset menyeluruh dashboard + audit touch target ≥44px semua kontrol
+  - [x] M3d Bottom-sheet untuk TransactionForm/BudgetForm/GoalForm (LevelUpModal tetap center)
+  - [x] M3e Konversi window.prompt() Budget & Goal jadi BudgetSheet/GoalSheet terkontrol
+        (style .modal sama; Budget = kategori + limit, Goal = nama target + nominal)
+- [x] M4 Integrasi Capacitor: init platform Android (appId com.rapi.app), sinkronisasi build
+      statis (`npm run cap:sync`), ikon & splash screen (generator `scripts/make-cap-assets.py`,
+      butuh pillow; regenerate via `npm run cap:assets`)
+- [x] M5 Polish native: styling status bar (krem #FAF3EE + ikon gelap, via config StatusBar),
+      penanganan tombol back Android berjenjang (tutup modal → tab Beranda → exit,
+      @capacitor/app), transisi splash → app (auto-hide + fade 400ms via @capacitor/splash-screen)

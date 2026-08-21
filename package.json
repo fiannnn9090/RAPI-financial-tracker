@@ -5,12 +5,23 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "cap:sync": "next build && npx cap sync android",
+    "cap:assets": "python3 scripts/make-cap-assets.py && npx capacitor-assets generate --android && npx cap sync android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.3",
     "@supabase/supabase-js": "^2.112.3",
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5"
   }
 }

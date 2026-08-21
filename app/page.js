@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app';
 import supabase from '../lib/supabase';
 import { hitungXpEarned, levelFromXp, levelProgress, titleForLevel } from '../lib/xp';
 import { nextStreak } from '../lib/streak';
@@ -163,8 +165,22 @@ function Auth({ onEnter }) {
 function Dashboard({ user, data, setData }) {
   const [tab, setTab] = useState('beranda');
   const [showForm, setShowForm] = useState(false);
+  const [budgetSheet, setBudgetSheet] = useState(null);
+  const [goalSheet, setGoalSheet] = useState(false);
   const [filter, setFilter] = useState('all');
   const [levelUp, setLevelUp] = useState(null);
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const subscription = CapacitorApp.addListener('backButton', () => {
+      if (levelUp) setLevelUp(null);
+      else if (showForm) setShowForm(false);
+      else if (budgetSheet) setBudgetSheet(null);
+      else if (goalSheet) setGoalSheet(false);
+      else if (tab !== 'beranda') setTab('beranda');
+      else CapacitorApp.exitApp();
+    });
+    return () => subscription.remove();
+  }, [tab, showForm, budgetSheet, goalSheet, levelUp]);
   const transactions = data.transactions[user.id] ?? [];
   const sortedTransactions = useMemo(() => [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date)), [transactions]);
   const visibleTransactions = filter === 'all' ? sortedTransactions : sortedTransactions.filter((item) => item.type === filter);
@@ -261,24 +277,18 @@ function Dashboard({ user, data, setData }) {
       await downloadProfileCard();
     }
   }
-  async function setGoal() {
-    const name = window.prompt('Target apa yang ingin kamu capai?', goal?.name || 'Dana impian');
-    if (!name?.trim()) return;
-    const amount = Number(window.prompt('Berapa nominal targetnya? (contoh: 5000000)', goal?.amount || ''));
-    if (!Number.isFinite(amount) || amount <= 0) return window.alert('Masukkan nominal target yang benar.');
+  async function saveGoal(name, amount) {
     const existing = await supabase.from('goals').select('id').eq('user_id', user.id).eq('is_active', true).maybeSingle();
     if (existing.data) await supabase.from('goals').update({ name: name.trim(), amount }).eq('id', existing.data.id);
     else await supabase.from('goals').insert({ user_id: user.id, name: name.trim(), amount });
     setData((current) => ({ ...current, goals: { ...current.goals, [user.id]: { name: name.trim(), amount } } }));
+    return true;
   }
-  async function setBudget() {
-    const category = window.prompt(`Pilih kategori: ${BUDGET_CATEGORIES.join(', ')}`);
-    if (!category || !BUDGET_CATEGORIES.includes(category.trim())) return window.alert('Pilih kategori sesuai daftar yang tersedia.');
-    const amount = Number(window.prompt(`Batas ${category.trim()} bulan ini?`, budgets[category.trim()] || ''));
-    if (!Number.isFinite(amount) || amount <= 0) return window.alert('Masukkan nominal anggaran yang benar.');
-    const { error } = await supabase.from('budgets').upsert({ user_id: user.id, category: category.trim(), monthly_limit: amount });
-    if (error) return window.alert('Budget gagal disimpan. Coba lagi ya.');
-    setData((current) => ({ ...current, budgets: { ...current.budgets, [user.id]: { ...(current.budgets?.[user.id] ?? {}), [category.trim()]: amount } } }));
+  async function saveBudget(category, amount) {
+    const { error } = await supabase.from('budgets').upsert({ user_id: user.id, category, monthly_limit: amount });
+    if (error) return false;
+    setData((current) => ({ ...current, budgets: { ...current.budgets, [user.id]: { ...(current.budgets?.[user.id] ?? {}), [category]: amount } } }));
+    return true;
   }
   async function claimGoal() {
     if (!goalReached || !window.confirm(`Klaim pencapaian “${goal.name}”? Kamu bisa membuat wishlist baru setelahnya.`)) return;
@@ -317,13 +327,13 @@ function Dashboard({ user, data, setData }) {
       </>}
       {tab === 'target' && <>
       <section className="playful-grid tab-target">
-        <article className={`goal-card clay-card clay-goal ${goalReached ? 'goal-reached' : ''}`}><div><p className="kicker">{goalReached ? 'WISHLIST TERCAPAI! 🎉' : 'TARGET TABUNGAN'}</p><h2>{goal ? goal.name : 'Punya wishlist?'}</h2>{goal ? <><div className="goal-progress"><span style={{ width: `${Math.min(100, Math.max(0, balance / goal.amount * 100))}%` }} /></div><p className="goal-caption"><strong>{rupiah.format(Math.max(0, balance))}</strong> dari {rupiah.format(goal.amount)}</p></> : <p className="goal-caption">Buat target kecil agar menabung terasa lebih seru.</p>}</div>{goalReached ? <button className="claim-goal clay-button" onClick={claimGoal}>Klaim badge 🏆</button> : <button className="goal-button clay-button" onClick={setGoal}>{goal ? 'Ubah target' : '+ Buat target'}</button>}</article>
+        <article className={`goal-card clay-card clay-goal ${goalReached ? 'goal-reached' : ''}`}><div><p className="kicker">{goalReached ? 'WISHLIST TERCAPAI! 🎉' : 'TARGET TABUNGAN'}</p><h2>{goal ? goal.name : 'Punya wishlist?'}</h2>{goal ? <><div className="goal-progress"><span style={{ width: `${Math.min(100, Math.max(0, balance / goal.amount * 100))}%` }} /></div><p className="goal-caption"><strong>{rupiah.format(Math.max(0, balance))}</strong> dari {rupiah.format(goal.amount)}</p></> : <p className="goal-caption">Buat target kecil agar menabung terasa lebih seru.</p>}</div>{goalReached ? <button className="claim-goal clay-button" onClick={claimGoal}>Klaim badge 🏆</button> : <button className="goal-button clay-button" onClick={() => setGoalSheet(true)}>{goal ? 'Ubah target' : '+ Buat target'}</button>}</article>
         <article className="badge-card clay-card clay-badge"><div className="badge-heading"><div><p className="kicker">KOLEKSI BADGE</p><h2>Good job, bestie! ✨</h2></div><span>{unlockedBadges}/{badgeViews.length}</span></div><div className="badges">{badgeViews.map((badge) => <div className={`badge tier-${badge.rarity} ${badge.unlocked ? 'unlocked' : 'locked'}`} key={badge.code}><span>{badge.icon}</span><div><strong>{badge.title}</strong><small>{badge.unlocked ? badge.note : `${Math.min(badge.current, badge.target)}/${badge.target} · ${badge.note}`}</small>{!badge.unlocked && <i className="badge-progress"><em style={{ width: `${badge.progress * 100}%` }} /></i>}</div><b className="badge-tier">{badge.rarity}</b></div>)}</div></article>
       </section>
       </>}
       {tab === 'beranda' && <>
       <section className="insight-section clay-insight"><div className="section-header"><div><h2>Money check-in</h2><p>Snapshot bulan ini, bestie 💫</p></div></div><div className="insight-grid"><article className="insight-card clay-card"><span>💡</span><div><p className="kicker">{topSpending ? 'Paling banyak di sini' : 'Money check-in'}</p><strong>{topSpending ? `${CATEGORY_EMOJI[topSpending.category]} ${topSpending.category}` : 'Belum ada pengeluaran'}</strong>{topSpending && <span className="insight-amount">{rupiah.format(topSpending.amount)}</span>}<p className="insight-caption">{topSpending ? 'Terpakai untuk kategori ini sejauh ini.' : 'Mulai catat transaksi untuk melihat insight personal.'}</p></div></article><article className="chart-card clay-card"><div className="chart-title"><strong>Pengeluaran per kategori</strong><span>Bulan ini</span></div>{categorySummary.length ? <div className="chart-bars">{categorySummary.map((item) => <div className="chart-row" key={item.category}><span>{CATEGORY_EMOJI[item.category]}</span><div><div><strong>{item.category}</strong><b>{rupiah.format(item.amount)}</b></div><i><em style={{ width: `${item.amount / chartMax * 100}%` }} /></i></div></div>)}</div> : <p className="chart-empty">Grafik akan muncul setelah ada pengeluaran.</p>}</article></div></section>
-      <section className="budget-section clay-budget"><div className="section-header"><div><h2>Budget bulan ini</h2><p>Jaga pengeluaran tetap on track ✨</p></div><button className="budget-add clay-button" onClick={setBudget}>+ Atur budget</button></div>{budgetEntries.length ? <div className="budget-grid">{budgetEntries.map(([category, limit]) => { const spent = spendingFor(category); const ratio = spent / limit; const state = ratio >= 1 ? 'over' : ratio >= .8 ? 'near' : 'safe'; return <article className="budget-item clay-card" key={category}><div><span>{CATEGORY_EMOJI[category]}</span><strong>{category}</strong><button onClick={setBudget} aria-label={`Ubah budget ${category}`}>⋯</button></div><div className="budget-bar"><span className={state} style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div><p><b>{rupiah.format(spent)}</b> / {rupiah.format(limit)} <em>{state === 'over' ? 'Kelebihan!' : state === 'near' ? 'Hampir habis' : 'Aman'}</em></p></article>; })}</div> : <div className="budget-empty"><span>🪄</span><div><strong>Belum ada budget</strong><p>Tentukan batas pengeluaran untuk kategori favoritmu.</p></div><button className="clay-button" onClick={setBudget}>Buat budget</button></div>}</section>
+      <section className="budget-section clay-budget"><div className="section-header"><div><h2>Budget bulan ini</h2><p>Jaga pengeluaran tetap on track ✨</p></div><button className="budget-add clay-button" onClick={() => setBudgetSheet({})}>+ Atur budget</button></div>{budgetEntries.length ? <div className="budget-grid">{budgetEntries.map(([category, limit]) => { const spent = spendingFor(category); const ratio = spent / limit; const state = ratio >= 1 ? 'over' : ratio >= .8 ? 'near' : 'safe'; return <article className="budget-item clay-card" key={category}><div><span>{CATEGORY_EMOJI[category]}</span><strong>{category}</strong><button onClick={() => setBudgetSheet({ category })} aria-label={`Ubah budget ${category}`}>⋯</button></div><div className="budget-bar"><span className={state} style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div><p><b>{rupiah.format(spent)}</b> / {rupiah.format(limit)} <em>{state === 'over' ? 'Kelebihan!' : state === 'near' ? 'Hampir habis' : 'Aman'}</em></p></article>; })}</div> : <div className="budget-empty"><span>🪄</span><div><strong>Belum ada budget</strong><p>Tentukan batas pengeluaran untuk kategori favoritmu.</p></div><button className="clay-button" onClick={() => setBudgetSheet({})}>Buat budget</button></div>}</section>
       </>}
       {tab === 'transaksi' && <>
       <section className="transactions-section clay-transactions">
@@ -343,6 +353,8 @@ function Dashboard({ user, data, setData }) {
     <button className="fab clay-button" aria-label="Catat transaksi baru" onClick={() => setShowForm(true)}>+</button>
     <BottomNav active={tab} onChange={setTab} />
     {showForm && <TransactionForm onClose={() => setShowForm(false)} onSubmit={addTransaction} />}
+    {budgetSheet && <BudgetSheet initialCategory={budgetSheet.category ?? ''} currentLimit={budgetSheet.category ? budgets[budgetSheet.category] : ''} onClose={() => setBudgetSheet(null)} onSubmit={saveBudget} />}
+    {goalSheet && <GoalSheet goal={goal} onClose={() => setGoalSheet(false)} onSubmit={saveGoal} />}
     {levelUp && <LevelUpModal {...levelUp} onClose={() => setLevelUp(null)} />}
   </main>;
 }
@@ -376,4 +388,34 @@ function TransactionForm({ onClose, onSubmit }) {
     if (!saved) setMessage('Transaksi gagal tersimpan. Coba lagi ya.');
   }
   return <div className="modal-backdrop clay-modal" role="presentation" onMouseDown={onClose}><section className="modal clay-card" role="dialog" aria-modal="true" aria-labelledby="form-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label="Tutup">×</button><p className="kicker">TRANSAKSI BARU</p><h2 id="form-title">Catat aktivitas keuangan</h2><form onSubmit={submit}><div className="type-switch"><button type="button" className={type === 'expense' ? 'selected expense' : ''} onClick={() => { setType('expense'); setCategory(''); }}>Pengeluaran</button><button type="button" className={type === 'income' ? 'selected income' : ''} onClick={() => { setType('income'); setCategory(''); }}>Pemasukan</button></div><label>Nama transaksi<input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder={type === 'income' ? 'Contoh: Gaji bulanan' : 'Contoh: Makan siang'} /></label><label>Nominal<input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))} placeholder="Contoh: 50000" /></label><div className="form-pair"><label>Kategori<select value={category} onChange={(e) => setCategory(e.target.value)}><option value="">Pilih kategori</option>{categories.map((item) => <option key={item}>{item}</option>)}</select></label><label>Tanggal<input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label></div>{message && <p className="form-message">{message}</p>}<div className="form-actions"><button className="ghost-button clay-button" type="button" onClick={onClose}>Batal</button><button className="primary-button clay-button" type="submit">Simpan transaksi <span>→</span></button></div></form></section></div>;
+}
+
+function BudgetSheet({ initialCategory = '', currentLimit = '', onClose, onSubmit }) {
+  const [category, setCategory] = useState(initialCategory);
+  const [amount, setAmount] = useState(currentLimit ? String(currentLimit) : '');
+  const [message, setMessage] = useState('');
+  async function submit(event) {
+    event.preventDefault();
+    const numericAmount = Number(amount);
+    if (!category || !BUDGET_CATEGORIES.includes(category)) return setMessage('Pilih kategori terlebih dahulu.');
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) return setMessage('Masukkan nominal limit yang benar.');
+    if (!(await onSubmit(category, numericAmount))) return setMessage('Budget gagal disimpan. Coba lagi ya.');
+    onClose();
+  }
+  return <div className="modal-backdrop clay-modal" role="presentation" onMouseDown={onClose}><section className="modal clay-card" role="dialog" aria-modal="true" aria-labelledby="budget-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label="Tutup">×</button><p className="kicker">BUDGET BULANAN</p><h2 id="budget-title">{initialCategory ? 'Ubah limit budget' : 'Atur limit budget'}</h2><form onSubmit={submit}><label>Kategori<select value={category} onChange={(e) => setCategory(e.target.value)}><option value="">Pilih kategori</option>{BUDGET_CATEGORIES.map((item) => <option key={item}>{item}</option>)}</select></label><label>Limit bulanan<input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))} placeholder="Contoh: 750000" /></label>{message && <p className="form-message">{message}</p>}<div className="form-actions"><button className="ghost-button clay-button" type="button" onClick={onClose}>Batal</button><button className="primary-button clay-button" type="submit">Simpan budget <span>→</span></button></div></form></section></div>;
+}
+
+function GoalSheet({ goal, onClose, onSubmit }) {
+  const [name, setName] = useState(goal?.name ?? '');
+  const [amount, setAmount] = useState(goal?.amount ? String(goal.amount) : '');
+  const [message, setMessage] = useState('');
+  async function submit(event) {
+    event.preventDefault();
+    const numericAmount = Number(amount);
+    if (!name.trim()) return setMessage('Beri nama target impianmu dulu.');
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) return setMessage('Masukkan nominal target yang benar.');
+    if (!(await onSubmit(name.trim(), numericAmount))) return setMessage('Target gagal disimpan. Coba lagi ya.');
+    onClose();
+  }
+  return <div className="modal-backdrop clay-modal" role="presentation" onMouseDown={onClose}><section className="modal clay-card" role="dialog" aria-modal="true" aria-labelledby="goal-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label="Tutup">×</button><p className="kicker">TARGET TABUNGAN</p><h2 id="goal-title">{goal ? 'Ubah wishlist' : 'Buat wishlist baru'}</h2><form onSubmit={submit}><label>Nama target<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Contoh: Dana impian" /></label><label>Nominal target<input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))} placeholder="Contoh: 5000000" /></label>{message && <p className="form-message">{message}</p>}<div className="form-actions"><button className="ghost-button clay-button" type="button" onClick={onClose}>Batal</button><button className="primary-button clay-button" type="submit">Simpan target <span>→</span></button></div></form></section></div>;
 }

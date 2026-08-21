@@ -1,0 +1,19 @@
+{
+  "appId": "com.rapi.app",
+  "appName": "Rapi",
+  "webDir": "out",
+  "backgroundColor": "#FAF3EE",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 700,
+      "launchAutoHide": true,
+      "launchFadeOutDuration": 400,
+      "backgroundColor": "#FAF3EE",
+      "androidScaleType": "CENTER_CROP"
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#FAF3EE"
+    }
+  }
+}
