@@ -75,7 +75,10 @@ Urutan milestone (jangan lompat urutan tanpa konfirmasi user):
   `profileCard.js` (kartu shareable via Canvas API, tanpa dependency tambahan)
 - Formatter: `rupiah` (Intl.NumberFormat IDR) dan `dateFormatter` (Intl.DateTimeFormat id-ID)
   sudah didefinisikan di scope module — pakai ulang, jangan bikin formatter baru
-- Emoji kategori disimpan di object `CATEGORY_EMOJI`
+- Kategori per-user disimpan di tabel `categories` (nama, emoji, type income/expense/both,
+  flag is_default); dimuat via `loadData()` ke `data.categories[user.id]`, di-seed otomatis
+  dari `DEFAULT_CATEGORIES` saat user belum punya baris. Emoji diambil dari memo `emojiMap`
+  (fallback '✨' untuk kategori historis yang sudah terhapus) — JANGAN hardcode daftar kategori
 - State management: `useState` + `useEffect` biasa, tidak pakai library state management
 - ID baru pakai `crypto.randomUUID()`
 - Konfirmasi aksi destruktif (hapus akun, hapus transaksi besar) tetap harus ada,

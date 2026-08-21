@@ -14,23 +14,40 @@ const rupiah = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'ID
 const dateFormatter = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 const today = new Date().toISOString().slice(0, 10);
 
-const initialData = { users: [], transactions: {}, goals: {}, achievements: {}, budgets: {}, badges: {}, badgeDefs: [], activeUserId: null };
-const CATEGORY_EMOJI = { 'Makan & Minum': '🍜', Transportasi: '🛵', Belanja: '🛍️', Tagihan: '🧾', Hiburan: '🎮', Gaji: '💼', Bonus: '🎉', Usaha: '🏪', Investasi: '📈', Lainnya: '✨' };
-const BUDGET_CATEGORIES = ['Makan & Minum', 'Transportasi', 'Belanja', 'Tagihan', 'Hiburan'];
+const initialData = { users: [], transactions: {}, goals: {}, achievements: {}, budgets: {}, badges: {}, badgeDefs: [], categories: {}, activeUserId: null };
+/* Seed kategori default (is_default) — dipakai saat user belum punya baris di tabel categories.
+   Lainnya bertipe 'both' supaya muncul di dropdown pemasukan & pengeluaran. */
+const DEFAULT_CATEGORIES = [
+  ['Makan & Minum', '🍜', 'expense'],
+  ['Transportasi', '🛵', 'expense'],
+  ['Belanja', '🛍️', 'expense'],
+  ['Tagihan', '🧾', 'expense'],
+  ['Hiburan', '🎮', 'expense'],
+  ['Gaji', '💼', 'income'],
+  ['Bonus', '🎉', 'income'],
+  ['Usaha', '🏪', 'income'],
+  ['Investasi', '📈', 'income'],
+  ['Lainnya', '✨', 'both'],
+];
 const NAV_TABS = [['beranda', '🏠', 'Beranda'], ['transaksi', '💸', 'Transaksi'], ['target', '🎯', 'Target'], ['profil', '👤', 'Profil']];
 
 function mapTransaction(row) {
   return { id: row.id, type: row.type, title: row.title, amount: Number(row.amount), category: row.category, date: row.date, xp_earned: row.xp_earned ?? 0 };
 }
 
+function mapCategory(row) {
+  return { id: row.id, name: row.name, emoji: row.emoji, type: row.type, isDefault: Boolean(row.is_default) };
+}
+
 async function loadData(userId) {
-  const [trx, goal, ach, bud, defs, owned] = await Promise.all([
+  const [trx, goal, ach, bud, defs, owned, cats] = await Promise.all([
     supabase.from('transactions').select('*').eq('user_id', userId),
     supabase.from('goals').select('*').eq('user_id', userId).eq('is_active', true).maybeSingle(),
     supabase.from('achievements').select('*').eq('user_id', userId),
     supabase.from('budgets').select('*').eq('user_id', userId),
     supabase.from('badge_defs').select('*'),
     supabase.from('user_badges').select('badge_code').eq('user_id', userId),
+    supabase.from('categories').select('*').eq('user_id', userId).order('created_at'),
   ]);
   return {
     transactions: (trx.data ?? []).map(mapTransaction),
@@ -39,6 +56,7 @@ async function loadData(userId) {
     budgets: Object.fromEntries((bud.data ?? []).map((row) => [row.category, Number(row.monthly_limit)])),
     badgeDefs: (defs.data ?? []).length ? defs.data : FALLBACK_BADGE_DEFS,
     badges: (owned.data ?? []).map((row) => row.badge_code),
+    categories: (cats.data ?? []).map(mapCategory),
   };
 }
 
@@ -54,6 +72,16 @@ export default function Home() {
         ?? { id: authUser.id, username, xp: 0, level: 1 };
     }
     const snapshot = await loadData(authUser.id);
+    let categories = snapshot.categories;
+    if (!categories.length) {
+      const { data: seeded, error } = await supabase.from('categories')
+        .upsert(
+          DEFAULT_CATEGORIES.map(([name, emoji, type]) => ({ user_id: authUser.id, name, emoji, type, is_default: true })),
+          { onConflict: 'user_id,name' },
+        )
+        .select();
+      if (!error && seeded?.length) categories = seeded.map(mapCategory);
+    }
     const account = { id: authUser.id, username: profile.username, xp: profile.xp ?? 0, level: profile.level ?? 1, streakCurrent: profile.streak_current ?? 0, streakLongest: profile.streak_longest ?? 0 };
     setData((current) => ({
       ...current,
@@ -66,6 +94,7 @@ export default function Home() {
       budgets: { ...current.budgets, [authUser.id]: snapshot.budgets },
       badges: { ...current.badges, [authUser.id]: snapshot.badges },
       badgeDefs: snapshot.badgeDefs,
+      categories: { ...current.categories, [authUser.id]: categories },
       activeUserId: authUser.id,
     }));
     setReady(true);
@@ -164,6 +193,7 @@ function Dashboard({ user, data, setData }) {
   const [showForm, setShowForm] = useState(false);
   const [budgetSheet, setBudgetSheet] = useState(null);
   const [goalSheet, setGoalSheet] = useState(false);
+  const [categorySheet, setCategorySheet] = useState(false);
   const [filter, setFilter] = useState('all');
   const [levelUp, setLevelUp] = useState(null);
   useEffect(() => {
@@ -173,11 +203,12 @@ function Dashboard({ user, data, setData }) {
       else if (showForm) setShowForm(false);
       else if (budgetSheet) setBudgetSheet(null);
       else if (goalSheet) setGoalSheet(false);
+      else if (categorySheet) setCategorySheet(false);
       else if (tab !== 'beranda') setTab('beranda');
       else CapacitorApp.exitApp();
     });
     return () => subscription.remove();
-  }, [tab, showForm, budgetSheet, goalSheet, levelUp]);
+  }, [tab, showForm, budgetSheet, goalSheet, categorySheet, levelUp]);
   const transactions = data.transactions[user.id] ?? [];
   const sortedTransactions = useMemo(() => [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date)), [transactions]);
   const visibleTransactions = filter === 'all' ? sortedTransactions : sortedTransactions.filter((item) => item.type === filter);
@@ -188,11 +219,15 @@ function Dashboard({ user, data, setData }) {
   const achievements = data.achievements?.[user.id] ?? [];
   const goalReached = Boolean(goal && balance >= goal.amount);
   const budgets = data.budgets?.[user.id] ?? {};
+  const categories = data.categories?.[user.id] ?? [];
+  const expenseCategories = useMemo(() => categories.filter((item) => item.type !== 'income').map((item) => item.name), [categories]);
+  const incomeCategories = useMemo(() => categories.filter((item) => item.type !== 'expense').map((item) => item.name), [categories]);
+  const emojiMap = useMemo(() => Object.fromEntries(categories.map((item) => [item.name, item.emoji])), [categories]);
   const monthKey = today.slice(0, 7);
   const monthExpenses = transactions.filter((item) => item.type === 'expense' && item.date.startsWith(monthKey));
   const budgetEntries = Object.entries(budgets);
   const spendingFor = (category) => monthExpenses.filter((item) => item.category === category).reduce((sum, item) => sum + item.amount, 0);
-  const categorySummary = BUDGET_CATEGORIES.map((category) => ({ category, amount: spendingFor(category) })).filter((item) => item.amount > 0).sort((a, b) => b.amount - a.amount);
+  const categorySummary = expenseCategories.map((category) => ({ category, amount: spendingFor(category) })).filter((item) => item.amount > 0).sort((a, b) => b.amount - a.amount);
   const topSpending = categorySummary[0];
   const chartMax = topSpending?.amount || 1;
   const badgeViews = evaluateBadges(
@@ -287,6 +322,29 @@ function Dashboard({ user, data, setData }) {
     setData((current) => ({ ...current, budgets: { ...current.budgets, [user.id]: { ...(current.budgets?.[user.id] ?? {}), [category]: amount } } }));
     return true;
   }
+  async function saveCategory({ name, emoji, type }) {
+    const cleanName = name.trim();
+    const cleanEmoji = Array.from(emoji.trim())[0] ?? '';
+    if (!cleanEmoji) return false;
+    const { data: row, error } = await supabase.from('categories')
+      .upsert({ user_id: user.id, name: cleanName, emoji: cleanEmoji, type }, { onConflict: 'user_id,name' })
+      .select()
+      .single();
+    if (error || !row) return false;
+    setData((current) => ({
+      ...current,
+      categories: { ...current.categories, [user.id]: [...(current.categories[user.id] ?? []).filter((item) => item.name !== cleanName), mapCategory(row)] },
+    }));
+    return true;
+  }
+  async function removeCategory(id) {
+    const target = (data.categories?.[user.id] ?? []).find((item) => item.id === id);
+    if (!target || target.isDefault) return false;
+    const { error } = await supabase.from('categories').delete().eq('id', id);
+    if (error) return false;
+    setData((current) => ({ ...current, categories: { ...current.categories, [user.id]: (current.categories[user.id] ?? []).filter((item) => item.id !== id) } }));
+    return true;
+  }
   async function claimGoal() {
     if (!goalReached || !window.confirm(`Klaim pencapaian “${goal.name}”? Kamu bisa membuat wishlist baru setelahnya.`)) return;
     await supabase.from('achievements').insert({ user_id: user.id, goal_name: goal.name, goal_amount: goal.amount, completed_at: today });
@@ -328,29 +386,37 @@ function Dashboard({ user, data, setData }) {
       </section>
       </>}
       {tab === 'beranda' && <>
-      <section className="insight-section clay-insight brutal-section"><div className="section-header"><div><h2>Money check-in</h2><p>Snapshot bulan ini, bestie 💫</p></div></div><div className="insight-grid"><article className="insight-card clay-card brutal-card"><span>💡</span><div><p className="kicker">{topSpending ? 'Paling banyak di sini' : 'Money check-in'}</p><strong>{topSpending ? `${CATEGORY_EMOJI[topSpending.category]} ${topSpending.category}` : 'Belum ada pengeluaran'}</strong>{topSpending && <span className="insight-amount">{rupiah.format(topSpending.amount)}</span>}<p className="insight-caption">{topSpending ? 'Terpakai untuk kategori ini sejauh ini.' : 'Mulai catat transaksi untuk melihat insight personal.'}</p></div></article><article className="chart-card clay-card brutal-card"><div className="chart-title"><strong>Pengeluaran per kategori</strong><span>Bulan ini</span></div>{categorySummary.length ? <div className="chart-bars">{categorySummary.map((item) => <div className="chart-row" key={item.category}><span>{CATEGORY_EMOJI[item.category]}</span><div><div><strong>{item.category}</strong><b>{rupiah.format(item.amount)}</b></div><i><em style={{ width: `${item.amount / chartMax * 100}%` }} /></i></div></div>)}</div> : <p className="chart-empty">Grafik akan muncul setelah ada pengeluaran.</p>}</article></div></section>
-      <section className="budget-section clay-budget brutal-section"><div className="section-header"><div><h2>Budget bulan ini</h2><p>Jaga pengeluaran tetap on track ✨</p></div><button className="budget-add clay-button brutal-button" onClick={() => setBudgetSheet({})}>+ Atur budget</button></div>{budgetEntries.length ? <div className="budget-grid">{budgetEntries.map(([category, limit]) => { const spent = spendingFor(category); const ratio = spent / limit; const state = ratio >= 1 ? 'over' : ratio >= .8 ? 'near' : 'safe'; return <article className="budget-item clay-card brutal-card" key={category}><div><span>{CATEGORY_EMOJI[category]}</span><strong>{category}</strong><button onClick={() => setBudgetSheet({ category })} aria-label={`Ubah budget ${category}`}>⋯</button></div><div className="budget-bar"><span className={state} style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div><p><b>{rupiah.format(spent)}</b> / {rupiah.format(limit)} <em>{state === 'over' ? 'Kelebihan!' : state === 'near' ? 'Hampir habis' : 'Aman'}</em></p></article>; })}</div> : <div className="budget-empty brutal-empty"><span>🪄</span><div><strong>Belum ada budget</strong><p>Tentukan batas pengeluaran untuk kategori favoritmu.</p></div><button className="clay-button brutal-button" onClick={() => setBudgetSheet({})}>Buat budget</button></div>}</section>
+      <section className="insight-section clay-insight brutal-section"><div className="section-header"><div><h2>Money check-in</h2><p>Snapshot bulan ini, bestie 💫</p></div></div><div className="insight-grid"><article className="insight-card clay-card brutal-card"><span>💡</span><div><p className="kicker">{topSpending ? 'Paling banyak di sini' : 'Money check-in'}</p><strong>{topSpending ? `${emojiMap[topSpending.category] ?? '✨'} ${topSpending.category}` : 'Belum ada pengeluaran'}</strong>{topSpending && <span className="insight-amount">{rupiah.format(topSpending.amount)}</span>}<p className="insight-caption">{topSpending ? 'Terpakai untuk kategori ini sejauh ini.' : 'Mulai catat transaksi untuk melihat insight personal.'}</p></div></article><article className="chart-card clay-card brutal-card"><div className="chart-title"><strong>Pengeluaran per kategori</strong><span>Bulan ini</span></div>{categorySummary.length ? <div className="chart-bars">{categorySummary.map((item) => <div className="chart-row" key={item.category}><span>{emojiMap[item.category] ?? '✨'}</span><div><div><strong>{item.category}</strong><b>{rupiah.format(item.amount)}</b></div><i><em style={{ width: `${item.amount / chartMax * 100}%` }} /></i></div></div>)}</div> : <p className="chart-empty">Grafik akan muncul setelah ada pengeluaran.</p>}</article></div></section>
+      <section className="budget-section clay-budget brutal-section"><div className="section-header"><div><h2>Budget bulan ini</h2><p>Jaga pengeluaran tetap on track ✨</p></div><button className="budget-add clay-button brutal-button" onClick={() => setBudgetSheet({})}>+ Atur budget</button></div>{budgetEntries.length ? <div className="budget-grid">{budgetEntries.map(([category, limit]) => { const spent = spendingFor(category); const ratio = spent / limit; const state = ratio >= 1 ? 'over' : ratio >= .8 ? 'near' : 'safe'; return <article className="budget-item clay-card brutal-card" key={category}><div><span>{emojiMap[category] ?? '✨'}</span><strong>{category}</strong><button onClick={() => setBudgetSheet({ category })} aria-label={`Ubah budget ${category}`}>⋯</button></div><div className="budget-bar"><span className={state} style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div><p><b>{rupiah.format(spent)}</b> / {rupiah.format(limit)} <em>{state === 'over' ? 'Kelebihan!' : state === 'near' ? 'Hampir habis' : 'Aman'}</em></p></article>; })}</div> : <div className="budget-empty brutal-empty"><span>🪄</span><div><strong>Belum ada budget</strong><p>Tentukan batas pengeluaran untuk kategori favoritmu.</p></div><button className="clay-button brutal-button" onClick={() => setBudgetSheet({})}>Buat budget</button></div>}</section>
       </>}
       {tab === 'transaksi' && <>
       <section className="transactions-section clay-transactions brutal-section">
         <div className="section-header"><div><h2>Riwayat transaksi</h2><p>{transactions.length} transaksi tercatat</p></div><div className="filters brutal-filters">{[['all', 'Semua'], ['income', 'Masuk'], ['expense', 'Keluar']].map(([id, label]) => <button key={id} className={filter === id ? 'active' : ''} onClick={() => setFilter(id)}>{label}</button>)}</div></div>
         <div className="transaction-list">
-          {visibleTransactions.length ? visibleTransactions.map((item) => <Transaction key={item.id} item={item} onDelete={removeTransaction} />) : <EmptyState filter={filter} onAdd={() => setShowForm(true)} />}
+          {visibleTransactions.length ? visibleTransactions.map((item) => <Transaction key={item.id} item={item} emojiMap={emojiMap} onDelete={removeTransaction} />) : <EmptyState filter={filter} onAdd={() => setShowForm(true)} />}
         </div>
       </section>
       </>}
       {tab === 'profil' && <section className="profil-stack">
       <div className="profile-head"><span className="avatar big">{user.username.slice(0, 1).toUpperCase()}</span><div><strong>{user.username}</strong><small>Lv {profInfo.level} · {titleForLevel(user.level ?? 1)}</small></div></div>
       <article className="share-card clay-card brutal-card brutal-share"><p className="kicker">KARTU PROFIL</p><h2>Flex pencapaianmu ✨</h2><p className="share-note">Generate kartu berisi level, streak, dan badge buat dibagikan ke story.</p><div className="card-actions"><button className="card-button clay-button brutal-button" onClick={downloadProfileCard}>🖼️ Unduh kartu</button>{canShareCard && <button className="card-button ghost-button clay-button brutal-button brutal-ghost" onClick={shareProfileCard}>Bagikan</button>}</div></article>
+      <section className="manage-categories brutal-section">
+        <div className="section-header"><div><p className="kicker">KATEGORI</p><h2>Kelola kategori</h2></div><button className="clay-button brutal-button" onClick={() => setCategorySheet(true)}>+ Kategori</button></div>
+        <article className="category-manage-card brutal-card">
+          <CategoryRows label="Pemasukan" items={categories.filter((item) => item.type !== 'expense')} onDelete={removeCategory} />
+          <CategoryRows label="Pengeluaran" items={categories.filter((item) => item.type !== 'income')} onDelete={removeCategory} />
+        </article>
+      </section>
       <section className="danger-zone clay-danger brutal-danger"><div><strong>Hapus akun</strong><p>Seluruh transaksi pada akun ini akan dihapus permanen dari perangkat.</p></div><button className="danger-button clay-button brutal-button brutal-danger-btn" onClick={deleteAccount}>Hapus akun</button></section>
       <button className="logout-full clay-button brutal-button brutal-ghost" onClick={logout}>Keluar dari akun</button>
       </section>}
     </div>
     <button className="fab clay-button" aria-label="Catat transaksi baru" onClick={() => setShowForm(true)}>+</button>
     <BottomNav active={tab} onChange={setTab} />
-    {showForm && <TransactionForm onClose={() => setShowForm(false)} onSubmit={addTransaction} />}
-    {budgetSheet && <BudgetSheet initialCategory={budgetSheet.category ?? ''} currentLimit={budgetSheet.category ? budgets[budgetSheet.category] : ''} onClose={() => setBudgetSheet(null)} onSubmit={saveBudget} />}
+    {showForm && <TransactionForm expenseOptions={expenseCategories} incomeOptions={incomeCategories} onClose={() => setShowForm(false)} onSubmit={addTransaction} />}
+    {budgetSheet && <BudgetSheet options={expenseCategories} initialCategory={budgetSheet.category ?? ''} currentLimit={budgetSheet.category ? budgets[budgetSheet.category] : ''} onClose={() => setBudgetSheet(null)} onSubmit={saveBudget} />}
     {goalSheet && <GoalSheet goal={goal} onClose={() => setGoalSheet(false)} onSubmit={saveGoal} />}
+    {categorySheet && <CategorySheet existingNames={categories.map((item) => item.name)} onClose={() => setCategorySheet(false)} onSubmit={saveCategory} />}
     {levelUp && <LevelUpModal {...levelUp} onClose={() => setLevelUp(null)} />}
   </main>;
 }
@@ -361,21 +427,21 @@ function BalanceCard({ balance, xp, streak = 0 }) {
 }
 function StatCard({ label, amount, icon, variant }) { return <article className={`stat-card clay-card brutal-card ${variant}`}><span className={`stat-icon ${variant}`}>{icon}</span><div><p>{label}</p><strong>{rupiah.format(amount)}</strong><small>{variant === 'income' ? 'Total uang masuk' : 'Total uang keluar'}</small></div></article>; }
 
-function Transaction({ item, onDelete }) {
+function Transaction({ item, emojiMap = {}, onDelete }) {
   const income = item.type === 'income';
-  return <article className="transaction clay-card brutal-card brutal-row"><span className={`transaction-icon ${income ? 'income' : 'expense'}`}>{CATEGORY_EMOJI[item.category] || '✨'}</span><div className="transaction-info"><strong>{item.title}</strong><span>{item.category} <i>•</i> {dateFormatter.format(new Date(`${item.date}T00:00:00`))}</span></div><strong className={income ? 'amount income-text' : 'amount expense-text'}>{income ? '+' : '−'} {rupiah.format(item.amount)}</strong><button className="delete-transaction" aria-label={`Hapus ${item.title}`} onClick={() => onDelete(item.id)}>×</button></article>;
+  return <article className="transaction clay-card brutal-card brutal-row"><span className={`transaction-icon ${income ? 'income' : 'expense'}`}>{emojiMap[item.category] || '✨'}</span><div className="transaction-info"><strong>{item.title}</strong><span>{item.category} <i>•</i> {dateFormatter.format(new Date(`${item.date}T00:00:00`))}</span></div><strong className={income ? 'amount income-text' : 'amount expense-text'}>{income ? '+' : '−'} {rupiah.format(item.amount)}</strong><button className="delete-transaction" aria-label={`Hapus ${item.title}`} onClick={() => onDelete(item.id)}>×</button></article>;
 }
 
 function EmptyState({ filter, onAdd }) { return <div className="empty brutal-empty-state"><span>⌁</span><h3>{filter === 'all' ? 'Belum ada transaksi' : 'Tidak ada transaksi di kategori ini'}</h3><p>{filter === 'all' ? 'Mulai catat pemasukan atau pengeluaran pertamamu.' : 'Coba pilih filter lain atau tambahkan transaksi baru.'}</p>{filter === 'all' && <button className="empty-button clay-button brutal-button" onClick={onAdd}>Catat transaksi</button>}</div>; }
 
-function TransactionForm({ onClose, onSubmit }) {
+function TransactionForm({ expenseOptions = [], incomeOptions = [], onClose, onSubmit }) {
   const [type, setType] = useState('expense');
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [date, setDate] = useState(today);
   const [message, setMessage] = useState('');
-  const categories = type === 'income' ? ['Gaji', 'Bonus', 'Usaha', 'Investasi', 'Lainnya'] : ['Makan & Minum', 'Transportasi', 'Belanja', 'Tagihan', 'Hiburan', 'Lainnya'];
+  const categories = type === 'income' ? incomeOptions : expenseOptions;
   async function submit(event) {
     event.preventDefault();
     const numericAmount = Number(amount);
@@ -386,19 +452,19 @@ function TransactionForm({ onClose, onSubmit }) {
   return <div className="modal-backdrop clay-modal brutal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal clay-card brutal-sheet" role="dialog" aria-modal="true" aria-labelledby="form-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label="Tutup">×</button><p className="kicker">TRANSAKSI BARU</p><h2 id="form-title">Catat aktivitas keuangan</h2><form onSubmit={submit}><div className="type-switch"><button type="button" className={type === 'expense' ? 'selected expense' : ''} onClick={() => { setType('expense'); setCategory(''); }}>Pengeluaran</button><button type="button" className={type === 'income' ? 'selected income' : ''} onClick={() => { setType('income'); setCategory(''); }}>Pemasukan</button></div><label>Nama transaksi<input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder={type === 'income' ? 'Contoh: Gaji bulanan' : 'Contoh: Makan siang'} /></label><label>Nominal<input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))} placeholder="Contoh: 50000" /></label><div className="form-pair"><label>Kategori<select value={category} onChange={(e) => setCategory(e.target.value)}><option value="">Pilih kategori</option>{categories.map((item) => <option key={item}>{item}</option>)}</select></label><label>Tanggal<input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label></div>{message && <p className="form-message">{message}</p>}<div className="form-actions"><button className="ghost-button clay-button brutal-button brutal-ghost" type="button" onClick={onClose}>Batal</button><button className="primary-button clay-button brutal-button" type="submit">Simpan transaksi <span>→</span></button></div></form></section></div>;
 }
 
-function BudgetSheet({ initialCategory = '', currentLimit = '', onClose, onSubmit }) {
+function BudgetSheet({ options = [], initialCategory = '', currentLimit = '', onClose, onSubmit }) {
   const [category, setCategory] = useState(initialCategory);
   const [amount, setAmount] = useState(currentLimit ? String(currentLimit) : '');
   const [message, setMessage] = useState('');
   async function submit(event) {
     event.preventDefault();
     const numericAmount = Number(amount);
-    if (!category || !BUDGET_CATEGORIES.includes(category)) return setMessage('Pilih kategori terlebih dahulu.');
+    if (!category || !options.includes(category)) return setMessage('Pilih kategori terlebih dahulu.');
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) return setMessage('Masukkan nominal limit yang benar.');
     if (!(await onSubmit(category, numericAmount))) return setMessage('Budget gagal disimpan. Coba lagi ya.');
     onClose();
   }
-  return <div className="modal-backdrop clay-modal brutal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal clay-card brutal-sheet" role="dialog" aria-modal="true" aria-labelledby="budget-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label="Tutup">×</button><p className="kicker">BUDGET BULANAN</p><h2 id="budget-title">{initialCategory ? 'Ubah limit budget' : 'Atur limit budget'}</h2><form onSubmit={submit}><label>Kategori<select value={category} onChange={(e) => setCategory(e.target.value)}><option value="">Pilih kategori</option>{BUDGET_CATEGORIES.map((item) => <option key={item}>{item}</option>)}</select></label><label>Limit bulanan<input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))} placeholder="Contoh: 750000" /></label>{message && <p className="form-message">{message}</p>}<div className="form-actions"><button className="ghost-button clay-button brutal-button brutal-ghost" type="button" onClick={onClose}>Batal</button><button className="primary-button clay-button brutal-button" type="submit">Simpan budget <span>→</span></button></div></form></section></div>;
+  return <div className="modal-backdrop clay-modal brutal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal clay-card brutal-sheet" role="dialog" aria-modal="true" aria-labelledby="budget-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label="Tutup">×</button><p className="kicker">BUDGET BULANAN</p><h2 id="budget-title">{initialCategory ? 'Ubah limit budget' : 'Atur limit budget'}</h2><form onSubmit={submit}><label>Kategori<select value={category} onChange={(e) => setCategory(e.target.value)}><option value="">Pilih kategori</option>{options.map((item) => <option key={item}>{item}</option>)}</select></label><label>Limit bulanan<input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))} placeholder="Contoh: 750000" /></label>{message && <p className="form-message">{message}</p>}<div className="form-actions"><button className="ghost-button clay-button brutal-button brutal-ghost" type="button" onClick={onClose}>Batal</button><button className="primary-button clay-button brutal-button" type="submit">Simpan budget <span>→</span></button></div></form></section></div>;
 }
 
 function GoalSheet({ goal, onClose, onSubmit }) {
@@ -414,4 +480,34 @@ function GoalSheet({ goal, onClose, onSubmit }) {
     onClose();
   }
   return <div className="modal-backdrop clay-modal brutal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal clay-card brutal-sheet" role="dialog" aria-modal="true" aria-labelledby="goal-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label="Tutup">×</button><p className="kicker">TARGET TABUNGAN</p><h2 id="goal-title">{goal ? 'Ubah wishlist' : 'Buat wishlist baru'}</h2><form onSubmit={submit}><label>Nama target<input value={name} onChange={(e) => setName(e.target.value)} placeholder="Contoh: Dana impian" /></label><label>Nominal target<input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))} placeholder="Contoh: 5000000" /></label>{message && <p className="form-message">{message}</p>}<div className="form-actions"><button className="ghost-button clay-button brutal-button brutal-ghost" type="button" onClick={onClose}>Batal</button><button className="primary-button clay-button brutal-button" type="submit">Simpan target <span>→</span></button></div></form></section></div>;
+}
+
+function CategoryRows({ label, items, onDelete }) {
+  return <div className="category-group">
+    <small>{label}</small>
+    {items.map((item) => <div className="category-row" key={item.id}>
+      <span className="category-emoji">{item.emoji}</span>
+      <strong>{item.name}</strong>
+      {item.isDefault && <em>default</em>}
+      {!item.isDefault && <button type="button" aria-label={`Hapus kategori ${item.name}`} onClick={() => onDelete(item.id)}>×</button>}
+    </div>)}
+  </div>;
+}
+
+function CategorySheet({ existingNames = [], onClose, onSubmit }) {
+  const [type, setType] = useState('expense');
+  const [emoji, setEmoji] = useState('');
+  const [name, setName] = useState('');
+  const [message, setMessage] = useState('');
+  async function submit(event) {
+    event.preventDefault();
+    const cleanName = name.trim();
+    const cleanEmoji = Array.from(emoji.trim())[0] ?? '';
+    if (!cleanName) return setMessage('Beri nama kategorinya dulu.');
+    if (existingNames.some((item) => item.toLowerCase() === cleanName.toLowerCase())) return setMessage('Kategori dengan nama itu sudah ada.');
+    if (!cleanEmoji) return setMessage('Pilih satu emoji untuk kategorimu.');
+    if (!(await onSubmit({ name: cleanName, emoji: cleanEmoji, type }))) return setMessage('Kategori gagal disimpan. Coba lagi ya.');
+    onClose();
+  }
+  return <div className="modal-backdrop clay-modal brutal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal clay-card brutal-sheet" role="dialog" aria-modal="true" aria-labelledby="category-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label="Tutup">×</button><p className="kicker">KATEGORI BARU</p><h2 id="category-title">Tambah kategori</h2><form onSubmit={submit}><div className="type-switch"><button type="button" className={type === 'expense' ? 'selected expense' : ''} onClick={() => setType('expense')}>Pengeluaran</button><button type="button" className={type === 'income' ? 'selected income' : ''} onClick={() => setType('income')}>Pemasukan</button><button type="button" className={type === 'both' ? 'selected both' : ''} onClick={() => setType('both')}>Keduanya</button></div><label>Nama kategori<input value={name} onChange={(e) => setName(e.target.value)} maxLength={24} placeholder="Contoh: Jajan bubble" /></label><label>Emoji<div className="emoji-field"><span>{Array.from(emoji.trim())[0] || '❓'}</span><input value={emoji} onChange={(e) => setEmoji(e.target.value)} maxLength={8} placeholder="📦" /></div></label>{message && <p className="form-message">{message}</p>}<div className="form-actions"><button className="ghost-button clay-button brutal-button brutal-ghost" type="button" onClick={onClose}>Batal</button><button className="primary-button clay-button brutal-button" type="submit">Simpan kategori <span>→</span></button></div></form></section></div>;
 }

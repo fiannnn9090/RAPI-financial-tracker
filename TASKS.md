@@ -89,5 +89,6 @@ Detail lengkap: `.github/copilot-instructions.md` → "Fase Redesign — Neo-Bru
       N2) & Goal
 - [x] N5 Terapkan Profil + Auth (+ modal level-up) → setelah dicek, hapus clay.css &
       sisa legacy globals.css
-- [ ] N6 Fitur struktural baru: kustomisasi kategori, transaksi berulang, smart reminder
+- [ ] N6 Fitur struktural baru: kustomisasi kategori [x N6a — tabel categories + seed
+      default + Kelola Kategori di tab Profil], transaksi berulang (N6b, tabel sudah siap), smart reminder
 - [ ] N7 Recap cerita mingguan/bulanan

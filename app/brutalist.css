@@ -1109,3 +1109,128 @@
   transform: translate(2px, 2px);
   box-shadow: none;
 }
+
+/* =========================================================
+   N6a — Kelola Kategori (tab Profil) + CategorySheet
+   ========================================================= */
+
+.manage-categories .section-header h2 {
+  font-family: var(--br-font);
+  font-weight: 900;
+  letter-spacing: -.02em;
+}
+
+.category-manage-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.category-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-group > small {
+  font-size: var(--br-fs-caption);
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--br-muted);
+}
+
+.category-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 7px 10px;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-surface);
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+}
+
+.category-emoji {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-yellow);
+  color: #141414;
+  font-size: 17px;
+}
+
+.category-row strong {
+  flex: 1;
+  font-weight: 700;
+  color: var(--br-ink);
+}
+
+.category-row em {
+  font-style: normal;
+  font-size: var(--br-fs-caption);
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--br-muted);
+  background: var(--br-bg);
+  border: 1.5px solid var(--br-border);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.category-row button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-coral);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.category-row button:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+/* Type switch opsi "Keduanya" di CategorySheet */
+.type-switch button.selected.both {
+  background: var(--br-lilac);
+  color: #fff;
+}
+
+/* Emoji picker field */
+.emoji-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.emoji-field span {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-yellow);
+  color: #141414;
+  font-size: 22px;
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+}
+
+.emoji-field input {
+  flex: 1;
+}
