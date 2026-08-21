@@ -17,7 +17,7 @@ nada ramah). Pertahankan gaya ini di setiap komponen baru.
 
 ## Status migrasi saat ini
 Urutan pengerjaan (jangan lompat urutan tanpa konfirmasi user):
-1. [ ] Setup Supabase: schema (lihat `supabase/schema.sql`), Supabase Auth
+1. [ ] Setup Supabase: schema (lihat `sql/schema.sql`), Supabase Auth
 2. [ ] Migrasi data layer: ganti semua baca/tulis `localStorage` (STORAGE_KEY di app/page.js)
        menjadi query ke Supabase via `@supabase/supabase-js`
 3. [ ] Sistem XP & Level: hitung XP per transaksi, formula level, title level, modal level-up

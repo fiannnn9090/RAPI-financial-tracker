@@ -5,7 +5,7 @@ completion) supaya dia baca konteks penuh + `.github/copilot-instructions.md`.
 
 ## Fase 1 — Setup Supabase
 - [ ] Buat project baru di supabase.com, catat Project URL & anon key
-- [ ] Jalankan `supabase/schema.sql` di SQL Editor Supabase
+- [ ] Jalankan `sql/schema.sql` di SQL Editor Supabase
 - [ ] `npm install @supabase/supabase-js`
 - [ ] Buat `.env.local` berisi `NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - [ ] Prompt Copilot: "Buatkan lib/supabase.js yang inisialisasi Supabase client dari
@@ -18,7 +18,7 @@ completion) supaya dia baca konteks penuh + `.github/copilot-instructions.md`.
       email dummy `${username}@rapi.local` di baliknya, transparan buat user."
 - [ ] Prompt Copilot: "Ganti seluruh baca/tulis transactions, goals, budgets, achievements
       dari object `data` + localStorage menjadi query Supabase (select/insert/delete) sesuai
-      schema di supabase/schema.sql. Pertahankan nama fungsi (addTransaction,
+      schema di sql/schema.sql. Pertahankan nama fungsi (addTransaction,
       removeTransaction, setGoal, dst) dan behavior yang sama seperti sekarang."
 - [ ] Test manual: register, login, tambah transaksi, refresh browser, data masih ada
 
