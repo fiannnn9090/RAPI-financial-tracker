@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import supabase from '../lib/supabase';
 
 const STORAGE_KEY = 'rapi-keuangan-v1';
 const rupiah = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
@@ -41,21 +42,42 @@ function Auth({ data, setData }) {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
     const cleanName = username.trim();
     if (cleanName.length < 3) return setMessage('Nama pengguna minimal 3 karakter.');
     if (password.length < 4) return setMessage('Kata sandi minimal 4 karakter.');
 
-    const sameName = data.users.find((user) => user.username.toLowerCase() === cleanName.toLowerCase());
+    const email = `${cleanName.toLowerCase()}@rapi.local`;
+
     if (mode === 'register') {
-      if (sameName) return setMessage('Nama pengguna sudah digunakan. Coba nama lain.');
-      const user = { id: crypto.randomUUID(), username: cleanName, password };
-      setData((current) => ({ ...current, users: [...current.users, user], transactions: { ...current.transactions, [user.id]: [] }, goals: { ...current.goals, [user.id]: null }, achievements: { ...current.achievements, [user.id]: [] }, budgets: { ...current.budgets, [user.id]: {} }, activeUserId: user.id }));
+      const { data: authData, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        if (/already registered|already exists/i.test(error.message)) return setMessage('Nama pengguna sudah digunakan. Coba nama lain.');
+        return setMessage('Pendaftaran gagal. Coba beberapa saat lagi.');
+      }
+      if (!authData.session) return setMessage('Akun berhasil dibuat. Silakan masuk.');
+      adoptUser(authData.user, cleanName);
       return;
     }
-    if (!sameName || sameName.password !== password) return setMessage('Nama pengguna atau kata sandi belum tepat.');
-    setData((current) => ({ ...current, activeUserId: sameName.id }));
+
+    const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !authData.user) return setMessage('Nama pengguna atau kata sandi belum tepat.');
+    const emailName = authData.user.email.replace(/@rapi\.local$/, '');
+    const known = data.users.find((user) => user.username.toLowerCase() === emailName.toLowerCase());
+    adoptUser(authData.user, known?.username ?? emailName);
+  }
+
+  function adoptUser(authUser, displayName) {
+    setData((current) => ({
+      ...current,
+      users: current.users.some((user) => user.id === authUser.id) ? current.users : [...current.users, { id: authUser.id, username: displayName }],
+      transactions: { ...current.transactions, [authUser.id]: current.transactions[authUser.id] ?? [] },
+      goals: { ...current.goals, [authUser.id]: current.goals[authUser.id] ?? null },
+      achievements: { ...current.achievements, [authUser.id]: current.achievements[authUser.id] ?? [] },
+      budgets: { ...current.budgets, [authUser.id]: current.budgets[authUser.id] ?? {} },
+      activeUserId: authUser.id,
+    }));
   }
 
   function changeMode(next) {
