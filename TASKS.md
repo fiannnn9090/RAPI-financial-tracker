@@ -8,7 +8,7 @@ completion) supaya dia baca konteks penuh + `.github/copilot-instructions.md`.
 - [x] Jalankan `sql/schema.sql` di SQL Editor Supabase
 - [x] `npm install @supabase/supabase-js`
 - [x] Buat `.env.local` berisi `NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- [ ] Prompt Copilot: "Buatkan lib/supabase.js yang inisialisasi Supabase client dari
+- [x] Prompt Copilot: "Buatkan lib/supabase.js yang inisialisasi Supabase client dari
       environment variable NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_ANON_KEY"
 
 ## Fase 2 — Migrasi Auth & data layer
@@ -20,7 +20,7 @@ completion) supaya dia baca konteks penuh + `.github/copilot-instructions.md`.
       dari object `data` + localStorage menjadi query Supabase (select/insert/delete) sesuai
       schema di sql/schema.sql. Pertahankan nama fungsi (addTransaction,
       removeTransaction, setGoal, dst) dan behavior yang sama seperti sekarang."
-- [ ] Test manual: register, login, tambah transaksi, refresh browser, data masih ada
+- [x] Test manual: register, login, tambah transaksi, refresh browser, data masih ada
 
 ## Fase 3 — Sistem XP & Level
 - [x] Definisikan formula & title level (contoh, sesuaikan sama user):
@@ -34,14 +34,14 @@ completion) supaya dia baca konteks penuh + `.github/copilot-instructions.md`.
       confetti CSS ketika level user naik, tampilkan level baru dan title-nya"
 
 ## Fase 4 — Redesign Claymorphism
-- [ ] Prompt Copilot: "Buat file app/clay.css dengan design token claymorphism: variabel
+- [x] Prompt Copilot: "Buat file app/clay.css dengan design token claymorphism: variabel
       CSS untuk warna (base pastel cerah + accent), border-radius besar, soft double
       shadow, dan style tombol yang terasa 'ditekan' saat :active. Ikuti panduan di
       bagian Desain pada .github/copilot-instructions.md"
-- [ ] Ganti import CSS lama (genz.css/playful.css/pastel.css) di layout.js dengan clay.css
-- [ ] Terapkan class-class baru ke komponen di app/page.js satu section per satu
+- [x] Ganti import CSS lama (genz.css/playful.css/pastel.css) di layout.js dengan clay.css
+- [x] Terapkan class-class baru ke komponen di app/page.js satu section per satu
       (jangan sekaligus semua — cek visual tiap section dulu)
-- [ ] Hapus genz.css/playful.css/pastel.css setelah migrasi selesai & dicek semua halaman
+- [x] Hapus genz.css/playful.css/pastel.css setelah migrasi selesai & dicek semua halaman
 
 ## Fase 5 — Fitur lanjutan
 - [ ] Daily streak: increment streak_current kalau last_activity_date = kemarin,

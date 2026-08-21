@@ -17,11 +17,11 @@ nada ramah). Pertahankan gaya ini di setiap komponen baru.
 
 ## Status migrasi saat ini
 Urutan pengerjaan (jangan lompat urutan tanpa konfirmasi user):
-1. [ ] Setup Supabase: schema (lihat `sql/schema.sql`), Supabase Auth
-2. [ ] Migrasi data layer: ganti semua baca/tulis `localStorage` (STORAGE_KEY di app/page.js)
+1. [x] Setup Supabase: schema (lihat `sql/schema.sql`), Supabase Auth
+2. [x] Migrasi data layer: ganti semua baca/tulis `localStorage` (STORAGE_KEY di app/page.js)
        menjadi query ke Supabase via `@supabase/supabase-js`
-3. [ ] Sistem XP & Level: hitung XP per transaksi, formula level, title level, modal level-up
-4. [ ] Redesign visual Claymorphism: ganti genz.css/playful.css/pastel.css jadi satu tema clay
+3. [x] Sistem XP & Level: hitung XP per transaksi, formula level, title level, modal level-up
+4. [x] Redesign visual Claymorphism: ganti genz.css/playful.css/pastel.css jadi satu tema clay
 5. [ ] Fitur lanjutan: daily streak, badge rarity/progress, kartu profil shareable
 
 Cek checklist di `TASKS.md` untuk task granular per fase. Kerjakan SATU task pada satu waktu,

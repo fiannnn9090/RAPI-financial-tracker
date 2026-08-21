@@ -20,8 +20,8 @@ export default function LevelUpModal({ level, title, xpEarned, onClose }) {
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  return <div className="modal-backdrop levelup-backdrop" role="presentation" onMouseDown={onClose}>
-    <section className="modal levelup-modal" role="dialog" aria-modal="true" aria-labelledby="levelup-title" onMouseDown={(event) => event.stopPropagation()}>
+  return <div className="modal-backdrop clay-modal levelup-backdrop" role="presentation" onMouseDown={onClose}>
+    <section className="modal clay-card levelup-modal" role="dialog" aria-modal="true" aria-labelledby="levelup-title" onMouseDown={(event) => event.stopPropagation()}>
       <div className="confetti-layer" aria-hidden="true">
         {confetti.map((piece, index) => <i
           key={index}
