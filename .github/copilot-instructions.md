@@ -44,6 +44,30 @@ Project sedang dalam proses dijadikan aplikasi Android via Capacitor. Urutan mil
 - **M5 — Polish native**: styling status bar, penanganan tombol back Android,
   transisi splash → app.
 
+## Fase Redesign — Neo-Brutalist (N1–N7)
+Setelah fase Mobile selesai, bahasa desain Claymorphism akan DIGANTI TOTAL dengan
+Neo-Brutalist Bold. Ini bukan penyesuaian — semua soft shadow, gradient, dan
+border-radius empuk akan dihapus. Karakter bahasa desain baru:
+- Border tebal solid (standar 3px, warna ink) pada kartu & kontrol interaktif
+- Warna flat kontras tinggi — TANPA gradient sama sekali
+- Shadow hard-edge: offset murni TANPA blur (kesan stiker / kartu ditumpuk)
+- Tipografi besar & berani (weight 800–900 untuk heading, ukuran hero besar)
+- Dark mode adalah BAGIAN dari token desain — setiap token punya pasangan light/dark,
+  bukan stylesheet terpisah. Default mengikuti `prefers-color-scheme`, bisa dioverride
+  manual lewat atribut `[data-theme="light"|"dark"]` di `<html>`
+
+Urutan milestone (jangan lompat urutan tanpa konfirmasi user):
+- **N1 — Fondasi token + dark mode**: buat `app/brutalist.css` berisi custom properties
+  kedua mode + primitif dasar `.brutal-card`/`.brutal-button`. File ini BELUM dipakai
+  komponen mana pun; clay.css tetap utuh sampai minimal N5 selesai.
+- **N2 — Terapkan tab Beranda** (heading, balance/stat card, insight, budget)
+- **N3 — Terapkan tab Transaksi** (+ bottom-sheet form transaksi)
+- **N4 — Terapkan tab Target** (goal card, badge list)
+- **N5 — Terapkan Profil + Auth** (+ modal level-up); setelah ini clay.css dihapus
+- **N6 — Fitur struktural baru**: kustomisasi kategori, transaksi berulang,
+  smart reminder pengeluaran
+- **N7 — Recap cerita**: ringkasan naratif mingguan/bulanan aktivitas keuangan
+
 ## Konvensi kode yang sudah ada (pertahankan gayanya)
 - Komponen fungsi di `app/page.js`, memakai `'use client'` di baris pertama file
 - Helper domain ditaruh sebagai fungsi murni di `lib/`: `xp.js` (XP & level),
@@ -68,13 +92,15 @@ Project sedang dalam proses dijadikan aplikasi Android via Capacitor. Urutan mil
 - Selain `sql/schema.sql`, ada `sql/badge_seed.sql` yang WAJIB dijalankan manual di
   Supabase — `user_badges` tidak bisa di-insert sebelum `badge_defs` terisi (FK)
 
-## Desain — Claymorphism
+## Desain — Claymorphism (legacy; digantikan mulai N1)
 - Warna cerah, saturasi tinggi, background soft/pastel base
 - Elemen "empuk": border-radius besar (16–28px), soft shadow ganda (outer soft shadow +
   inset highlight tipis di atas untuk efek 3D "clay")
 - Tombol terasa bisa "ditekan": box-shadow berkurang + translateY kecil saat :active
 - Hindari flat design / sharp corners — ini kebalikan dari neo-brutalist
 - Semua CSS custom (tanpa Tailwind), taruh di file CSS yang relevan di `app/`
+- PENTING: begitu fase Redesign dimulai (lihat bagian "Fase Redesign — Neo-Brutalist"),
+  JANGAN menambah rule clay baru lagi — semua style baru masuk bahasa neo-brutalist
 
 ## Yang HARUS dihindari
 - Jangan hardcode API key Supabase di source code

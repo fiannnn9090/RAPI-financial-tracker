@@ -73,3 +73,21 @@ lanjut ke fase berikutnya.
 - [x] M5 Polish native: styling status bar (krem #FAF3EE + ikon gelap, via config StatusBar),
       penanganan tombol back Android berjenjang (tutup modal → tab Beranda → exit,
       @capacitor/app), transisi splash → app (auto-hide + fade 400ms via @capacitor/splash-screen)
+
+---
+
+## Fase Redesign — Neo-Brutalist Bold
+Ganti TOTAL claymorphism: border tebal solid, warna flat kontras tinggi tanpa gradient,
+shadow hard-edge (offset tanpa blur), tipografi besar & berani. Dark mode bagian dari token.
+Detail lengkap: `.github/copilot-instructions.md` → "Fase Redesign — Neo-Brutalist".
+- [x] N1 Fondasi token + dark mode: `app/brutalist.css` (token light & dark, 4 aksen solid,
+      border-width standar, resep shadow hard-edge offset-no-blur, skala tipografi besar,
+      primitif .brutal-card/.brutal-button) — TANPA menyentuh page.js / clay.css
+- [x] N2 Terapkan tab Beranda (heading, balance/stat card, insight, budget)
+- [x] N3 Terapkan tab Transaksi + bottom-sheet form transaksi
+- [x] N4 Terapkan tab Target (goal card, badge list) + sheet Budget (koreksi cakupan dari
+      N2) & Goal
+- [x] N5 Terapkan Profil + Auth (+ modal level-up) → setelah dicek, hapus clay.css &
+      sisa legacy globals.css
+- [ ] N6 Fitur struktural baru: kustomisasi kategori, transaksi berulang, smart reminder
+- [ ] N7 Recap cerita mingguan/bulanan

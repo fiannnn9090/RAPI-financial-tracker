@@ -21,7 +21,7 @@ export default function LevelUpModal({ level, title, xpEarned, onClose }) {
   }, [onClose]);
 
   return <div className="modal-backdrop clay-modal levelup-backdrop" role="presentation" onMouseDown={onClose}>
-    <section className="modal clay-card levelup-modal" role="dialog" aria-modal="true" aria-labelledby="levelup-title" onMouseDown={(event) => event.stopPropagation()}>
+    <section className="modal clay-card levelup-modal brutal-card brutal-levelup" role="dialog" aria-modal="true" aria-labelledby="levelup-title" onMouseDown={(event) => event.stopPropagation()}>
       <div className="confetti-layer" aria-hidden="true">
         {confetti.map((piece, index) => <i
           key={index}
@@ -42,7 +42,7 @@ export default function LevelUpModal({ level, title, xpEarned, onClose }) {
       <h2 id="levelup-title">Lv {level} tercapai!</h2>
       <p className="levelup-copy">Gila sih, bestie 😎 Kamu resmi naik gelar jadi <strong>“{title}”</strong>.</p>
       {xpEarned ? <p className="levelup-xp">+{xpEarned} XP dari transaksi terakhirmu ✨</p> : null}
-      <button className="primary-button" onClick={onClose}>Gass lanjut! <span>→</span></button>
+      <button className="primary-button brutal-button" onClick={onClose}>Gass lanjut! <span>→</span></button>
     </section>
   </div>;
 }

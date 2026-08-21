@@ -1,0 +1,1111 @@
+/* =========================================================
+   RAPI — Neo-Brutalist Bold (Fase Redesign, N1)
+   Fondasi token + primitif. BELUM dipakai komponen mana pun;
+   clay.css tetap aktif sampai N2–N5 selesai.
+
+   Dark mode: default mengikuti prefers-color-scheme;
+   override manual dengan [data-theme="light"|"dark"] di <html>.
+   ========================================================= */
+
+:root {
+  /* Base — light */
+  --br-bg: #FFF9EF;            /* kertas hangat */
+  --br-surface: #FFFFFF;
+  --br-ink: #141414;           /* teks + warna border */
+  --br-muted: #5A544C;
+
+  /* Aksen solid — tanpa gradient */
+  --br-yellow: #FFD23F;        /* highlight / tombol utama / badge */
+  --br-coral: #FF5D73;         /* pengeluaran / danger */
+  --br-green: #00C48C;         /* pemasukan / sukses */
+  --br-lilac: #9B5DE5;         /* aksen sekunder / fokus */
+  --br-gold: #FFB020;          /* tier legendary / goal tercapai */
+
+  /* Border */
+  --br-border-w: 3px;
+  --br-border: var(--br-ink);
+  --br-radius-sm: 8px;
+  --br-radius-md: 12px;
+
+  /* Resep shadow hard-edge: offset murni, blur 0, spread 0.
+     Kesan stiker/kartu ditumpuk — arahkan cahaya dari kiri-atas. */
+  --br-shadow-c: var(--br-ink);
+  --br-shadow-sm: 3px 3px 0 0 var(--br-shadow-c);
+  --br-shadow-md: 5px 5px 0 0 var(--br-shadow-c);
+  --br-shadow-lg: 8px 8px 0 0 var(--br-shadow-c);
+
+  /* Tipografi besar & berani */
+  --br-font: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --br-fs-hero: clamp(32px, 9vw, 44px);   /* angka saldo / judul hero */
+  --br-fs-h1: 26px;
+  --br-fs-h2: 20px;
+  --br-fs-body: 15px;
+  --br-fs-caption: 12px;
+}
+
+/* Dark mode — sistem */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --br-bg: #16161F;
+    --br-surface: #232330;
+    --br-ink: #F5F1E8;         /* border & teks jadi terang di dark */
+    --br-muted: #A9A3B8;
+
+    --br-yellow: #FFD23F;
+    --br-coral: #FF7590;
+    --br-green: #2DD4A7;
+    --br-lilac: #B388FF;
+    --br-gold: #FFB020;
+
+    /* Di dark, border terang yang memikul kontras;
+       shadow hitam solid tetap memberi kesan "ditumpuk". */
+    --br-shadow-c: #000000;
+  }
+}
+
+/* Dark mode — manual */
+[data-theme='dark'] {
+  --br-bg: #16161F;
+  --br-surface: #232330;
+  --br-ink: #F5F1E8;
+  --br-muted: #A9A3B8;
+
+  --br-yellow: #FFD23F;
+  --br-coral: #FF7590;
+  --br-green: #2DD4A7;
+  --br-lilac: #B388FF;
+  --br-gold: #FFB020;
+
+  --br-shadow-c: #000000;
+}
+
+/* ============ Primitif dasar ============ */
+
+.brutal-card {
+  background: var(--br-surface);
+  color: var(--br-ink);
+  border: var(--br-border-w) solid var(--br-border);
+  border-radius: var(--br-radius-md);
+  box-shadow: var(--br-shadow-md);
+}
+
+.brutal-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 11px 18px;
+  font-family: var(--br-font);
+  font-size: var(--br-fs-body);
+  font-weight: 800;
+  letter-spacing: .01em;
+  color: var(--br-ink);
+  background: var(--br-yellow);
+  border: var(--br-border-w) solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  box-shadow: var(--br-shadow-sm);
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.brutal-button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 0 var(--br-shadow-c);
+}
+
+.brutal-button:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 0 transparent;
+}
+
+.brutal-button:focus-visible {
+  outline: 3px dashed var(--br-lilac);
+  outline-offset: 3px;
+}
+
+.brutal-button:disabled,
+.brutal-button:disabled:hover {
+  opacity: .5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.brutal-kicker {
+  font-size: var(--br-fs-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--br-muted);
+}
+
+/* =========================================================
+   N2 — Tab Beranda
+   Override ter-scope; menang karena diimport setelah clay.css.
+   ========================================================= */
+
+/* Brand */
+.brand.brutal-brand {
+  font-family: var(--br-font);
+  font-weight: 800;
+  letter-spacing: -.03em;
+}
+
+.brand.brutal-brand span {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--br-radius-sm);
+  border: 2px solid var(--br-border);
+  background: var(--br-yellow);
+  color: #141414;
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+  font-weight: 700;
+}
+
+/* Heading + CTA */
+.dashboard-heading.brutal-heading .kicker {
+  font-size: var(--br-fs-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--br-muted);
+}
+
+.dashboard-heading.brutal-heading h1 {
+  font-family: var(--br-font);
+  font-weight: 900;
+  letter-spacing: -.03em;
+  line-height: 1.04;
+}
+
+.dashboard-heading.brutal-heading h1 em {
+  color: var(--br-coral);
+}
+
+.dashboard-heading.brutal-heading .subline {
+  color: var(--br-muted);
+}
+
+/* BalanceCard */
+.balance-card.brutal-card p {
+  font-size: var(--br-fs-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--br-muted);
+}
+
+.balance-card.brutal-card strong {
+  font-family: var(--br-font);
+  font-size: clamp(30px, 8vw, 38px);
+  font-weight: 900;
+  letter-spacing: -.02em;
+}
+
+.balance-card.brutal-card small {
+  color: var(--br-muted);
+}
+
+.balance-card.brutal-card .level-chip {
+  border: 2px solid var(--br-border);
+  border-radius: 999px;
+  background: var(--br-lilac);
+  color: #fff;
+  padding: 3px 10px;
+}
+
+.balance-card.brutal-card .level-bar {
+  height: 14px;
+  border: 2px solid var(--br-border);
+  border-radius: 999px;
+  background: var(--br-surface);
+  overflow: hidden;
+}
+
+.balance-card.brutal-card .level-bar span {
+  background: var(--br-lilac);
+}
+
+.balance-card.brutal-card .streak-chip {
+  border: var(--br-border-w) dashed transparent;
+  border-radius: 999px;
+  padding: 4px 11px;
+}
+
+.balance-card.brutal-card .streak-chip.active {
+  border-style: solid;
+  background: var(--br-yellow);
+  color: #141414;
+}
+
+.balance-card.brutal-card .streak-chip.idle {
+  border-color: var(--br-muted);
+  color: var(--br-muted);
+}
+
+.balance-card.brutal-card .balance-mark {
+  color: var(--br-yellow);
+  -webkit-text-stroke: 2px var(--br-ink);
+  opacity: 1;
+}
+
+/* StatCard — ikon flat solid, tanpa gradient */
+.stat-card.brutal-card p {
+  font-size: var(--br-fs-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--br-muted);
+}
+
+.stat-card.brutal-card strong {
+  font-family: var(--br-font);
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.stat-card.brutal-card small {
+  color: var(--br-muted);
+}
+
+.stat-card.brutal-card .stat-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: var(--br-border-w) solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  box-shadow: var(--br-shadow-sm);
+  background: var(--br-surface);
+}
+
+.stat-card.brutal-card.income .stat-icon {
+  background: var(--br-green);
+}
+
+.stat-card.brutal-card.expense .stat-icon {
+  background: var(--br-coral);
+}
+
+/* Section header bersama */
+.brutal-section .section-header h2 {
+  font-family: var(--br-font);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -.02em;
+}
+
+.brutal-section .section-header p {
+  color: var(--br-muted);
+}
+
+/* Insight & chart */
+.insight-card.brutal-card > span,
+.chart-row > span {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.insight-card.brutal-card > span {
+  width: 44px;
+  height: 44px;
+  border: var(--br-border-w) solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  box-shadow: var(--br-shadow-sm);
+  background: var(--br-yellow);
+}
+
+.insight-card.brutal-card strong {
+  font-family: var(--br-font);
+  font-weight: 900;
+}
+
+.insight-card.brutal-card .insight-amount {
+  font-weight: 800;
+  color: var(--br-ink);
+}
+
+.insight-card.brutal-card .insight-caption,
+.chart-empty {
+  color: var(--br-muted);
+}
+
+.chart-title span {
+  border: 2px solid var(--br-border);
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: var(--br-fs-caption);
+  font-weight: 700;
+}
+
+.chart-row > span {
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-surface);
+}
+
+.chart-row i {
+  height: 14px;
+  border: 2px solid var(--br-border);
+  border-radius: 999px;
+  background: var(--br-surface);
+  overflow: hidden;
+}
+
+.chart-row i em {
+  background: var(--br-lilac);
+}
+
+.chart-empty {
+  border: 3px dashed var(--br-border);
+  border-radius: var(--br-radius-sm);
+  padding: 14px;
+}
+
+/* Budget */
+.budget-item.brutal-card button {
+  border: var(--br-border-w) solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-surface);
+  color: var(--br-ink);
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+  font-weight: 900;
+}
+
+.budget-item.brutal-card button:hover {
+  background: var(--br-yellow);
+}
+
+.budget-item.brutal-card button:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.budget-item.brutal-card p {
+  color: var(--br-muted);
+}
+
+.budget-item.brutal-card p b {
+  color: var(--br-ink);
+  font-weight: 800;
+}
+
+.budget-item.brutal-card p em {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--br-muted);
+}
+
+.budget-item.brutal-card:has(.safe) p em {
+  color: var(--br-green);
+}
+
+.budget-item.brutal-card:has(.near) p em,
+.budget-item.brutal-card:has(.over) p em {
+  color: var(--br-coral);
+}
+
+.budget-bar {
+  height: 14px;
+  border: 2px solid var(--br-border);
+  border-radius: 999px;
+  background: var(--br-surface);
+  overflow: hidden;
+}
+
+/* Isi bar FLAT solid — tanpa gradient */
+.budget-bar span.safe {
+  background: var(--br-green);
+}
+
+.budget-bar span.near {
+  background: var(--br-yellow);
+}
+
+.budget-bar span.over {
+  background: var(--br-coral);
+}
+
+.budget-empty.brutal-empty {
+  border: 3px dashed var(--br-border);
+  border-radius: var(--br-radius-md);
+  background: transparent;
+  box-shadow: none;
+}
+
+.budget-empty.brutal-empty strong {
+  color: var(--br-ink);
+}
+
+.budget-empty.brutal-empty p {
+  color: var(--br-muted);
+}
+
+/* =========================================================
+   N3 — Tab Transaksi
+   ========================================================= */
+
+/* Filter pills — interaktif penuh */
+.filters.brutal-filters {
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.filters.brutal-filters button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--br-muted);
+  background: var(--br-surface);
+  border: var(--br-border-w) solid var(--br-border);
+  border-radius: 999px;
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+  transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+}
+
+.filters.brutal-filters button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 0 var(--br-shadow-c);
+}
+
+.filters.brutal-filters button.active {
+  background: var(--br-yellow);
+  color: var(--br-ink);
+}
+
+.filters.brutal-filters button:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+/* List transaksi — border tetap tegas, shadow ringan per item */
+.transaction.brutal-row {
+  border-width: 2px;
+  border-radius: var(--br-radius-sm);
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+}
+
+.transaction.brutal-row .transaction-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-surface);
+}
+
+.transaction.brutal-row strong {
+  font-family: var(--br-font);
+  font-weight: 800;
+}
+
+.transaction.brutal-row .transaction-info span {
+  color: var(--br-muted);
+}
+
+.transaction.brutal-row .amount.income-text {
+  color: var(--br-green);
+  font-weight: 900;
+}
+
+.transaction.brutal-row .amount.expense-text {
+  color: var(--br-coral);
+  font-weight: 900;
+}
+
+.transaction.brutal-row .delete-transaction {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-surface);
+  color: var(--br-ink);
+  font-size: 18px;
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+}
+
+.transaction.brutal-row .delete-transaction:hover {
+  background: var(--br-coral);
+  color: #fff;
+}
+
+.transaction.brutal-row .delete-transaction:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+/* Empty state */
+.empty.brutal-empty-state {
+  border: 3px dashed var(--br-border);
+  border-radius: var(--br-radius-md);
+  background: transparent;
+  box-shadow: none;
+}
+
+.empty.brutal-empty-state h3 {
+  font-family: var(--br-font);
+  font-weight: 900;
+}
+
+.empty.brutal-empty-state p {
+  color: var(--br-muted);
+}
+
+/* Sheet form — panel dibingkai tebal, bukan cuma radius atas */
+.modal.brutal-sheet {
+  border: var(--br-border-w) solid var(--br-border);
+  border-radius: var(--br-radius-md);
+  box-shadow: var(--br-shadow-lg);
+}
+
+@media (max-width: 770px) {
+  .modal.brutal-sheet {
+    border-radius: var(--br-radius-md) var(--br-radius-md) 0 0;
+    box-shadow: 0 -5px 0 0 var(--br-shadow-c);
+  }
+}
+
+.modal-backdrop.brutal-backdrop {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: rgba(20, 20, 20, .55);
+}
+
+/* Kepala sheet */
+.brutal-sheet .kicker {
+  font-size: var(--br-fs-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--br-muted);
+}
+
+.brutal-sheet h2 {
+  font-family: var(--br-font);
+  font-weight: 900;
+  letter-spacing: -.02em;
+}
+
+/* Tombol tutup */
+.brutal-sheet .close-modal {
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-surface);
+  color: var(--br-ink);
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+}
+
+.brutal-sheet .close-modal:hover {
+  background: var(--br-yellow);
+}
+
+.brutal-sheet .close-modal:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+/* Input & select — border solid, focus = aksen keras bukan ring lembut */
+.brutal-sheet input,
+.brutal-sheet select {
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-surface);
+  color: var(--br-ink);
+  box-shadow: none;
+  color-scheme: light dark;
+}
+
+.brutal-sheet input:focus,
+.brutal-sheet select:focus {
+  outline: none;
+  border-color: var(--br-lilac);
+  box-shadow: 3px 3px 0 0 var(--br-lilac);
+}
+
+.brutal-sheet ::placeholder {
+  color: var(--br-muted);
+  opacity: 1;
+}
+
+/* Type switch — pill flat, selected solid */
+.brutal-sheet .type-switch {
+  gap: 3px;
+  padding: 3px;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-surface);
+}
+
+.brutal-sheet .type-switch button {
+  min-height: 40px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--br-muted);
+  font-weight: 700;
+}
+
+.brutal-sheet .type-switch button.selected.expense {
+  border-color: var(--br-border);
+  background: var(--br-coral);
+  color: #fff;
+}
+
+.brutal-sheet .type-switch button.selected.income {
+  border-color: var(--br-border);
+  background: var(--br-green);
+  color: #fff;
+}
+
+/* Pesan error form */
+.brutal-sheet .form-message {
+  border: 2px solid #B3261E;
+  border-radius: var(--br-radius-sm);
+  background: #FDECEC;
+  color: #B3261E;
+  padding: 9px 12px;
+  font-weight: 700;
+}
+
+/* Varian tombol sekunder di dalam sheet */
+.brutal-button.brutal-ghost {
+  background: var(--br-surface);
+}
+
+/* =========================================================
+   N4 — Tab Target (goal + badge rarity) & sheet Budget/Goal
+   ========================================================= */
+
+/* Goal / wishlist card */
+.goal-card.brutal-goal .kicker {
+  font-size: var(--br-fs-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--br-muted);
+}
+
+.goal-card.brutal-goal h2 {
+  font-family: var(--br-font);
+  font-weight: 900;
+  letter-spacing: -.02em;
+}
+
+.goal-progress {
+  height: 14px;
+  border: 2px solid var(--br-border);
+  border-radius: 999px;
+  background: var(--br-surface);
+  overflow: hidden;
+}
+
+.goal-progress span {
+  background: var(--br-lilac);
+}
+
+.goal-caption {
+  color: var(--br-muted);
+}
+
+.goal-caption strong {
+  color: var(--br-ink);
+  font-weight: 800;
+}
+
+/* Goal tercapai — border emas tebal + shadow emas besar (bukan glow) */
+.goal-card.brutal-card.goal-reached {
+  border-color: var(--br-gold);
+  box-shadow: 8px 8px 0 0 var(--br-gold);
+}
+
+.goal-card.brutal-card.goal-reached .kicker {
+  color: var(--br-gold);
+}
+
+.goal-card.brutal-card.goal-reached .goal-progress span {
+  background: var(--br-green);
+}
+
+/* Tombol klaim — sukses flat */
+.brutal-button.brutal-success {
+  background: var(--br-green);
+  color: #fff;
+}
+
+/* Koleksi badge */
+.badge-card.brutal-badge .kicker {
+  font-size: var(--br-fs-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--br-muted);
+}
+
+.badge-card.brutal-badge h2 {
+  font-family: var(--br-font);
+  font-weight: 900;
+  letter-spacing: -.02em;
+}
+
+.badge-heading > span {
+  border: 2px solid var(--br-border);
+  border-radius: 999px;
+  background: var(--br-yellow);
+  color: #141414;
+  padding: 3px 10px;
+  font-weight: 800;
+  font-size: var(--br-fs-caption);
+}
+
+.badges .badge {
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-surface);
+}
+
+.badges .badge strong {
+  color: var(--br-ink);
+  font-weight: 800;
+}
+
+.badges .badge small {
+  color: var(--br-muted);
+}
+
+/* Locked: dashed muted, ikon pudar */
+.badges .badge.locked {
+  border-style: dashed;
+  border-color: var(--br-muted);
+  background: transparent;
+}
+
+.badges .badge.locked > span {
+  filter: grayscale(1);
+  opacity: .55;
+}
+
+/* Unlocked: solid warna tier; makin tinggi tier makin "berat" bayangannya */
+.badges .badge.unlocked.tier-common {
+  border-color: var(--br-border);
+}
+
+.badges .badge.unlocked.tier-rare {
+  border-color: var(--br-lilac);
+}
+
+.badges .badge.unlocked.tier-epic {
+  border-color: var(--br-coral);
+  box-shadow: 3px 3px 0 0 var(--br-shadow-c);
+}
+
+.badges .badge.unlocked.tier-legendary {
+  border-width: 3px;
+  border-color: var(--br-gold);
+  box-shadow: 4px 4px 0 0 var(--br-gold);
+}
+
+/* Matikan shine/glow clay pada legendary */
+.badge-card.brutal-badge .badge.tier-legendary::after {
+  content: none;
+}
+
+/* Chip label tier */
+.badges .badge .badge-tier {
+  border: 2px solid currentColor;
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  background: var(--br-surface);
+}
+
+.badges .badge.tier-common .badge-tier { color: var(--br-muted); }
+.badges .badge.tier-rare .badge-tier { color: var(--br-lilac); }
+.badges .badge.tier-epic .badge-tier { color: var(--br-coral); }
+
+.badges .badge.tier-legendary .badge-tier {
+  border-color: var(--br-border);
+  background: var(--br-gold);
+  color: #141414;
+}
+
+/* Progress bar badge locked — pola bar brutalist standar */
+.badge-card.brutal-badge .badge-progress {
+  display: block;
+  height: 12px;
+  margin-top: 6px;
+  border: 2px solid var(--br-border);
+  border-radius: 999px;
+  background: var(--br-bg);
+  overflow: hidden;
+}
+
+.badge-card.brutal-badge .badge-progress em {
+  background: var(--br-lilac);
+}
+
+/* =========================================================
+   N5 — Tab Profil, Auth, LevelUpModal (penutup redesign)
+   ========================================================= */
+
+/* ---- Tab Profil ---- */
+.profile-head .avatar {
+  display: grid;
+  place-items: center;
+  border: var(--br-border-w) solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-yellow);
+  color: #141414;
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+  font-weight: 900;
+}
+
+.profile-head strong {
+  font-family: var(--br-font);
+  font-weight: 900;
+}
+
+.profile-head small {
+  color: var(--br-muted);
+}
+
+.share-card.brutal-share h2 {
+  font-family: var(--br-font);
+  font-weight: 900;
+  letter-spacing: -.02em;
+}
+
+.share-card.brutal-share .kicker {
+  font-size: var(--br-fs-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--br-muted);
+}
+
+.share-card.brutal-share .share-note {
+  color: var(--br-muted);
+}
+
+.logout-full.brutal-ghost {
+  justify-content: center;
+}
+
+/* Danger zone — urgensi keras */
+.danger-zone.brutal-danger {
+  border: var(--br-border-w) solid var(--br-coral);
+  border-radius: var(--br-radius-md);
+  background: transparent;
+  box-shadow: 6px 6px 0 0 var(--br-coral);
+}
+
+.danger-zone.brutal-danger strong {
+  color: var(--br-coral);
+  font-weight: 800;
+}
+
+.danger-zone.brutal-danger p {
+  color: var(--br-muted);
+}
+
+.brutal-button.brutal-danger-btn {
+  background: var(--br-coral);
+  color: #fff;
+  box-shadow: 4px 4px 0 0 var(--br-shadow-c);
+}
+
+.brutal-button.brutal-danger-btn:hover {
+  filter: brightness(1.05);
+}
+
+.brutal-button.brutal-danger-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: none;
+}
+
+/* ---- LevelUpModal — bingkai brutal, confetti tetap ---- */
+.levelup-modal.brutal-levelup {
+  padding: 34px 28px;
+  text-align: center;
+}
+
+.levelup-modal.brutal-levelup .kicker {
+  font-size: var(--br-fs-caption);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--br-gold);
+}
+
+.levelup-modal.brutal-levelup h2 {
+  font-family: var(--br-font);
+  font-weight: 900;
+  letter-spacing: -.02em;
+  color: var(--br-ink);
+}
+
+.levelup-modal.brutal-levelup .levelup-copy {
+  color: var(--br-muted);
+}
+
+.levelup-modal.brutal-levelup .levelup-copy strong {
+  color: var(--br-ink);
+}
+
+.levelup-modal.brutal-levelup .levelup-xp {
+  color: var(--br-green);
+  font-weight: 800;
+}
+
+.levelup-modal.brutal-levelup .primary-button {
+  margin-top: 6px;
+}
+
+/* ---- Auth page ---- */
+.auth-page.brutal-auth .auth-intro {
+  background: var(--br-lilac);
+}
+
+.auth-page.brutal-auth .auth-intro:after {
+  content: none; /* lingkaran dekor clay dihapus */
+}
+
+@media (min-width: 771px) {
+  .auth-page.brutal-auth .auth-intro {
+    border-right: var(--br-border-w) solid var(--br-border);
+  }
+}
+
+.auth-page.brutal-auth .brand {
+  color: #fff;
+}
+
+.auth-page.brutal-auth .kicker {
+  color: rgba(255, 255, 255, .88);
+}
+
+.auth-page.brutal-auth .intro-copy h1 {
+  color: #fff;
+  font-family: var(--br-font);
+  font-weight: 900;
+  letter-spacing: -.03em;
+}
+
+.auth-page.brutal-auth .intro-copy h1 em {
+  color: var(--br-yellow);
+}
+
+.auth-page.brutal-auth .intro-copy > p:last-child {
+  color: rgba(255, 255, 255, .92);
+}
+
+.auth-page.brutal-auth .feature-note {
+  color: #fff;
+}
+
+.auth-page.brutal-auth .feature-note > span {
+  color: var(--br-yellow);
+}
+
+.auth-page.brutal-auth .feature-note small {
+  color: rgba(255, 255, 255, .78);
+}
+
+.auth-page.brutal-auth .auth-panel {
+  background: var(--br-bg);
+}
+
+.form-wrap.brutal-card .welcome {
+  color: var(--br-muted);
+}
+
+.form-wrap.brutal-card h2 {
+  font-family: var(--br-font);
+  font-weight: 900;
+  letter-spacing: -.02em;
+  color: var(--br-ink);
+}
+
+.form-wrap.brutal-card .form-description {
+  color: var(--br-muted);
+}
+
+.form-wrap.brutal-card label {
+  font-size: var(--br-fs-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--br-muted);
+}
+
+/* Input auth — pola N3: border 2px + focus hard-shadow */
+.auth-page.brutal-auth .form-wrap input {
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-surface);
+  color: var(--br-ink);
+  box-shadow: none;
+  color-scheme: light dark;
+}
+
+.auth-page.brutal-auth .form-wrap input:focus {
+  outline: none;
+  border-color: var(--br-lilac);
+  box-shadow: 3px 3px 0 0 var(--br-lilac);
+  background: var(--br-surface);
+}
+
+.form-message {
+  border: 2px solid #B3261E;
+  border-radius: var(--br-radius-sm);
+  background: #FDECEC;
+  color: #B3261E;
+  padding: 9px 12px;
+  font-weight: 700;
+}
+
+.switch-form {
+  color: var(--br-muted);
+}
+
+.brutal-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 2px solid var(--br-border);
+  border-radius: 999px;
+  background: var(--br-yellow);
+  color: #141414;
+  font-weight: 800;
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.brutal-switch:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
