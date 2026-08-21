@@ -54,3 +54,10 @@ completion) supaya dia baca konteks penuh + `.github/copilot-instructions.md`.
 ---
 Setelah tiap fase selesai, jalankan `npm run build` buat mastiin gak ada error sebelum
 lanjut ke fase berikutnya.
+
+## Fase Mobile — Konversi Android (Capacitor)
+- [x] M1 Static export: `output: 'export'` di next.config.js, build sukses ke folder `out/`
+- [ ] M2 Restrukturisasi navigasi tab-based: Beranda/Transaksi/Target/Profil dengan bottom nav
+- [ ] M3 Overhaul CSS mobile: safe-area inset, touch target ≥44px, bottom-sheet untuk form/modal
+- [ ] M4 Integrasi Capacitor: init platform Android, sinkronisasi build statis, ikon & splash screen
+- [ ] M5 Polish native: styling status bar, penanganan tombol back Android, transisi splash → app

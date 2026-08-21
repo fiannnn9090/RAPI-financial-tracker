@@ -27,6 +27,23 @@ Urutan pengerjaan (jangan lompat urutan tanpa konfirmasi user):
 Cek checklist di `TASKS.md` untuk task granular per fase. Kerjakan SATU task pada satu waktu,
 jangan gabungkan beberapa fase dalam satu perubahan besar.
 
+## Konversi Mobile (Capacitor)
+Project sedang dalam proses dijadikan aplikasi Android via Capacitor. Urutan milestone
+(jangan lompat urutan tanpa konfirmasi user):
+- **M1 — Static export (SELESAI)**: `next.config.js` memakai `output: 'export'`, hasil
+  build adalah situs statis di folder `out/`. Konsekuensi: semua komponen harus tetap
+  client-side (JANGAN tambahkan API routes / server actions / dynamic APIs),
+  `npm run start` tidak lagi bisa dipakai — preview hasil build dengan
+  `npx serve out`.
+- **M2 — Navigasi tab-based**: restrukturisasi UI menjadi 4 tab (Beranda/Transaksi/
+  Target/Profil) dengan bottom nav ala aplikasi native.
+- **M3 — Overhaul CSS mobile**: safe-area inset (notch/home bar), touch target minimal
+  44px, form & modal jadi bottom-sheet.
+- **M4 — Integrasi Capacitor**: init platform Android, sinkronisasi folder `out/`,
+  konfigurasi ikon & splash screen.
+- **M5 — Polish native**: styling status bar, penanganan tombol back Android,
+  transisi splash → app.
+
 ## Konvensi kode yang sudah ada (pertahankan gayanya)
 - Komponen fungsi di `app/page.js`, memakai `'use client'` di baris pertama file
 - Helper domain ditaruh sebagai fungsi murni di `lib/`: `xp.js` (XP & level),
