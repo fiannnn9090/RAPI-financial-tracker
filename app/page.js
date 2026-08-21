@@ -15,6 +15,7 @@ const today = new Date().toISOString().slice(0, 10);
 const initialData = { users: [], transactions: {}, goals: {}, achievements: {}, budgets: {}, badges: {}, badgeDefs: [], activeUserId: null };
 const CATEGORY_EMOJI = { 'Makan & Minum': '🍜', Transportasi: '🛵', Belanja: '🛍️', Tagihan: '🧾', Hiburan: '🎮', Gaji: '💼', Bonus: '🎉', Usaha: '🏪', Investasi: '📈', Lainnya: '✨' };
 const BUDGET_CATEGORIES = ['Makan & Minum', 'Transportasi', 'Belanja', 'Tagihan', 'Hiburan'];
+const NAV_TABS = [['beranda', '🏠', 'Beranda'], ['transaksi', '💸', 'Transaksi'], ['target', '🎯', 'Target'], ['profil', '👤', 'Profil']];
 
 function mapTransaction(row) {
   return { id: row.id, type: row.type, title: row.title, amount: Number(row.amount), category: row.category, date: row.date, xp_earned: row.xp_earned ?? 0 };
@@ -84,6 +85,8 @@ export default function Home() {
 }
 
 function ClayBlobs() { return <div className="clay-blobs" aria-hidden="true"><span /><span /><span /><span /></div>; }
+
+function BottomNav({ active, onChange }) { return <nav className="bottom-nav" aria-label="Navigasi utama">{NAV_TABS.map(([id, icon, label]) => <button key={id} type="button" className={`bottom-nav-item ${active === id ? 'active' : ''}`} aria-current={active === id ? 'page' : undefined} onClick={() => onChange(id)}><span>{icon}</span><small>{label}</small></button>)}</nav>; }
 
 function Auth({ onEnter }) {
   const [mode, setMode] = useState('login');
@@ -158,6 +161,7 @@ function Auth({ onEnter }) {
 }
 
 function Dashboard({ user, data, setData }) {
+  const [tab, setTab] = useState('beranda');
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState('all');
   const [levelUp, setLevelUp] = useState(null);
@@ -186,6 +190,7 @@ function Dashboard({ user, data, setData }) {
   const unlockedBadges = badgeViews.filter((badge) => badge.unlocked).length;
   const topCardTier = ['legendary', 'epic', 'rare', 'common'].find((tier) => badgeViews.some((badge) => badge.unlocked && badge.rarity === tier)) ?? 'common';
   const canShareCard = typeof navigator !== 'undefined' && Boolean(navigator.canShare);
+  const profInfo = levelProgress(user.xp ?? 0);
 
   useEffect(() => {
     const owned = new Set(data.badges?.[user.id] ?? []);
@@ -297,42 +302,54 @@ function Dashboard({ user, data, setData }) {
 
   return <main className="dashboard-page">
     <ClayBlobs />
-    <header className="topbar clay-topbar">
-      <a className="brand dark" href="#dashboard"><span>r</span> rapi</a>
-      <div className="account-menu"><span className="avatar">{user.username.slice(0, 1).toUpperCase()}</span><div><strong>{user.username}</strong><button className="logout-button clay-button" onClick={logout}>Keluar</button></div></div>
-    </header>
-    <div className="dashboard" id="dashboard">
+    <div className="dashboard app-frame" id="dashboard">
+      {tab === 'beranda' && <>
+      <header className="mobile-header"><a className="brand dark" href="#dashboard"><span>r</span> rapi</a></header>
       <section className="dashboard-heading clay-heading">
         <div><p className="kicker">RINGKASAN KEUANGAN</p><h1>Halo, {user.username}. <em>Bagaimana harimu?</em></h1><p className="subline">Semua catatanmu ada di satu tempat.</p></div>
         <button className="clay-button" onClick={() => setShowForm(true)}><span>+</span> Catat transaksi</button>
       </section>
       <section className="summary-grid">
-        <BalanceCard balance={balance} xp={user.xp ?? 0} streak={user.streakCurrent ?? 0} onCardDownload={downloadProfileCard} onCardShare={shareProfileCard} canShareCard={canShareCard} />
+        <BalanceCard balance={balance} xp={user.xp ?? 0} streak={user.streakCurrent ?? 0} />
         <StatCard label="Pemasukan" amount={income} icon="↓" variant="income" />
         <StatCard label="Pengeluaran" amount={expense} icon="↑" variant="expense" />
       </section>
-      <section className="playful-grid">
+      </>}
+      {tab === 'target' && <>
+      <section className="playful-grid tab-target">
         <article className={`goal-card clay-card clay-goal ${goalReached ? 'goal-reached' : ''}`}><div><p className="kicker">{goalReached ? 'WISHLIST TERCAPAI! 🎉' : 'TARGET TABUNGAN'}</p><h2>{goal ? goal.name : 'Punya wishlist?'}</h2>{goal ? <><div className="goal-progress"><span style={{ width: `${Math.min(100, Math.max(0, balance / goal.amount * 100))}%` }} /></div><p className="goal-caption"><strong>{rupiah.format(Math.max(0, balance))}</strong> dari {rupiah.format(goal.amount)}</p></> : <p className="goal-caption">Buat target kecil agar menabung terasa lebih seru.</p>}</div>{goalReached ? <button className="claim-goal clay-button" onClick={claimGoal}>Klaim badge 🏆</button> : <button className="goal-button clay-button" onClick={setGoal}>{goal ? 'Ubah target' : '+ Buat target'}</button>}</article>
         <article className="badge-card clay-card clay-badge"><div className="badge-heading"><div><p className="kicker">KOLEKSI BADGE</p><h2>Good job, bestie! ✨</h2></div><span>{unlockedBadges}/{badgeViews.length}</span></div><div className="badges">{badgeViews.map((badge) => <div className={`badge tier-${badge.rarity} ${badge.unlocked ? 'unlocked' : 'locked'}`} key={badge.code}><span>{badge.icon}</span><div><strong>{badge.title}</strong><small>{badge.unlocked ? badge.note : `${Math.min(badge.current, badge.target)}/${badge.target} · ${badge.note}`}</small>{!badge.unlocked && <i className="badge-progress"><em style={{ width: `${badge.progress * 100}%` }} /></i>}</div><b className="badge-tier">{badge.rarity}</b></div>)}</div></article>
       </section>
+      </>}
+      {tab === 'beranda' && <>
       <section className="insight-section clay-insight"><div className="section-header"><div><h2>Money check-in</h2><p>Snapshot bulan ini, bestie 💫</p></div></div><div className="insight-grid"><article className="insight-card clay-card"><span>💡</span><div><p className="kicker">{topSpending ? 'Paling banyak di sini' : 'Money check-in'}</p><strong>{topSpending ? `${CATEGORY_EMOJI[topSpending.category]} ${topSpending.category}` : 'Belum ada pengeluaran'}</strong>{topSpending && <span className="insight-amount">{rupiah.format(topSpending.amount)}</span>}<p className="insight-caption">{topSpending ? 'Terpakai untuk kategori ini sejauh ini.' : 'Mulai catat transaksi untuk melihat insight personal.'}</p></div></article><article className="chart-card clay-card"><div className="chart-title"><strong>Pengeluaran per kategori</strong><span>Bulan ini</span></div>{categorySummary.length ? <div className="chart-bars">{categorySummary.map((item) => <div className="chart-row" key={item.category}><span>{CATEGORY_EMOJI[item.category]}</span><div><div><strong>{item.category}</strong><b>{rupiah.format(item.amount)}</b></div><i><em style={{ width: `${item.amount / chartMax * 100}%` }} /></i></div></div>)}</div> : <p className="chart-empty">Grafik akan muncul setelah ada pengeluaran.</p>}</article></div></section>
       <section className="budget-section clay-budget"><div className="section-header"><div><h2>Budget bulan ini</h2><p>Jaga pengeluaran tetap on track ✨</p></div><button className="budget-add clay-button" onClick={setBudget}>+ Atur budget</button></div>{budgetEntries.length ? <div className="budget-grid">{budgetEntries.map(([category, limit]) => { const spent = spendingFor(category); const ratio = spent / limit; const state = ratio >= 1 ? 'over' : ratio >= .8 ? 'near' : 'safe'; return <article className="budget-item clay-card" key={category}><div><span>{CATEGORY_EMOJI[category]}</span><strong>{category}</strong><button onClick={setBudget} aria-label={`Ubah budget ${category}`}>⋯</button></div><div className="budget-bar"><span className={state} style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div><p><b>{rupiah.format(spent)}</b> / {rupiah.format(limit)} <em>{state === 'over' ? 'Kelebihan!' : state === 'near' ? 'Hampir habis' : 'Aman'}</em></p></article>; })}</div> : <div className="budget-empty"><span>🪄</span><div><strong>Belum ada budget</strong><p>Tentukan batas pengeluaran untuk kategori favoritmu.</p></div><button className="clay-button" onClick={setBudget}>Buat budget</button></div>}</section>
+      </>}
+      {tab === 'transaksi' && <>
       <section className="transactions-section clay-transactions">
         <div className="section-header"><div><h2>Riwayat transaksi</h2><p>{transactions.length} transaksi tercatat</p></div><div className="filters">{[['all', 'Semua'], ['income', 'Masuk'], ['expense', 'Keluar']].map(([id, label]) => <button key={id} className={filter === id ? 'active' : ''} onClick={() => setFilter(id)}>{label}</button>)}</div></div>
         <div className="transaction-list">
           {visibleTransactions.length ? visibleTransactions.map((item) => <Transaction key={item.id} item={item} onDelete={removeTransaction} />) : <EmptyState filter={filter} onAdd={() => setShowForm(true)} />}
         </div>
       </section>
+      </>}
+      {tab === 'profil' && <section className="profil-stack">
+      <div className="profile-head"><span className="avatar big">{user.username.slice(0, 1).toUpperCase()}</span><div><strong>{user.username}</strong><small>Lv {profInfo.level} · {titleForLevel(user.level ?? 1)}</small></div></div>
+      <article className="share-card clay-card"><p className="kicker">KARTU PROFIL</p><h2>Flex pencapaianmu ✨</h2><p className="share-note">Generate kartu berisi level, streak, dan badge buat dibagikan ke story.</p><div className="card-actions"><button className="card-button clay-button" onClick={downloadProfileCard}>🖼️ Unduh kartu</button>{canShareCard && <button className="card-button ghost-button clay-button" onClick={shareProfileCard}>Bagikan</button>}</div></article>
       <section className="danger-zone clay-danger"><div><strong>Hapus akun</strong><p>Seluruh transaksi pada akun ini akan dihapus permanen dari perangkat.</p></div><button className="danger-button clay-button" onClick={deleteAccount}>Hapus akun</button></section>
+      <button className="logout-full clay-button" onClick={logout}>Keluar dari akun</button>
+      </section>}
     </div>
+    <button className="fab clay-button" aria-label="Catat transaksi baru" onClick={() => setShowForm(true)}>+</button>
+    <BottomNav active={tab} onChange={setTab} />
     {showForm && <TransactionForm onClose={() => setShowForm(false)} onSubmit={addTransaction} />}
     {levelUp && <LevelUpModal {...levelUp} onClose={() => setLevelUp(null)} />}
   </main>;
 }
 
-function BalanceCard({ balance, xp, streak = 0, onCardDownload, onCardShare, canShareCard }) {
+function BalanceCard({ balance, xp, streak = 0 }) {
   const info = levelProgress(xp);
-  return <article className="balance-card clay-card"><div><p>Saldo saat ini</p><strong>{rupiah.format(balance)}</strong><small>{balance >= 0 ? 'Keuanganmu terlihat terjaga.' : 'Pengeluaran melebihi pemasukan.'}</small><div className="level-strip"><div className="level-chip"><b>Lv {info.level}</b><span>{info.title}</span></div><div className="level-bar" role="progressbar" aria-valuenow={info.percent} aria-valuemin={0} aria-valuemax={100} aria-label={`Progress XP menuju level ${info.level + 1}`}><span style={{ width: `${info.percent}%` }} /></div><small>{info.xpIntoLevel}/{info.xpForNextLevel} XP menuju Lv {info.level + 1}</small><div className={`streak-chip ${streak > 0 ? 'active' : 'idle'}`}>{streak > 0 ? `🔥 ${streak} hari beruntun` : 'Mulai streak-mu hari ini!'}</div><div className="card-actions"><button className="card-button clay-button" onClick={onCardDownload}>🖼️ Unduh kartu</button>{canShareCard && <button className="card-button ghost-button clay-button" onClick={onCardShare}>Bagikan</button>}</div></div></div><div className="balance-mark">Rp</div></article>;
+  return <article className="balance-card clay-card"><div><p>Saldo saat ini</p><strong>{rupiah.format(balance)}</strong><small>{balance >= 0 ? 'Keuanganmu terlihat terjaga.' : 'Pengeluaran melebihi pemasukan.'}</small><div className="level-strip"><div className="level-chip"><b>Lv {info.level}</b><span>{info.title}</span></div><div className="level-bar" role="progressbar" aria-valuenow={info.percent} aria-valuemin={0} aria-valuemax={100} aria-label={`Progress XP menuju level ${info.level + 1}`}><span style={{ width: `${info.percent}%` }} /></div><small>{info.xpIntoLevel}/{info.xpForNextLevel} XP menuju Lv {info.level + 1}</small><div className={`streak-chip ${streak > 0 ? 'active' : 'idle'}`}>{streak > 0 ? `🔥 ${streak} hari beruntun` : 'Mulai streak-mu hari ini!'}</div></div></div><div className="balance-mark">Rp</div></article>;
 }
 function StatCard({ label, amount, icon, variant }) { return <article className={`stat-card clay-card ${variant}`}><span className={`stat-icon ${variant}`}>{icon}</span><div><p>{label}</p><strong>{rupiah.format(amount)}</strong><small>{variant === 'income' ? 'Total uang masuk' : 'Total uang keluar'}</small></div></article>; }
 
