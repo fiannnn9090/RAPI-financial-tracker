@@ -22,13 +22,16 @@ Urutan pengerjaan (jangan lompat urutan tanpa konfirmasi user):
        menjadi query ke Supabase via `@supabase/supabase-js`
 3. [x] Sistem XP & Level: hitung XP per transaksi, formula level, title level, modal level-up
 4. [x] Redesign visual Claymorphism: ganti genz.css/playful.css/pastel.css jadi satu tema clay
-5. [ ] Fitur lanjutan: daily streak, badge rarity/progress, kartu profil shareable
+5. [x] Fitur lanjutan: daily streak, badge rarity/progress, kartu profil shareable
 
 Cek checklist di `TASKS.md` untuk task granular per fase. Kerjakan SATU task pada satu waktu,
 jangan gabungkan beberapa fase dalam satu perubahan besar.
 
 ## Konvensi kode yang sudah ada (pertahankan gayanya)
 - Komponen fungsi di `app/page.js`, memakai `'use client'` di baris pertama file
+- Helper domain ditaruh sebagai fungsi murni di `lib/`: `xp.js` (XP & level),
+  `streak.js` (daily streak), `badges.js` (evaluasi badge + progress),
+  `profileCard.js` (kartu shareable via Canvas API, tanpa dependency tambahan)
 - Formatter: `rupiah` (Intl.NumberFormat IDR) dan `dateFormatter` (Intl.DateTimeFormat id-ID)
   sudah didefinisikan di scope module — pakai ulang, jangan bikin formatter baru
 - Emoji kategori disimpan di object `CATEGORY_EMOJI`
@@ -45,6 +48,8 @@ jangan gabungkan beberapa fase dalam satu perubahan besar.
   banyak file
 - Gunakan Supabase Auth (email atau bisa tetap username-based dengan sedikit trik email
   dummy) — JANGAN simpan password mentah di tabel sendiri seperti versi localStorage lama
+- Selain `sql/schema.sql`, ada `sql/badge_seed.sql` yang WAJIB dijalankan manual di
+  Supabase — `user_badges` tidak bisa di-insert sebelum `badge_defs` terisi (FK)
 
 ## Desain — Claymorphism
 - Warna cerah, saturasi tinggi, background soft/pastel base

@@ -3,13 +3,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import supabase from '../lib/supabase';
 import { hitungXpEarned, levelFromXp, levelProgress, titleForLevel } from '../lib/xp';
+import { nextStreak } from '../lib/streak';
+import { badgeStats, evaluateBadges, FALLBACK_BADGE_DEFS } from '../lib/badges';
+import { drawProfileCard } from '../lib/profileCard';
 import LevelUpModal from './LevelUpModal';
 
 const rupiah = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
 const dateFormatter = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 const today = new Date().toISOString().slice(0, 10);
 
-const initialData = { users: [], transactions: {}, goals: {}, achievements: {}, budgets: {}, activeUserId: null };
+const initialData = { users: [], transactions: {}, goals: {}, achievements: {}, budgets: {}, badges: {}, badgeDefs: [], activeUserId: null };
 const CATEGORY_EMOJI = { 'Makan & Minum': '🍜', Transportasi: '🛵', Belanja: '🛍️', Tagihan: '🧾', Hiburan: '🎮', Gaji: '💼', Bonus: '🎉', Usaha: '🏪', Investasi: '📈', Lainnya: '✨' };
 const BUDGET_CATEGORIES = ['Makan & Minum', 'Transportasi', 'Belanja', 'Tagihan', 'Hiburan'];
 
@@ -18,17 +21,21 @@ function mapTransaction(row) {
 }
 
 async function loadData(userId) {
-  const [trx, goal, ach, bud] = await Promise.all([
+  const [trx, goal, ach, bud, defs, owned] = await Promise.all([
     supabase.from('transactions').select('*').eq('user_id', userId),
     supabase.from('goals').select('*').eq('user_id', userId).eq('is_active', true).maybeSingle(),
     supabase.from('achievements').select('*').eq('user_id', userId),
     supabase.from('budgets').select('*').eq('user_id', userId),
+    supabase.from('badge_defs').select('*'),
+    supabase.from('user_badges').select('badge_code').eq('user_id', userId),
   ]);
   return {
     transactions: (trx.data ?? []).map(mapTransaction),
     goal: goal.data ? { name: goal.data.name, amount: Number(goal.data.amount) } : null,
     achievements: (ach.data ?? []).map((row) => ({ id: row.id, name: row.goal_name, amount: Number(row.goal_amount), completedAt: row.completed_at })),
     budgets: Object.fromEntries((bud.data ?? []).map((row) => [row.category, Number(row.monthly_limit)])),
+    badgeDefs: (defs.data ?? []).length ? defs.data : FALLBACK_BADGE_DEFS,
+    badges: (owned.data ?? []).map((row) => row.badge_code),
   };
 }
 
@@ -44,7 +51,7 @@ export default function Home() {
         ?? { id: authUser.id, username, xp: 0, level: 1 };
     }
     const snapshot = await loadData(authUser.id);
-    const account = { id: authUser.id, username: profile.username, xp: profile.xp ?? 0, level: profile.level ?? 1 };
+    const account = { id: authUser.id, username: profile.username, xp: profile.xp ?? 0, level: profile.level ?? 1, streakCurrent: profile.streak_current ?? 0, streakLongest: profile.streak_longest ?? 0 };
     setData((current) => ({
       ...current,
       users: current.users.some((user) => user.id === authUser.id)
@@ -54,6 +61,8 @@ export default function Home() {
       goals: { ...current.goals, [authUser.id]: snapshot.goal },
       achievements: { ...current.achievements, [authUser.id]: snapshot.achievements },
       budgets: { ...current.budgets, [authUser.id]: snapshot.budgets },
+      badges: { ...current.badges, [authUser.id]: snapshot.badges },
+      badgeDefs: snapshot.badgeDefs,
       activeUserId: authUser.id,
     }));
     setReady(true);
@@ -169,14 +178,24 @@ function Dashboard({ user, data, setData }) {
   const categorySummary = BUDGET_CATEGORIES.map((category) => ({ category, amount: spendingFor(category) })).filter((item) => item.amount > 0).sort((a, b) => b.amount - a.amount);
   const topSpending = categorySummary[0];
   const chartMax = topSpending?.amount || 1;
-  const uniqueDays = new Set(transactions.map((item) => item.date)).size;
-  const badges = [
-    transactions.length >= 1 && { icon: '🌱', title: 'Langkah pertama', note: 'Mulai mencatat!' },
-    transactions.length >= 5 && { icon: '🔥', title: 'Rajin mencatat', note: '5 transaksi tercatat' },
-    income > 0 && { icon: '💸', title: 'Cuan masuk', note: 'Pemasukan pertama' },
-    uniqueDays >= 3 && { icon: '⚡', title: 'Konsisten', note: 'Catat di 3 hari berbeda' },
-    achievements.length >= 1 && { icon: '🏆', title: 'Wishlist tercapai', note: `${achievements.length} impian berhasil` },
-  ].filter(Boolean);
+  const badgeViews = evaluateBadges(
+    data.badgeDefs?.length ? data.badgeDefs : FALLBACK_BADGE_DEFS,
+    badgeStats({ transactions, achievements, streakCurrent: user.streakCurrent, level: user.level }),
+    new Set(data.badges?.[user.id] ?? []),
+  );
+  const unlockedBadges = badgeViews.filter((badge) => badge.unlocked).length;
+  const topCardTier = ['legendary', 'epic', 'rare', 'common'].find((tier) => badgeViews.some((badge) => badge.unlocked && badge.rarity === tier)) ?? 'common';
+  const canShareCard = typeof navigator !== 'undefined' && Boolean(navigator.canShare);
+
+  useEffect(() => {
+    const owned = new Set(data.badges?.[user.id] ?? []);
+    const fresh = badgeViews.filter((badge) => badge.unlocked && !owned.has(badge.code));
+    if (!fresh.length) return;
+    supabase.from('user_badges').insert(fresh.map((badge) => ({ user_id: user.id, badge_code: badge.code }))).then(({ error }) => {
+      if (error) return;
+      setData((current) => ({ ...current, badges: { ...current.badges, [user.id]: [...(current.badges[user.id] ?? []), ...fresh.map((badge) => badge.code)] } }));
+    });
+  }, [badgeViews]);
 
   async function addTransaction(transaction) {
     const xpEarned = hitungXpEarned(transaction, transactions, budgets);
@@ -189,10 +208,18 @@ function Dashboard({ user, data, setData }) {
       .select()
       .single();
     if (error || !inserted) return false;
+    let streakInfo = null;
+    try {
+      const { data: prof } = await supabase.from('profiles').select('streak_current, streak_longest, last_activity_date').eq('id', user.id).single();
+      streakInfo = nextStreak(prof?.last_activity_date, prof?.streak_current, prof?.streak_longest);
+      await supabase.from('profiles').update({ streak_current: streakInfo.streakCurrent, streak_longest: streakInfo.streakLongest, last_activity_date: streakInfo.today }).eq('id', user.id);
+    } catch {
+      streakInfo = null;
+    }
     setData((current) => ({
       ...current,
       transactions: { ...current.transactions, [user.id]: [mapTransaction(inserted), ...(current.transactions[user.id] ?? [])] },
-      users: current.users.map((item) => (item.id === user.id ? { ...item, xp: totalXp, level: newLevel } : item)),
+      users: current.users.map((item) => (item.id === user.id ? { ...item, xp: totalXp, level: newLevel, ...(streakInfo ? { streakCurrent: streakInfo.streakCurrent, streakLongest: streakInfo.streakLongest } : {}) } : item)),
     }));
     setShowForm(false);
     if (newLevel > previousLevel) setLevelUp({ level: newLevel, title: titleForLevel(newLevel), xpEarned });
@@ -206,6 +233,28 @@ function Dashboard({ user, data, setData }) {
   async function logout() {
     await supabase.auth.signOut();
     setData((current) => ({ ...current, activeUserId: null }));
+  }
+  async function buildCardBlob() {
+    const canvas = await drawProfileCard({ username: user.username, level: user.level ?? 1, levelTitle: titleForLevel(user.level ?? 1), streak: user.streakCurrent ?? 0, badgesUnlocked: unlockedBadges, badgesTotal: badgeViews.length, tier: topCardTier });
+    return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  }
+  async function downloadProfileCard() {
+    const blob = await buildCardBlob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `rapi-kartu-${user.username}.png`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+  async function shareProfileCard() {
+    const blob = await buildCardBlob();
+    const file = new File([blob], `rapi-kartu-${user.username}.png`, { type: 'image/png' });
+    if (navigator.canShare?.({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: 'Kartu pencapaianku di rapi ✨' }); } catch {}
+    } else {
+      await downloadProfileCard();
+    }
   }
   async function setGoal() {
     const name = window.prompt('Target apa yang ingin kamu capai?', goal?.name || 'Dana impian');
@@ -258,13 +307,13 @@ function Dashboard({ user, data, setData }) {
         <button className="clay-button" onClick={() => setShowForm(true)}><span>+</span> Catat transaksi</button>
       </section>
       <section className="summary-grid">
-        <BalanceCard balance={balance} xp={user.xp ?? 0} />
+        <BalanceCard balance={balance} xp={user.xp ?? 0} streak={user.streakCurrent ?? 0} onCardDownload={downloadProfileCard} onCardShare={shareProfileCard} canShareCard={canShareCard} />
         <StatCard label="Pemasukan" amount={income} icon="↓" variant="income" />
         <StatCard label="Pengeluaran" amount={expense} icon="↑" variant="expense" />
       </section>
       <section className="playful-grid">
         <article className={`goal-card clay-card clay-goal ${goalReached ? 'goal-reached' : ''}`}><div><p className="kicker">{goalReached ? 'WISHLIST TERCAPAI! 🎉' : 'TARGET TABUNGAN'}</p><h2>{goal ? goal.name : 'Punya wishlist?'}</h2>{goal ? <><div className="goal-progress"><span style={{ width: `${Math.min(100, Math.max(0, balance / goal.amount * 100))}%` }} /></div><p className="goal-caption"><strong>{rupiah.format(Math.max(0, balance))}</strong> dari {rupiah.format(goal.amount)}</p></> : <p className="goal-caption">Buat target kecil agar menabung terasa lebih seru.</p>}</div>{goalReached ? <button className="claim-goal clay-button" onClick={claimGoal}>Klaim badge 🏆</button> : <button className="goal-button clay-button" onClick={setGoal}>{goal ? 'Ubah target' : '+ Buat target'}</button>}</article>
-        <article className="badge-card clay-card clay-badge"><div className="badge-heading"><div><p className="kicker">KOLEKSI BADGE</p><h2>Good job, bestie! ✨</h2></div><span>{badges.length}/4</span></div><div className="badges">{badges.length ? badges.map((badge) => <div className="badge" key={badge.title}><span>{badge.icon}</span><div><strong>{badge.title}</strong><small>{badge.note}</small></div></div>) : <p className="badge-empty">Catat transaksi pertamamu untuk membuka badge.</p>}</div></article>
+        <article className="badge-card clay-card clay-badge"><div className="badge-heading"><div><p className="kicker">KOLEKSI BADGE</p><h2>Good job, bestie! ✨</h2></div><span>{unlockedBadges}/{badgeViews.length}</span></div><div className="badges">{badgeViews.map((badge) => <div className={`badge tier-${badge.rarity} ${badge.unlocked ? 'unlocked' : 'locked'}`} key={badge.code}><span>{badge.icon}</span><div><strong>{badge.title}</strong><small>{badge.unlocked ? badge.note : `${Math.min(badge.current, badge.target)}/${badge.target} · ${badge.note}`}</small>{!badge.unlocked && <i className="badge-progress"><em style={{ width: `${badge.progress * 100}%` }} /></i>}</div><b className="badge-tier">{badge.rarity}</b></div>)}</div></article>
       </section>
       <section className="insight-section clay-insight"><div className="section-header"><div><h2>Money check-in</h2><p>Snapshot bulan ini, bestie 💫</p></div></div><div className="insight-grid"><article className="insight-card clay-card"><span>💡</span><div><p className="kicker">{topSpending ? 'Paling banyak di sini' : 'Money check-in'}</p><strong>{topSpending ? `${CATEGORY_EMOJI[topSpending.category]} ${topSpending.category}` : 'Belum ada pengeluaran'}</strong>{topSpending && <span className="insight-amount">{rupiah.format(topSpending.amount)}</span>}<p className="insight-caption">{topSpending ? 'Terpakai untuk kategori ini sejauh ini.' : 'Mulai catat transaksi untuk melihat insight personal.'}</p></div></article><article className="chart-card clay-card"><div className="chart-title"><strong>Pengeluaran per kategori</strong><span>Bulan ini</span></div>{categorySummary.length ? <div className="chart-bars">{categorySummary.map((item) => <div className="chart-row" key={item.category}><span>{CATEGORY_EMOJI[item.category]}</span><div><div><strong>{item.category}</strong><b>{rupiah.format(item.amount)}</b></div><i><em style={{ width: `${item.amount / chartMax * 100}%` }} /></i></div></div>)}</div> : <p className="chart-empty">Grafik akan muncul setelah ada pengeluaran.</p>}</article></div></section>
       <section className="budget-section clay-budget"><div className="section-header"><div><h2>Budget bulan ini</h2><p>Jaga pengeluaran tetap on track ✨</p></div><button className="budget-add clay-button" onClick={setBudget}>+ Atur budget</button></div>{budgetEntries.length ? <div className="budget-grid">{budgetEntries.map(([category, limit]) => { const spent = spendingFor(category); const ratio = spent / limit; const state = ratio >= 1 ? 'over' : ratio >= .8 ? 'near' : 'safe'; return <article className="budget-item clay-card" key={category}><div><span>{CATEGORY_EMOJI[category]}</span><strong>{category}</strong><button onClick={setBudget} aria-label={`Ubah budget ${category}`}>⋯</button></div><div className="budget-bar"><span className={state} style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div><p><b>{rupiah.format(spent)}</b> / {rupiah.format(limit)} <em>{state === 'over' ? 'Kelebihan!' : state === 'near' ? 'Hampir habis' : 'Aman'}</em></p></article>; })}</div> : <div className="budget-empty"><span>🪄</span><div><strong>Belum ada budget</strong><p>Tentukan batas pengeluaran untuk kategori favoritmu.</p></div><button className="clay-button" onClick={setBudget}>Buat budget</button></div>}</section>
@@ -281,9 +330,9 @@ function Dashboard({ user, data, setData }) {
   </main>;
 }
 
-function BalanceCard({ balance, xp }) {
+function BalanceCard({ balance, xp, streak = 0, onCardDownload, onCardShare, canShareCard }) {
   const info = levelProgress(xp);
-  return <article className="balance-card clay-card"><div><p>Saldo saat ini</p><strong>{rupiah.format(balance)}</strong><small>{balance >= 0 ? 'Keuanganmu terlihat terjaga.' : 'Pengeluaran melebihi pemasukan.'}</small><div className="level-strip"><div className="level-chip"><b>Lv {info.level}</b><span>{info.title}</span></div><div className="level-bar" role="progressbar" aria-valuenow={info.percent} aria-valuemin={0} aria-valuemax={100} aria-label={`Progress XP menuju level ${info.level + 1}`}><span style={{ width: `${info.percent}%` }} /></div><small>{info.xpIntoLevel}/{info.xpForNextLevel} XP menuju Lv {info.level + 1}</small></div></div><div className="balance-mark">Rp</div></article>;
+  return <article className="balance-card clay-card"><div><p>Saldo saat ini</p><strong>{rupiah.format(balance)}</strong><small>{balance >= 0 ? 'Keuanganmu terlihat terjaga.' : 'Pengeluaran melebihi pemasukan.'}</small><div className="level-strip"><div className="level-chip"><b>Lv {info.level}</b><span>{info.title}</span></div><div className="level-bar" role="progressbar" aria-valuenow={info.percent} aria-valuemin={0} aria-valuemax={100} aria-label={`Progress XP menuju level ${info.level + 1}`}><span style={{ width: `${info.percent}%` }} /></div><small>{info.xpIntoLevel}/{info.xpForNextLevel} XP menuju Lv {info.level + 1}</small><div className={`streak-chip ${streak > 0 ? 'active' : 'idle'}`}>{streak > 0 ? `🔥 ${streak} hari beruntun` : 'Mulai streak-mu hari ini!'}</div><div className="card-actions"><button className="card-button clay-button" onClick={onCardDownload}>🖼️ Unduh kartu</button>{canShareCard && <button className="card-button ghost-button clay-button" onClick={onCardShare}>Bagikan</button>}</div></div></div><div className="balance-mark">Rp</div></article>;
 }
 function StatCard({ label, amount, icon, variant }) { return <article className={`stat-card clay-card ${variant}`}><span className={`stat-icon ${variant}`}>{icon}</span><div><p>{label}</p><strong>{rupiah.format(amount)}</strong><small>{variant === 'income' ? 'Total uang masuk' : 'Total uang keluar'}</small></div></article>; }
 

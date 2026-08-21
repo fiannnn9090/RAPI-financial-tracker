@@ -44,11 +44,11 @@ completion) supaya dia baca konteks penuh + `.github/copilot-instructions.md`.
 - [x] Hapus genz.css/playful.css/pastel.css setelah migrasi selesai & dicek semua halaman
 
 ## Fase 5 — Fitur lanjutan
-- [ ] Daily streak: increment streak_current kalau last_activity_date = kemarin,
+- [x] Daily streak: increment streak_current kalau last_activity_date = kemarin,
       reset kalau lebih dari 1 hari, update streak_longest
-- [ ] Isi tabel badge_defs dengan daftar badge + rarity, tampilkan progress bar untuk
-      badge yang belum unlock (bukan cuma locked/unlocked binary)
-- [ ] Kartu profil shareable: generate gambar/canvas berisi level, streak, jumlah badge,
+- [x] Isi tabel badge_defs dengan daftar badge + rarity (via `sql/badge_seed.sql`),
+      tampilkan progress bar untuk badge yang belum unlock (bukan cuma locked/unlocked binary)
+- [x] Kartu profil shareable: generate gambar/canvas berisi level, streak, jumlah badge,
       saldo yang di-blur — tombol "Download" atau "Share"
 
 ---

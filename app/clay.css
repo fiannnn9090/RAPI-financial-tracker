@@ -96,6 +96,51 @@
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, .80), 0 2px 6px rgba(150, 60, 120, .25);
 }
 
+.balance-card.clay-card .streak-chip {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: 600 11px 'DM Mono', monospace;
+  letter-spacing: .02em;
+}
+
+.balance-card.clay-card .streak-chip.active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--clay-sun), var(--clay-coral));
+  text-shadow: 0 1px 2px rgba(180, 80, 60, .35);
+  box-shadow: 0 8px 16px -8px rgba(240, 100, 140, .55), inset 0 2px 3px rgba(255, 255, 255, .55), inset 0 -4px 8px rgba(200, 90, 60, .25);
+}
+
+.balance-card.clay-card .streak-chip.idle {
+  color: rgba(255, 255, 255, .92);
+  background: rgba(255, 255, 255, .22);
+  box-shadow: inset 0 2px 3px rgba(255, 255, 255, .45), inset 0 -3px 5px rgba(120, 40, 100, .18);
+}
+
+.balance-card.clay-card .card-actions {
+  display: flex;
+  gap: 8px;
+  justify-self: start;
+  margin-top: 2px;
+}
+
+.balance-card.clay-card .card-actions .card-button {
+  padding: 7px 13px;
+  font-size: 11px;
+  border-radius: var(--clay-radius-sm);
+  background: linear-gradient(145deg, #c9a8ff, var(--clay-lilac-deep));
+  box-shadow: 0 10px 18px -8px rgba(122, 90, 214, .50), inset 0 2px 3px rgba(255, 255, 255, .45), inset 0 -4px 8px rgba(90, 50, 160, .25);
+}
+
+.balance-card.clay-card .card-actions .ghost-button.card-button {
+  color: rgba(255, 255, 255, .95);
+  background: rgba(255, 255, 255, .20);
+  box-shadow: inset 0 2px 3px rgba(255, 255, 255, .40), inset 0 -4px 8px rgba(120, 40, 100, .18);
+}
+
 .stat-card.clay-card p {
   color: var(--clay-muted);
 }
@@ -285,6 +330,98 @@
 
 .badge-card.clay-badge .badge:nth-child(even) > span {
   transform: rotate(3deg);
+}
+
+.badge-card.clay-badge .badge {
+  position: relative;
+}
+
+.badge-card.clay-badge .badge .badge-tier {
+  position: absolute;
+  top: 7px;
+  right: 9px;
+  font: 600 8px 'DM Mono', monospace;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--clay-muted);
+}
+
+.badge-card.clay-badge .badge.locked > span {
+  filter: grayscale(1);
+  opacity: .55;
+}
+
+.badge-card.clay-badge .badge.locked strong {
+  color: var(--clay-muted);
+}
+
+.badge-card.clay-badge .badge-progress {
+  display: block;
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(96, 62, 110, .10);
+  box-shadow: inset 0 1px 2px rgba(96, 62, 110, .14);
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.badge-card.clay-badge .badge-progress em {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--clay-lilac), var(--clay-coral));
+  transition: width .3s ease;
+}
+
+.badge-card.clay-badge .badge.tier-common {
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, .90), inset 0 -2px 4px rgba(96, 62, 110, .06), 0 0 0 1px rgba(96, 62, 110, .12), 0 8px 14px -6px rgba(96, 62, 110, .18);
+}
+
+.badge-card.clay-badge .badge.tier-rare {
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, .90), inset 0 -2px 4px rgba(96, 62, 110, .06), 0 0 0 1px rgba(184, 146, 255, .50), 0 6px 14px -5px rgba(154, 108, 240, .38);
+}
+
+.badge-card.clay-badge .badge.tier-rare .badge-tier {
+  color: var(--clay-lilac-deep);
+}
+
+.badge-card.clay-badge .badge.tier-epic {
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, .90), inset 0 -2px 4px rgba(96, 62, 110, .06), 0 0 0 1px rgba(154, 108, 240, .60), 0 6px 16px -5px rgba(122, 90, 214, .48);
+}
+
+.badge-card.clay-badge .badge.tier-epic .badge-tier {
+  color: var(--clay-lilac-deep);
+}
+
+.badge-card.clay-badge .badge.tier-legendary {
+  background: linear-gradient(150deg, #fff7e0, #f6f1ff);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, .90), inset 0 -2px 4px rgba(150, 100, 20, .08), 0 0 0 1px rgba(224, 165, 42, .65), 0 8px 18px -5px rgba(200, 140, 20, .45);
+}
+
+.badge-card.clay-badge .badge.tier-legendary .badge-tier {
+  color: #b78422;
+}
+
+.badge-card.clay-badge .badge.tier-legendary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, .55) 50%, transparent 68%);
+  transform: translateX(-130%);
+  animation: badge-shine 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes badge-shine {
+  0%, 55% { transform: translateX(-130%); }
+  85%, 100% { transform: translateX(130%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-card.clay-badge .badge.tier-legendary::after {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 .badge-card.clay-badge .badge strong {
