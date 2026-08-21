@@ -4,33 +4,33 @@ Kerjakan satu task per sesi Copilot Chat. Paste task-nya ke Copilot Chat (bukan 
 completion) supaya dia baca konteks penuh + `.github/copilot-instructions.md`.
 
 ## Fase 1 — Setup Supabase
-- [ ] Buat project baru di supabase.com, catat Project URL & anon key
-- [ ] Jalankan `sql/schema.sql` di SQL Editor Supabase
-- [ ] `npm install @supabase/supabase-js`
-- [ ] Buat `.env.local` berisi `NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- [x] Buat project baru di supabase.com, catat Project URL & anon key
+- [x] Jalankan `sql/schema.sql` di SQL Editor Supabase
+- [x] `npm install @supabase/supabase-js`
+- [x] Buat `.env.local` berisi `NEXT_PUBLIC_SUPABASE_URL` dan `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - [ ] Prompt Copilot: "Buatkan lib/supabase.js yang inisialisasi Supabase client dari
       environment variable NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_ANON_KEY"
 
 ## Fase 2 — Migrasi Auth & data layer
-- [ ] Prompt Copilot: "Ganti komponen Auth di app/page.js supaya pakai Supabase Auth
+- [x] Prompt Copilot: "Ganti komponen Auth di app/page.js supaya pakai Supabase Auth
       (signUp/signInWithPassword) alih-alih localStorage users array. Username tetap
       dipakai sebagai identitas utama, tapi Supabase Auth butuh email — gunakan pola
       email dummy `${username}@rapi.local` di baliknya, transparan buat user."
-- [ ] Prompt Copilot: "Ganti seluruh baca/tulis transactions, goals, budgets, achievements
+- [x] Prompt Copilot: "Ganti seluruh baca/tulis transactions, goals, budgets, achievements
       dari object `data` + localStorage menjadi query Supabase (select/insert/delete) sesuai
       schema di sql/schema.sql. Pertahankan nama fungsi (addTransaction,
       removeTransaction, setGoal, dst) dan behavior yang sama seperti sekarang."
 - [ ] Test manual: register, login, tambah transaksi, refresh browser, data masih ada
 
 ## Fase 3 — Sistem XP & Level
-- [ ] Definisikan formula & title level (contoh, sesuaikan sama user):
+- [x] Definisikan formula & title level (contoh, sesuaikan sama user):
       - XP per transaksi: 10 (base), +5 bonus jika kategori masih di bawah budget
       - Level = floor(sqrt(xp / 50)) + 1
       - Title: Lv1-2 "Pemula Nabung", Lv3-5 "Rajin Cuan", Lv6-9 "Jagoan Anggaran",
         Lv10+ "Sultan Circle" (bebas disesuaikan)
-- [ ] Prompt Copilot: "Tambahkan logic hitung XP dan level berdasarkan formula di atas,
+- [x] Prompt Copilot: "Tambahkan logic hitung XP dan level berdasarkan formula di atas,
       update kolom xp/level di tabel profiles setiap kali transaksi baru ditambahkan"
-- [ ] Prompt Copilot: "Buat komponen modal LevelUpModal yang muncul dengan animasi
+- [x] Prompt Copilot: "Buat komponen modal LevelUpModal yang muncul dengan animasi
       confetti CSS ketika level user naik, tampilkan level baru dan title-nya"
 
 ## Fase 4 — Redesign Claymorphism

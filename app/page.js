@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import supabase from '../lib/supabase';
+import { hitungXpEarned, levelFromXp, levelProgress, titleForLevel } from '../lib/xp';
+import LevelUpModal from './LevelUpModal';
 
-const STORAGE_KEY = 'rapi-keuangan-v1';
 const rupiah = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
 const dateFormatter = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 const today = new Date().toISOString().slice(0, 10);
@@ -12,31 +13,68 @@ const initialData = { users: [], transactions: {}, goals: {}, achievements: {}, 
 const CATEGORY_EMOJI = { 'Makan & Minum': '🍜', Transportasi: '🛵', Belanja: '🛍️', Tagihan: '🧾', Hiburan: '🎮', Gaji: '💼', Bonus: '🎉', Usaha: '🏪', Investasi: '📈', Lainnya: '✨' };
 const BUDGET_CATEGORIES = ['Makan & Minum', 'Transportasi', 'Belanja', 'Tagihan', 'Hiburan'];
 
+function mapTransaction(row) {
+  return { id: row.id, type: row.type, title: row.title, amount: Number(row.amount), category: row.category, date: row.date, xp_earned: row.xp_earned ?? 0 };
+}
+
+async function loadData(userId) {
+  const [trx, goal, ach, bud] = await Promise.all([
+    supabase.from('transactions').select('*').eq('user_id', userId),
+    supabase.from('goals').select('*').eq('user_id', userId).eq('is_active', true).maybeSingle(),
+    supabase.from('achievements').select('*').eq('user_id', userId),
+    supabase.from('budgets').select('*').eq('user_id', userId),
+  ]);
+  return {
+    transactions: (trx.data ?? []).map(mapTransaction),
+    goal: goal.data ? { name: goal.data.name, amount: Number(goal.data.amount) } : null,
+    achievements: (ach.data ?? []).map((row) => ({ id: row.id, name: row.goal_name, amount: Number(row.goal_amount), completedAt: row.completed_at })),
+    budgets: Object.fromEntries((bud.data ?? []).map((row) => [row.category, Number(row.monthly_limit)])),
+  };
+}
+
 export default function Home() {
   const [data, setData] = useState(initialData);
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved) setData({ ...initialData, ...JSON.parse(saved) });
-    } catch { /* Mulai dengan data kosong apabila penyimpanan tidak terbaca. */ }
+  async function enterApp(authUser, fallbackName) {
+    let profile = (await supabase.from('profiles').select('*').eq('id', authUser.id).maybeSingle()).data;
+    if (!profile) {
+      const username = fallbackName || authUser.email.replace(/@rapi\.local$/, '');
+      profile = (await supabase.from('profiles').insert({ id: authUser.id, username }).select().single()).data
+        ?? { id: authUser.id, username, xp: 0, level: 1 };
+    }
+    const snapshot = await loadData(authUser.id);
+    const account = { id: authUser.id, username: profile.username, xp: profile.xp ?? 0, level: profile.level ?? 1 };
+    setData((current) => ({
+      ...current,
+      users: current.users.some((user) => user.id === authUser.id)
+        ? current.users.map((user) => (user.id === authUser.id ? account : user))
+        : [...current.users, account],
+      transactions: { ...current.transactions, [authUser.id]: snapshot.transactions },
+      goals: { ...current.goals, [authUser.id]: snapshot.goal },
+      achievements: { ...current.achievements, [authUser.id]: snapshot.achievements },
+      budgets: { ...current.budgets, [authUser.id]: snapshot.budgets },
+      activeUserId: authUser.id,
+    }));
     setReady(true);
-  }, []);
+  }
 
   useEffect(() => {
-    if (ready) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }, [data, ready]);
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) await enterApp(session.user);
+      else setReady(true);
+    });
+  }, []);
 
   const activeUser = data.users.find((user) => user.id === data.activeUserId) ?? null;
   if (!ready) return <div className="loading">Memuat catatan Anda…</div>;
 
   return activeUser
     ? <Dashboard user={activeUser} data={data} setData={setData} />
-    : <Auth data={data} setData={setData} />;
+    : <Auth onEnter={enterApp} />;
 }
 
-function Auth({ data, setData }) {
+function Auth({ onEnter }) {
   const [mode, setMode] = useState('login');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -57,27 +95,13 @@ function Auth({ data, setData }) {
         return setMessage('Pendaftaran gagal. Coba beberapa saat lagi.');
       }
       if (!authData.session) return setMessage('Akun berhasil dibuat. Silakan masuk.');
-      adoptUser(authData.user, cleanName);
+      onEnter(authData.user, cleanName);
       return;
     }
 
     const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !authData.user) return setMessage('Nama pengguna atau kata sandi belum tepat.');
-    const emailName = authData.user.email.replace(/@rapi\.local$/, '');
-    const known = data.users.find((user) => user.username.toLowerCase() === emailName.toLowerCase());
-    adoptUser(authData.user, known?.username ?? emailName);
-  }
-
-  function adoptUser(authUser, displayName) {
-    setData((current) => ({
-      ...current,
-      users: current.users.some((user) => user.id === authUser.id) ? current.users : [...current.users, { id: authUser.id, username: displayName }],
-      transactions: { ...current.transactions, [authUser.id]: current.transactions[authUser.id] ?? [] },
-      goals: { ...current.goals, [authUser.id]: current.goals[authUser.id] ?? null },
-      achievements: { ...current.achievements, [authUser.id]: current.achievements[authUser.id] ?? [] },
-      budgets: { ...current.budgets, [authUser.id]: current.budgets[authUser.id] ?? {} },
-      activeUserId: authUser.id,
-    }));
+    onEnter(authData.user);
   }
 
   function changeMode(next) {
@@ -115,6 +139,7 @@ function Auth({ data, setData }) {
 function Dashboard({ user, data, setData }) {
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [levelUp, setLevelUp] = useState(null);
   const transactions = data.transactions[user.id] ?? [];
   const sortedTransactions = useMemo(() => [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date)), [transactions]);
   const visibleTransactions = filter === 'all' ? sortedTransactions : sortedTransactions.filter((item) => item.type === filter);
@@ -141,34 +166,64 @@ function Dashboard({ user, data, setData }) {
     achievements.length >= 1 && { icon: '🏆', title: 'Wishlist tercapai', note: `${achievements.length} impian berhasil` },
   ].filter(Boolean);
 
-  function addTransaction(transaction) {
-    setData((current) => ({ ...current, transactions: { ...current.transactions, [user.id]: [{ ...transaction, id: crypto.randomUUID() }, ...(current.transactions[user.id] ?? [])] } }));
+  async function addTransaction(transaction) {
+    const xpEarned = hitungXpEarned(transaction, transactions, budgets);
+    const previousLevel = user.level ?? 1;
+    const totalXp = (user.xp ?? 0) + xpEarned;
+    const newLevel = levelFromXp(totalXp);
+    const { data: inserted, error } = await supabase
+      .from('transactions')
+      .insert({ user_id: user.id, type: transaction.type, title: transaction.title, amount: transaction.amount, category: transaction.category, date: transaction.date, xp_earned: xpEarned })
+      .select()
+      .single();
+    if (error || !inserted) return false;
+    setData((current) => ({
+      ...current,
+      transactions: { ...current.transactions, [user.id]: [mapTransaction(inserted), ...(current.transactions[user.id] ?? [])] },
+      users: current.users.map((item) => (item.id === user.id ? { ...item, xp: totalXp, level: newLevel } : item)),
+    }));
     setShowForm(false);
+    if (newLevel > previousLevel) setLevelUp({ level: newLevel, title: titleForLevel(newLevel), xpEarned });
+    return true;
   }
-  function removeTransaction(id) {
+  async function removeTransaction(id) {
+    const { error } = await supabase.from('transactions').delete().eq('id', id);
+    if (error) return;
     setData((current) => ({ ...current, transactions: { ...current.transactions, [user.id]: (current.transactions[user.id] ?? []).filter((item) => item.id !== id) } }));
   }
-  function logout() { setData((current) => ({ ...current, activeUserId: null })); }
-  function setGoal() {
+  async function logout() {
+    await supabase.auth.signOut();
+    setData((current) => ({ ...current, activeUserId: null }));
+  }
+  async function setGoal() {
     const name = window.prompt('Target apa yang ingin kamu capai?', goal?.name || 'Dana impian');
     if (!name?.trim()) return;
     const amount = Number(window.prompt('Berapa nominal targetnya? (contoh: 5000000)', goal?.amount || ''));
     if (!Number.isFinite(amount) || amount <= 0) return window.alert('Masukkan nominal target yang benar.');
+    const existing = await supabase.from('goals').select('id').eq('user_id', user.id).eq('is_active', true).maybeSingle();
+    if (existing.data) await supabase.from('goals').update({ name: name.trim(), amount }).eq('id', existing.data.id);
+    else await supabase.from('goals').insert({ user_id: user.id, name: name.trim(), amount });
     setData((current) => ({ ...current, goals: { ...current.goals, [user.id]: { name: name.trim(), amount } } }));
   }
-  function setBudget() {
+  async function setBudget() {
     const category = window.prompt(`Pilih kategori: ${BUDGET_CATEGORIES.join(', ')}`);
     if (!category || !BUDGET_CATEGORIES.includes(category.trim())) return window.alert('Pilih kategori sesuai daftar yang tersedia.');
     const amount = Number(window.prompt(`Batas ${category.trim()} bulan ini?`, budgets[category.trim()] || ''));
     if (!Number.isFinite(amount) || amount <= 0) return window.alert('Masukkan nominal anggaran yang benar.');
+    const { error } = await supabase.from('budgets').upsert({ user_id: user.id, category: category.trim(), monthly_limit: amount });
+    if (error) return window.alert('Budget gagal disimpan. Coba lagi ya.');
     setData((current) => ({ ...current, budgets: { ...current.budgets, [user.id]: { ...(current.budgets?.[user.id] ?? {}), [category.trim()]: amount } } }));
   }
-  function claimGoal() {
+  async function claimGoal() {
     if (!goalReached || !window.confirm(`Klaim pencapaian “${goal.name}”? Kamu bisa membuat wishlist baru setelahnya.`)) return;
+    await supabase.from('achievements').insert({ user_id: user.id, goal_name: goal.name, goal_amount: goal.amount, completed_at: today });
+    await supabase.from('goals').update({ is_active: false }).eq('user_id', user.id).eq('is_active', true);
     setData((current) => ({ ...current, goals: { ...current.goals, [user.id]: null }, achievements: { ...current.achievements, [user.id]: [...(current.achievements?.[user.id] ?? []), { ...goal, id: crypto.randomUUID(), completedAt: today }] } }));
   }
-  function deleteAccount() {
+  async function deleteAccount() {
     if (!window.confirm(`Hapus akun ${user.username} beserta seluruh catatan keuangannya? Tindakan ini tidak dapat dibatalkan.`)) return;
+    await supabase.from('profiles').delete().eq('id', user.id);
+    await supabase.auth.signOut();
     setData((current) => {
       const nextTransactions = { ...current.transactions };
       delete nextTransactions[user.id];
@@ -190,7 +245,7 @@ function Dashboard({ user, data, setData }) {
         <button className="add-button" onClick={() => setShowForm(true)}><span>+</span> Catat transaksi</button>
       </section>
       <section className="summary-grid">
-        <BalanceCard balance={balance} />
+        <BalanceCard balance={balance} xp={user.xp ?? 0} />
         <StatCard label="Pemasukan" amount={income} icon="↓" variant="income" />
         <StatCard label="Pengeluaran" amount={expense} icon="↑" variant="expense" />
       </section>
@@ -209,10 +264,14 @@ function Dashboard({ user, data, setData }) {
       <section className="danger-zone"><div><strong>Hapus akun</strong><p>Seluruh transaksi pada akun ini akan dihapus permanen dari perangkat.</p></div><button onClick={deleteAccount}>Hapus akun</button></section>
     </div>
     {showForm && <TransactionForm onClose={() => setShowForm(false)} onSubmit={addTransaction} />}
+    {levelUp && <LevelUpModal {...levelUp} onClose={() => setLevelUp(null)} />}
   </main>;
 }
 
-function BalanceCard({ balance }) { return <article className="balance-card"><div><p>Saldo saat ini</p><strong>{rupiah.format(balance)}</strong><small>{balance >= 0 ? 'Keuanganmu terlihat terjaga.' : 'Pengeluaran melebihi pemasukan.'}</small></div><div className="balance-mark">Rp</div></article>; }
+function BalanceCard({ balance, xp }) {
+  const info = levelProgress(xp);
+  return <article className="balance-card"><div><p>Saldo saat ini</p><strong>{rupiah.format(balance)}</strong><small>{balance >= 0 ? 'Keuanganmu terlihat terjaga.' : 'Pengeluaran melebihi pemasukan.'}</small><div className="level-strip"><div className="level-chip"><b>Lv {info.level}</b><span>{info.title}</span></div><div className="level-bar" role="progressbar" aria-valuenow={info.percent} aria-valuemin={0} aria-valuemax={100} aria-label={`Progress XP menuju level ${info.level + 1}`}><span style={{ width: `${info.percent}%` }} /></div><small>{info.xpIntoLevel}/{info.xpForNextLevel} XP menuju Lv {info.level + 1}</small></div></div><div className="balance-mark">Rp</div></article>;
+}
 function StatCard({ label, amount, icon, variant }) { return <article className="stat-card"><span className={`stat-icon ${variant}`}>{icon}</span><div><p>{label}</p><strong>{rupiah.format(amount)}</strong><small>{variant === 'income' ? 'Total uang masuk' : 'Total uang keluar'}</small></div></article>; }
 
 function Transaction({ item, onDelete }) {
@@ -230,11 +289,12 @@ function TransactionForm({ onClose, onSubmit }) {
   const [date, setDate] = useState(today);
   const [message, setMessage] = useState('');
   const categories = type === 'income' ? ['Gaji', 'Bonus', 'Usaha', 'Investasi', 'Lainnya'] : ['Makan & Minum', 'Transportasi', 'Belanja', 'Tagihan', 'Hiburan', 'Lainnya'];
-  function submit(event) {
+  async function submit(event) {
     event.preventDefault();
     const numericAmount = Number(amount);
     if (!title.trim() || !category || !date || !Number.isFinite(numericAmount) || numericAmount <= 0) return setMessage('Lengkapi semua data transaksi dengan benar.');
-    onSubmit({ title: title.trim(), amount: numericAmount, category, date, type });
+    const saved = await onSubmit({ title: title.trim(), amount: numericAmount, category, date, type });
+    if (!saved) setMessage('Transaksi gagal tersimpan. Coba lagi ya.');
   }
   return <div className="modal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal" role="dialog" aria-modal="true" aria-labelledby="form-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label="Tutup">×</button><p className="kicker">TRANSAKSI BARU</p><h2 id="form-title">Catat aktivitas keuangan</h2><form onSubmit={submit}><div className="type-switch"><button type="button" className={type === 'expense' ? 'selected expense' : ''} onClick={() => { setType('expense'); setCategory(''); }}>Pengeluaran</button><button type="button" className={type === 'income' ? 'selected income' : ''} onClick={() => { setType('income'); setCategory(''); }}>Pemasukan</button></div><label>Nama transaksi<input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder={type === 'income' ? 'Contoh: Gaji bulanan' : 'Contoh: Makan siang'} /></label><label>Nominal<input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))} placeholder="Contoh: 50000" /></label><div className="form-pair"><label>Kategori<select value={category} onChange={(e) => setCategory(e.target.value)}><option value="">Pilih kategori</option>{categories.map((item) => <option key={item}>{item}</option>)}</select></label><label>Tanggal<input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label></div>{message && <p className="form-message">{message}</p>}<button className="primary-button" type="submit">Simpan transaksi <span>→</span></button></form></section></div>;
 }
