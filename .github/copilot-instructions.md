@@ -63,10 +63,14 @@ Urutan milestone (jangan lompat urutan tanpa konfirmasi user):
 - **N2 — Terapkan tab Beranda** (heading, balance/stat card, insight, budget)
 - **N3 — Terapkan tab Transaksi** (+ bottom-sheet form transaksi)
 - **N4 — Terapkan tab Target** (goal card, badge list)
-- **N5 — Terapkan Profil + Auth** (+ modal level-up); setelah ini clay.css dihapus
+- **N5 — Terapkan Profil + Auth** (+ modal level-up)
 - **N6 — Fitur struktural baru**: kustomisasi kategori, transaksi berulang,
   smart reminder pengeluaran
 - **N7 — Recap cerita**: ringkasan naratif mingguan/bulanan aktivitas keuangan
+
+Status: N1–N6 selesai. clay.css sudah DIHAPUS — seluruh basis struktural lama kini
+tinggal di bagian atas `app/brutalist.css` (banner "N7 — BASIS STRUKTURAL") dan harus
+tetap di atas rule override agar kaskade tidak berubah. Style baru = bahasa brutalist.
 
 ## Konvensi kode yang sudah ada (pertahankan gayanya)
 - Komponen fungsi di `app/page.js`, memakai `'use client'` di baris pertama file
