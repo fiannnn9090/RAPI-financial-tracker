@@ -88,6 +88,36 @@ Status: N1–N6 selesai. clay.css sudah DIHAPUS — seluruh basis struktural lam
 tinggal di bagian atas `app/brutalist.css` (banner "CLEANUP LEGACY CSS") dan harus
 tetap di atas rule override agar kaskade tidak berubah. Style baru = bahasa brutalist.
 
+## Fase Finansial (F1–F6)
+Fase fitur bernilai finansial setelah fondasi visual/gamifikasi selesai. Semua engine
+analisis bersifat RULE-BASED & DETERMINISTIK (fungsi murni di `lib/`, tanpa AI/ML,
+tanpa panggilan API eksternal) — hasil harus bisa dijelaskan ke user ("kenapa saya
+dapat saran ini"). BUKAN nasihat investasi spesifik; tetap di area kebiasaan:
+nudge pola belanja, pacing budget, kebiasaan menabung. Urutan pengerjaan
+(jangan lompat urutan tanpa konfirmasi user):
+- **F1 — Saran finansial**: engine analisis rule-based yang membaca data transaksi/
+  budget/kategori existing dan menghasilkan saran/nudge kebiasaan finansial
+  (deteksi pola: lonjakan kategori, langganan menumpuk, spending pacing vs budget).
+  Output berupa daftar saran dengan alasan yang human-readable & bilingual (i18n).
+- **F2 — Skor kesehatan finansial**: kondensasi sinyal dari F1 menjadi satu angka/
+  gauge (misal 0-100). Kemungkinan besar reuse logic engine F1 (sub-skore per sinyal)
+  — rancang F1 supaya mudah dikondensasi.
+- **F3 — Rekomendasi pembagian budget**: metode 50/30/20 (kebutuhan/keinginan/
+  tabungan) sebagai starting point saat user mengatur budget. Prasyarat struktural:
+  kategori perlu ditandai tipe alokasinya (needs/wants/savings) — ada perubahan skema
+  (`categories`) + UI penandaan.
+- **F4 — Multi-dompet/akun**: perubahan struktural terbesar di fase ini — tabel
+  `wallets` baru, transaksi terhubung ke wallet, UI switch antar wallet. Sentuh data
+  layer, schema, dan banyak layar; kerjakan setelah fitur analitik (F1-F3) stabil.
+- **F5 — Tantangan hemat mingguan**: challenge mingguan (target no-spend/limit
+  kategori) terintegrasi dengan sistem XP/badge/streak yang sudah ada.
+- **F6 — Simulasi nabung**: proyeksi sederhana berdasarkan pola menabung historis
+  user (trend saldo/tabungan dari transaksi), output naratif + angka, bukan grafik
+  prediksi investasi.
+
+Prinsip lintas F1-F6: fungsi engine = murni & testable di `lib/` (pola `recap.js`/
+`badges.js`), UI hanya presentasi; semua string via i18n; saran selalu sertakan "mengapa".
+
 ## Konvensi kode yang sudah ada (pertahankan gayanya)
 - Komponen fungsi di `app/page.js`, memakai `'use client'` di baris pertama file
 - Helper domain ditaruh sebagai fungsi murni di `lib/`: `xp.js` (XP & level),

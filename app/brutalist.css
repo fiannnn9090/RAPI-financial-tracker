@@ -3685,3 +3685,160 @@ html {
   color: var(--br-ink);
   box-shadow: none;
 }
+
+/* ============================================================
+   F1 — Saran finansial (teaser Beranda + halaman Profil)
+   Semua warna lewat token --br-* supaya adaptif dark otomatis.
+   ============================================================ */
+
+/* Teaser ringkas di Beranda — hanya muncul saat ada saran 'tinggi'.
+   Tint kuning (sun) selaras kartu pengingat/streak; teks ikut --br-ink. */
+.advice-teaser {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 15px;
+  padding: 16px 18px;
+  text-align: left;
+  cursor: pointer;
+  background: var(--br-tint-sun);
+}
+.advice-teaser:active {
+  transform: translate(2px, 2px);
+  box-shadow: var(--br-shadow-sm);
+}
+.advice-teaser-icon {
+  flex: 0 0 auto;
+  font-size: 1.75rem;
+  line-height: 1;
+  transform: rotate(-8deg);
+}
+.advice-teaser-body {
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.advice-teaser-body em { /* highlight **...** */
+  font-style: normal;
+  background: linear-gradient(transparent 62%, var(--br-yellow) 62%);
+}
+.advice-teaser-body .kicker {
+  display: block;
+  margin: 0 0 5px;
+  opacity: .65;
+}
+.advice-teaser-count {
+  flex: 0 0 auto;
+  font: 700 .8125rem 'DM Mono', monospace;
+  background: var(--br-ink);
+  color: var(--br-surface);
+  border-radius: 999px;
+  padding: 4px 9px;
+}
+
+/* Halaman daftar saran (Profil › Saran finansial) */
+.advice-page {
+  padding: 21px;
+  display: grid;
+  gap: 18px;
+}
+.advice-sub {
+  margin: -6px 0 0;
+  font-size: .9rem;
+  line-height: 1.5;
+  color: var(--br-muted);
+}
+.advice-group {
+  display: grid;
+  gap: 12px;
+}
+.advice-group > .kicker { margin: 0 0 -2px; }
+
+.advice-item {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: var(--br-surface);
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  box-shadow: var(--br-shadow-sm);
+}
+.advice-item-icon {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  font-size: 1.3rem;
+  border-radius: var(--br-radius-sm);
+  transform: rotate(-6deg);
+}
+/* Aksen severity: strip warna solid di tile ikon + badge label */
+.advice-item.sev-tinggi .advice-item-icon { background: var(--br-coral); }
+.advice-item.sev-sedang .advice-item-icon { background: var(--br-gold); }
+.advice-item.sev-ringan .advice-item-icon { background: var(--br-lilac); }
+.advice-item-body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+.advice-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.advice-sev {
+  flex: 0 0 auto;
+  font: 800 .5938rem/1 inherit;
+  letter-spacing: .09em;
+  padding: 4px 7px;
+  border-radius: 4px;
+  color: #141414; /* badge solid selalu teks gelap, aman di dua tema */
+}
+.advice-item.sev-tinggi .advice-sev { background: var(--br-coral); }
+.advice-item.sev-sedang .advice-sev { background: var(--br-gold); }
+.advice-item.sev-ringan .advice-sev { background: var(--br-lilac); }
+.advice-item-body p {
+  margin: 0;
+  font-size: .95rem;
+  line-height: 1.55;
+}
+.advice-item-body p em { /* highlight **...** */
+  font-style: normal;
+  background: linear-gradient(transparent 62%, var(--br-yellow) 62%);
+}
+.advice-item-body .muted {
+  font-size: .78rem;
+  line-height: 1.5;
+  opacity: .85;
+}
+.advice-empty {
+  text-align: center;
+  padding: 26px 10px;
+  display: grid;
+  gap: 8px;
+}
+.advice-empty strong { font-size: 1.125rem; }
+.advice-empty p {
+  margin: 0;
+  color: var(--br-muted);
+  font-size: .9rem;
+  line-height: 1.55;
+}
+.advice-disclaimer {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 2px dashed var(--br-border);
+  font-size: .72rem;
+  line-height: 1.5;
+  color: var(--br-muted);
+}

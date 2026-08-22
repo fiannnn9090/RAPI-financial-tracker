@@ -173,3 +173,33 @@ Detail lengkap: `.github/copilot-instructions.md` → "Fase Redesign — Neo-Bru
       dua sistem selector .badge-card/.badges); (6) brand & insight-card &
       form-message. Sisa audit = false positive gradient (mint/lilac + hitam,
       5.8-12:1). Sanity light: tanpa regresi
+
+## Fase Finansial — Saran & Kesehatan Finansial
+Engine rule-based deterministik (fungsi murni di lib/, tanpa AI/ML) — bukan nasihat
+investasi. Urutan jangan dilompati; rancang F1 agar mudah dikondensasi ke F2.
+- [x] F1 Saran finansial — engine analisis rule-based dari data transaksi/budget/
+      kategori existing: deteksi pola (lonjakan kategori, langganan menumpuk, pacing
+      vs budget), output daftar saran/nudge + alasan human-readable bilingual;
+      fungsi murni di lib/ (pola recap.js/badges.js), UI hanya presentasi
+      → lib/advice.js (8 detektor S1-S8, guard 14 hari/≥5 tx, dedupe per kategori,
+      sort skor desc, deterministik; smoke test 11/11 di scripts/advice.smoke.mjs
+      via esbuild). UI hybrid: teaser kondisional Beranda (hanya saat ada severity
+      'tinggi', tap → Profil) + halaman Profil › 💡 Saran finansial (grup Perlu
+      tindakan/Cuma pengingat, badge severity, disclaimer bukan-nasihat-investasi).
+      i18n adv.* + prof.menu.saran (id/en). CSS section F1 adaptif dark via token.
+      Terverifikasi on-device emulator: teaser+pesan highlight benar, 6 saran dari
+      data QA asli, grup & warna severity sesuai.
+- [ ] F2 Skor kesehatan finansial — kondensasi sinyal F1 jadi satu angka/gauge
+      0-100; reuse sub-skore per sinyal dari engine F1; tampilan gauge di Beranda/
+      Profil
+- [ ] F3 Rekomendasi pembagian budget — metode 50/30/20 (kebutuhan/keinginan/
+      tabungan) sebagai starting point saat atur budget; prasyarat: kategori
+      ditandai tipe alokasi (needs/wants/savings) → perubahan skema categories +
+      UI penandaan
+- [ ] F4 Multi-dompet/akun — perubahan struktural terbesar: tabel wallets baru,
+      transaksi terhubung ke wallet, UI switch antar wallet; sentuh schema, data
+      layer, dan banyak layar — kerjakan setelah F1-F3 stabil
+- [ ] F5 Tantangan hemat mingguan — challenge mingguan (no-spend/limit kategori)
+      terintegrasi sistem XP/badge/streak existing
+- [ ] F6 Simulasi nabung — proyeksi sederhana dari pola menabung historis user,
+      output naratif + angka (bukan prediksi investasi)
