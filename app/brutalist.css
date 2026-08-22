@@ -146,10 +146,14 @@
   display: flex;
   gap: 4px;
   padding: 7px 10px calc(9px + env(safe-area-inset-bottom));
-  background: rgba(250, 243, 238, .90);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-top: 1px solid rgba(70, 58, 82, .08);
+  /* Surface SOLID tanpa backdrop-filter: nav-fab menjulang keluar tepi bar,
+     dan child yang overflow container ber-backdrop-filter memicu artefak
+     rect gelap di WebView Android. Solid juga ikut tema (dulu hardcoded
+     cream terang — salah di dark mode). */
+  background: var(--br-surface);
+  border-top: 2px solid var(--br-border);
+  -webkit-tap-highlight-color: transparent;
+  /* Ladder z-index: konten < nav/FAB 40 < sheet/backdrop 50 < levelup 55 < toast 60 */
   z-index: 40;
 }
 .bottom-nav-item {
