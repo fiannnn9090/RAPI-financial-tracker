@@ -189,9 +189,17 @@ investasi. Urutan jangan dilompati; rancang F1 agar mudah dikondensasi ke F2.
       i18n adv.* + prof.menu.saran (id/en). CSS section F1 adaptif dark via token.
       Terverifikasi on-device emulator: teaser+pesan highlight benar, 6 saran dari
       data QA asli, grup & warna severity sesuai.
-- [ ] F2 Skor kesehatan finansial — kondensasi sinyal F1 jadi satu angka/gauge
+- [x] F2 Skor kesehatan finansial — kondensasi sinyal F1 jadi satu angka/gauge
       0-100; reuse sub-skore per sinyal dari engine F1; tampilan gauge di Beranda/
-      Profil
+      Profil → lib/score.js: 5 komponen berbobot (savings 35, budget 25, rutin 15,
+      buffer 15, momentum 10) + renormalisasi bobot saat komponen tak relevan;
+      computeStats() diekstrak dari advice.js (dipakai bersama, smoke F1 tetap
+      11/11); trend historis via recompute previousMonthEnd() tanpa tabel baru.
+      UI: kartu skor mandiri di Beranda (gauge semicircle SVG 3 segmen + jarum +
+      chip level + delta ▲▼) + panel breakdown per komponen di halaman Saran.
+      Smoke score.smoke.mjs 13/13. Fix bug: effect [tab] menimpa profileView saat
+      navigasi dari kartu (kini hanya reset saat keluar tab profil). Terverifikasi
+      on-device: skor 48/perhatian, delta +11 vs Juli cocok hitungan manual data QA.
 - [ ] F3 Rekomendasi pembagian budget — metode 50/30/20 (kebutuhan/keinginan/
       tabungan) sebagai starting point saat atur budget; prasyarat: kategori
       ditandai tipe alokasi (needs/wants/savings) → perubahan skema categories +

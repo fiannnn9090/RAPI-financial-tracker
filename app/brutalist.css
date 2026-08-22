@@ -3842,3 +3842,158 @@ html {
   line-height: 1.5;
   color: var(--br-muted);
 }
+
+/* ============================================================
+   F2 — Skor kesehatan finansial (kartu Beranda + panel Saran)
+   Gauge semicircle 3 segmen keras; semua warna lewat token --br-*.
+   ============================================================ */
+
+.score-gauge {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.gauge-seg {
+  fill: none;
+  stroke-width: 13;
+}
+.gauge-seg.low { stroke: var(--br-coral); }
+.gauge-seg.mid { stroke: var(--br-gold); }
+.gauge-seg.high { stroke: var(--br-green); }
+.gauge-needle {
+  stroke: var(--br-ink);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.gauge-hub {
+  fill: var(--br-ink);
+}
+
+/* Kartu ringkas Beranda — tint mint selaras ekspor/data, beda dari teaser sun */
+.score-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 15px;
+  padding: 14px 18px 10px;
+  text-align: left;
+  cursor: pointer;
+  background: var(--br-tint-mint);
+}
+.score-card:active {
+  transform: translate(2px, 2px);
+  box-shadow: var(--br-shadow-sm);
+}
+.score-card .score-gauge-wrap {
+  flex: 0 0 96px;
+}
+.score-card-body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+}
+.score-card-body .kicker { margin: 0; opacity: .65; }
+.score-num-line {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+.score-num {
+  font: 800 2rem/1 'DM Mono', monospace;
+  letter-spacing: -.03em;
+  color: var(--br-ink);
+}
+.score-of {
+  color: var(--br-muted);
+  font-size: .75rem;
+}
+
+/* Chip level — pola badge solid teks gelap F1 (aman dua tema) */
+.score-chip {
+  font: 800 .5938rem/1 inherit;
+  letter-spacing: .09em;
+  padding: 5px 8px;
+  border-radius: 4px;
+  border: 2px solid var(--br-border);
+  color: #141414;
+}
+.score-chip.sehat { background: var(--br-green); }
+.score-chip.waspada { background: var(--br-gold); }
+.score-chip.perhatian { background: var(--br-coral); }
+
+.score-delta {
+  font: 600 .78rem 'DM Mono', monospace;
+  color: var(--br-muted);
+}
+.score-delta.up { color: var(--br-green); }
+.score-delta.down { color: var(--br-coral); }
+
+/* Panel lengkap di halaman Saran finansial (header di atas grup saran) */
+.score-panel {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  background: var(--br-tint-mint);
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  box-shadow: var(--br-shadow-sm);
+}
+.score-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.score-panel-head .score-gauge-wrap.big {
+  flex: 0 0 128px;
+}
+.score-panel-meta {
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+}
+.score-panel-meta > .kicker { margin: 0; opacity: .65; }
+.score-panel-meta .score-num { font-size: 2.625rem; }
+.score-chip-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.score-breakdown {
+  display: grid;
+  gap: 9px;
+}
+.score-breakdown > .kicker { margin: 0 0 -2px; opacity: .65; }
+.score-row {
+  display: grid;
+  grid-template-columns: minmax(96px, auto) 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+.score-row > span {
+  font-size: .82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.score-row > i {
+  height: 12px;
+  background: var(--br-surface);
+  border: 2px solid var(--br-border);
+  border-radius: 3px;
+  overflow: hidden;
+  display: block;
+}
+.score-row > i em {
+  display: block;
+  height: 100%;
+  background: var(--br-lilac);
+}
+.score-row > b {
+  font: 700 .72rem 'DM Mono', monospace;
+  color: var(--br-muted);
+  white-space: nowrap;
+}
