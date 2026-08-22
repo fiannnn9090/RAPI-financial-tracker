@@ -95,3 +95,6 @@ Detail lengkap: `.github/copilot-instructions.md` → "Fase Redesign — Neo-Bru
       [x N6c — local notifications: streak harian + due tagihan, toggle di Profil]
 - [x] N7 Recap cerita mingguan/bulanan — lib/recap.js (template deterministik, kategori
       selalu dari data aktual), kartu wrapped gelap di Beranda, toggle Minggu/Bulan
+- [x] N8 Export & Import Data — lib/csv.js (RFC4180 parser/escaper, validasi + dup-skip),
+      lib/reportPdf.js (jspdf lazy, tabel manual), section Data & backup di Profil +
+      ImportSheet 2 langkah
