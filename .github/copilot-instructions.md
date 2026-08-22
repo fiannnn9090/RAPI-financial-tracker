@@ -72,7 +72,8 @@ Urutan milestone (jangan lompat urutan tanpa konfirmasi user):
 - Komponen fungsi di `app/page.js`, memakai `'use client'` di baris pertama file
 - Helper domain ditaruh sebagai fungsi murni di `lib/`: `xp.js` (XP & level),
   `streak.js` (daily streak), `badges.js` (evaluasi badge + progress),
-  `profileCard.js` (kartu shareable via Canvas API, tanpa dependency tambahan)
+  `profileCard.js` (kartu shareable via Canvas API, tanpa dependency tambahan),
+  `recurring.js` (jadwal & catch-up transaksi berulang, fungsi murni — cap 6 per aturan)
 - Formatter: `rupiah` (Intl.NumberFormat IDR) dan `dateFormatter` (Intl.DateTimeFormat id-ID)
   sudah didefinisikan di scope module — pakai ulang, jangan bikin formatter baru
 - Kategori per-user disimpan di tabel `categories` (nama, emoji, type income/expense/both,

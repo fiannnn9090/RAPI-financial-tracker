@@ -1234,3 +1234,129 @@
 .emoji-field input {
   flex: 1;
 }
+
+/* =========================================================
+   N6b — Transaksi berulang (tab Profil) + toast
+   ========================================================= */
+
+.recurring-manage-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recurring-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-surface);
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+}
+
+.recurring-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.recurring-info strong {
+  font-weight: 800;
+  color: var(--br-ink);
+}
+
+.recurring-info small {
+  color: var(--br-muted);
+  font-weight: 700;
+}
+
+.recurring-info small.muted {
+  font-weight: 500;
+}
+
+.recurring-row button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-coral);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.recurring-row button:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+.recurring-empty {
+  border: 2px dashed var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: transparent;
+  color: var(--br-muted);
+  padding: 12px 14px;
+  font-weight: 600;
+}
+
+/* Chip hari untuk frekuensi mingguan */
+.weekday-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.weekday-chips button {
+  min-width: 42px;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-surface);
+  color: var(--br-ink);
+  font-weight: 800;
+  font-size: var(--br-fs-caption);
+  cursor: pointer;
+}
+
+.weekday-chips button.selected {
+  background: var(--br-yellow);
+  color: #141414;
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+}
+
+/* Toast notifikasi dalam app */
+.brutal-toast {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 88px);
+  z-index: 60;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 12px 18px;
+  text-align: center;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-md);
+  background: var(--br-yellow);
+  color: #141414;
+  font-family: var(--br-font);
+  font-weight: 800;
+  box-shadow: 4px 4px 0 0 var(--br-shadow-c);
+  animation: brutal-toast-in .25s ease-out;
+}
+
+@keyframes brutal-toast-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
