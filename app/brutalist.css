@@ -2850,3 +2850,89 @@
   background: var(--br-lilac);
   color: #fff;
 }
+
+/* =========================================================
+   N7 — Recap Cerita (wrapped-style, kartu gelap)
+   ========================================================= */
+
+.recap-card {
+  --rc-fg: #FFF9EF;
+  --rc-line: rgba(255, 249, 239, .25);
+  --rc-in: #00C48C;
+  --rc-out: #FF7590;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px 20px;
+  background: #141414;
+  color: var(--rc-fg);
+  box-shadow: var(--br-shadow-lg);
+}
+
+.recap-card p {
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.recap-card em {
+  font-style: normal;
+  font-weight: 900;
+  color: var(--br-yellow);
+}
+
+.recap-stats {
+  display: flex;
+  gap: 18px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 2px solid var(--rc-line);
+}
+
+.recap-stats div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recap-stats small {
+  font-size: var(--br-fs-caption);
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  opacity: .7;
+}
+
+.recap-stats b {
+  font-family: var(--br-font);
+  font-weight: 900;
+}
+
+.recap-stats b.in { color: var(--rc-in); }
+.recap-stats b.out { color: var(--rc-out); }
+
+.recap-empty {
+  font-weight: 700;
+  border-style: solid;
+}
+
+/* Dark mode: kartu di-invert jadi terang agar tetap menonjol */
+@media (prefers-color-scheme: dark) {
+  .recap-card {
+    --rc-fg: #141414;
+    --rc-line: rgba(20, 20, 20, .25);
+    --rc-in: #00875A;
+    --rc-out: #D6295A;
+    background: #F5F1E8;
+    color: var(--rc-fg);
+  }
+}
+
+[data-theme='dark'] .recap-card {
+  --rc-fg: #141414;
+  --rc-line: rgba(20, 20, 20, .25);
+  --rc-in: #00875A;
+  --rc-out: #D6295A;
+  background: #F5F1E8;
+  color: var(--rc-fg);
+}
