@@ -91,4 +91,5 @@ Detail lengkap: `.github/copilot-instructions.md` → "Fase Redesign — Neo-Bru
       sisa legacy globals.css
 - [ ] N6 Fitur struktural baru: kustomisasi kategori [x N6a], transaksi berulang
       [x N6b — tabel + generate catch-up cap 6 + UI Profil + toast], smart reminder
+      [x N6c — local notifications: streak harian + due tagihan, toggle di Profil]
 - [ ] N7 Recap cerita mingguan/bulanan

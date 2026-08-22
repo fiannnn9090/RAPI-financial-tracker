@@ -1360,3 +1360,96 @@
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* =========================================================
+   N6c — Smart reminder (tab Profil)
+   ========================================================= */
+
+.reminder-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.reminder-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.reminder-row > div {
+  flex: 1;
+}
+
+.reminder-row strong {
+  font-weight: 800;
+  color: var(--br-ink);
+}
+
+.reminder-row p {
+  color: var(--br-muted);
+  font-size: var(--br-fs-caption);
+  margin-top: 2px;
+}
+
+/* Toggle switch brutal */
+.reminder-toggle {
+  width: 56px;
+  height: 30px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 3px;
+  border: 2px solid var(--br-border);
+  border-radius: 999px;
+  background: var(--br-surface);
+  cursor: pointer;
+  transition: background .15s ease;
+}
+
+.reminder-toggle i {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--br-border);
+  background: var(--br-muted);
+  transition: transform .15s ease, background .15s ease;
+}
+
+.reminder-toggle.on {
+  background: var(--br-yellow);
+}
+
+.reminder-toggle.on i {
+  transform: translateX(26px);
+  background: #141414;
+  border-color: #141414;
+}
+
+.reminder-hour {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: var(--br-fs-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--br-muted);
+}
+
+.reminder-hour select {
+  min-width: 120px;
+  min-height: 44px;
+  padding: 9px 12px;
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-surface);
+  color: var(--br-ink);
+  font-weight: 700;
+  color-scheme: light dark;
+}
+
+.reminder-test {
+  width: 100%;
+}
