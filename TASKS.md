@@ -104,3 +104,11 @@ Detail lengkap: `.github/copilot-instructions.md` → "Fase Redesign — Neo-Bru
 - [x] N9b Ukuran teks (a11y) — konversi 120 deklarasi px→rem (brutalist+globals),
       root `--font-scale` 100/115/130%, 10 selector ikon dekoratif di-pin px,
       segmented control di card Pengaturan, persist localStorage
+- [x] N9c Dukungan Bahasa Inggris (i18n) — lib/i18n.js (DICT flat id/en, t()/useT untuk
+      komponen, tl(lang,...) non-hook untuk libs murni); Fase 1: semua string statis
+      page.js+LevelUpModal; Fase 2: recap/badges/xp/reminders/profileCard/reportPdf/csv
+      menerima param lang eksplisit; kontrak terjaga: header CSV tetap Indonesia,
+      format uang tetap Rp/id-ID, kategori & badge dari DB tidak diterjemahkan (fallback);
+      Fase 3: sweep bersih + fix interpolasi tl() + plural EN rc.count + <html lang> &
+      document.title dinamis + resync notifikasi saat ganti bahasa; toggle ID↔EN stress
+      test lolos, build + cap sync android OK

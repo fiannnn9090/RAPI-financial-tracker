@@ -6,8 +6,24 @@ Sedang dalam proses migrasi besar dari MVP client-only (localStorage) menjadi ap
 dengan backend (Supabase) + sistem gamifikasi (XP, Level, badge) + redesign visual
 bertema Claymorphism.
 
-Semua teks UI menggunakan Bahasa Indonesia, gaya santai/gen-z-friendly ("bestie", emoji,
-nada ramah). Pertahankan gaya ini di setiap komponen baru.
+Semua teks UI bilingual Indonesia/Inggris via sistem i18n (lib/i18n.js), gaya santai
+gen-z-friendly ("bestie", emoji, nada ramah) di KEDUA bahasa. Pertahankan gaya ini di
+setiap komponen baru.
+
+## Sistem i18n (N9c)
+- Kamus: DICT flat di `lib/i18n.js`, pasangan `"kunci": { id: "...", en: "..." }`
+  berdampingan. SEMUA teks UI baru wajib lewat DICT — dilarang hardcode string tampilan.
+- Komponen React: pakai hook `t(key, vars)` / `useT()`; bahasa aktif = state `lang` di
+  Home (persist localStorage `rapi.lang`), disinkronkan ke global via `setLang(lang)`.
+- Libs murni non-React (recap, badges, xp, reminders, profileCard, reportPdf, csv):
+  fungsi publik menerima param `lang = 'id'` eksplisit dan menerjemahkan via
+  `tl(lang, key, vars, fallback)` — JANGAN baca state global dari libs. Param `fallback`
+  dipakai bila kunci tidak ada (mis. badge kustom dari DB jatuh ke judul aslinya).
+- Kontrak yang sengaja TIDAK diterjemahkan: header kolom CSV (`tanggal,tipe,kategori,
+  judul,nominal`) agar file ekspor lama tetap terbaca; format uang selalu Rp gaya id-ID;
+  nama kategori & badge dari DB selalu data aktual.
+- `<html lang>` & `document.title` ikut bahasa aktif (efek di Home); notifikasi
+  terjadwal di-resync otomatis saat ganti bahasa (efek di Dashboard).
 
 ## Stack
 - Next.js 16 (App Router), React 19
@@ -115,5 +131,6 @@ tetap di atas rule override agar kaskade tidak berubah. Style baru = bahasa brut
 - Jangan hardcode API key Supabase di source code
 - Jangan hapus fitur yang sudah ada (badge, wishlist, budget) saat migrasi — hanya pindahkan
   penyimpanan datanya
-- Jangan ubah bahasa UI ke Inggris
+- Jangan hardcode string teks UI — semua lewat DICT di lib/i18n.js (lihat bagian i18n);
+  kalau menambah kunci, isi lengkap pasangan id+en dan update backup /tmp/i18n_entries.json
 - Jangan tambah dependency besar (Tailwind, UI library) tanpa konfirmasi user dulu
