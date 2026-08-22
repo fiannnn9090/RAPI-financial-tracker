@@ -69,7 +69,7 @@ Urutan milestone (jangan lompat urutan tanpa konfirmasi user):
 - **N7 — Recap cerita**: ringkasan naratif mingguan/bulanan aktivitas keuangan
 
 Status: N1–N6 selesai. clay.css sudah DIHAPUS — seluruh basis struktural lama kini
-tinggal di bagian atas `app/brutalist.css` (banner "N7 — BASIS STRUKTURAL") dan harus
+tinggal di bagian atas `app/brutalist.css` (banner "CLEANUP LEGACY CSS") dan harus
 tetap di atas rule override agar kaskade tidak berubah. Style baru = bahasa brutalist.
 
 ## Konvensi kode yang sudah ada (pertahankan gayanya)

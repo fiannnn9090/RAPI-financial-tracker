@@ -88,7 +88,7 @@ Detail lengkap: `.github/copilot-instructions.md` → "Fase Redesign — Neo-Bru
 - [x] N4 Terapkan tab Target (goal card, badge list) + sheet Budget (koreksi cakupan dari
       N2) & Goal
 - [x] N5 Terapkan Profil + Auth (+ modal level-up) → clay.css dihapus: basis struktural
-      yang masih hidup dipindah ke atas app/brutalist.css (banner "N7 — BASIS STRUKTURAL",
+      yang masih hidup dipindah ke atas app/brutalist.css (banner "CLEANUP LEGACY CSS",
       urutan kaskade dipertahankan); rule mati (topbar, blobs) dibuang
 - [ ] N6 Fitur struktural baru: kustomisasi kategori [x N6a], transaksi berulang
       [x N6b — tabel + generate catch-up cap 6 + UI Profil + toast], smart reminder
