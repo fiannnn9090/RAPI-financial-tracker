@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
+import { t } from '../lib/i18n';
 
 const CONFETTI_COLORS = ['#ffd166', '#ef476f', '#06d6a0', '#4cc9f0', '#b388eb', '#ff9f1c'];
 
@@ -38,11 +39,11 @@ export default function LevelUpModal({ level, title, xpEarned, onClose }) {
         />)}
       </div>
       <span className="levelup-emoji">🎉</span>
-      <p className="kicker">LEVEL UP!</p>
-      <h2 id="levelup-title">Lv {level} tercapai!</h2>
-      <p className="levelup-copy">Gila sih, bestie 😎 Kamu resmi naik gelar jadi <strong>“{title}”</strong>.</p>
-      {xpEarned ? <p className="levelup-xp">+{xpEarned} XP dari transaksi terakhirmu ✨</p> : null}
-      <button className="primary-button brutal-button" onClick={onClose}>Gass lanjut! <span>→</span></button>
+      <p className="kicker">{t('lvl.kicker')}</p>
+      <h2 id="levelup-title">{t('lvl.title', { level })}</h2>
+      <p className="levelup-copy">{t('lvl.copy')} <strong>“{title}”</strong>.</p>
+      {xpEarned ? <p className="levelup-xp">{t('lvl.xp', { n: xpEarned })}</p> : null}
+      <button className="primary-button brutal-button" onClick={onClose}>{t('lvl.cta')} <span>→</span></button>
     </section>
   </div>;
 }
