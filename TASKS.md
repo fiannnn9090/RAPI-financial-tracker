@@ -200,8 +200,20 @@ investasi. Urutan jangan dilompati; rancang F1 agar mudah dikondensasi ke F2.
       Smoke score.smoke.mjs 13/13. Fix bug: effect [tab] menimpa profileView saat
       navigasi dari kartu (kini hanya reset saat keluar tab profil). Terverifikasi
       on-device: skor 48/perhatian, delta +11 vs Juli cocok hitungan manual data QA.
-- [ ] F3 Rekomendasi pembagian budget — metode 50/30/20 (kebutuhan/keinginan/
+- [x] F3 Rekomendasi pembagian budget — metode 50/30/20 (kebutuhan/keinginan/
       tabungan) sebagai starting point saat atur budget; prasyarat: kategori
+      → sql/f3_allocation_type.sql (kolom categories.allocation_type NOT NULL
+      DEFAULT 'kebutuhan' + backfill default mapping, Lainnya=keinginan). Kode
+      tahan pra-migrasi: INSERT tak kirim field, mapCategory + DEFAULT_ALLOCATIONS
+      fallback 'kebutuhan', PATCH gagal → toast instruksi migrasi. UI: picker di
+      CategorySheet (tipe ≠ income) + chip siklus di Kelola kategori (fix: prop
+      juga ke grup income utk kategori both). lib/recommend.js (aktual vs ideal,
+      status ±10%, pesan prioritas over-keinginan→over-kebutuhan→under-tabungan),
+      smoke recommend.smoke.mjs 9/9. Section BUDGET 50/30/20 di halaman Saran
+      finansial di bawah panel skor. Terverifikasi on-device pra-SQL: angka cocok
+      hitungan manual (income Rp10jt → ideal 5/3/2), toast migrasi muncul saat
+      chip dicoba sebelum kolom ada. Verifikasi siklus sukses menunggu SQL
+      dijalankan user.
       ditandai tipe alokasi (needs/wants/savings) → perubahan skema categories +
       UI penandaan
 - [ ] F4 Multi-dompet/akun — perubahan struktural terbesar: tabel wallets baru,

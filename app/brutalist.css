@@ -3997,3 +3997,115 @@ html {
   color: var(--br-muted);
   white-space: nowrap;
 }
+
+/* ============================================================
+   F3 — Rekomendasi budget 50/30/20 + chip alokasi kategori
+   ============================================================ */
+
+/* Chip alokasi di Kelola kategori (tap = siklus kebutuhan→keinginan→tabungan) */
+.alloc-chip {
+  font: 700 .65rem/1 inherit;
+  letter-spacing: .05em;
+  padding: 4px 7px;
+  border-radius: 999px;
+  border: 2px solid var(--br-border);
+  cursor: pointer;
+  color: #141414; /* badge solid selalu teks gelap, aman dua tema */
+}
+.alloc-chip.kebutuhan { background: var(--br-green); }
+.alloc-chip.keinginan { background: var(--br-gold); }
+.alloc-chip.tabungan { background: var(--br-lilac); }
+.alloc-chip:active { transform: scale(.94); }
+
+.category-manage-card .alloc-note {
+  margin: 4px 0 0;
+  font-size: .72rem;
+  line-height: 1.5;
+}
+
+/* Picker di CategorySheet — pola sort-toggle settings */
+.alloc-field > span {
+  font-size: .9rem;
+  font-weight: 700;
+}
+
+/* Section rekomendasi di halaman Saran finansial */
+.alloc-section {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  background: var(--br-tint-blush);
+  border: 2px solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  box-shadow: var(--br-shadow-sm);
+}
+.alloc-head { display: grid; gap: 3px; }
+.alloc-head .kicker { margin: 0; opacity: .65; }
+.alloc-head h3 { margin: 0; font-size: 1.0625rem; }
+.alloc-head small { font: 600 .75rem 'DM Mono', monospace; }
+
+.alloc-rows {
+  display: grid;
+  gap: 10px;
+}
+.alloc-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+}
+.alloc-tag {
+  font: 800 .68rem/1 inherit;
+  letter-spacing: .06em;
+  padding: 5px 8px;
+  border-radius: 4px;
+  color: #141414;
+}
+.alloc-tag.kebutuhan { background: var(--br-green); }
+.alloc-tag.keinginan { background: var(--br-gold); }
+.alloc-tag.tabungan { background: var(--br-lilac); }
+.alloc-row > i {
+  height: 12px;
+  background: var(--br-surface);
+  border: 2px solid var(--br-border);
+  border-radius: 3px;
+  overflow: hidden;
+  display: block;
+}
+.alloc-row > i em {
+  display: block;
+  height: 100%;
+  background: var(--br-ink);
+}
+.alloc-row > b {
+  font: 700 .78rem 'DM Mono', monospace;
+  white-space: nowrap;
+}
+.alloc-status {
+  font: 800 .62rem/1 inherit;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 2px solid currentColor;
+}
+.alloc-status.pas { color: var(--br-green); }
+.alloc-status.over { color: var(--br-coral); }
+.alloc-status.under { color: var(--br-gold); }
+
+.alloc-msg {
+  margin: 0;
+  font-size: .92rem;
+  line-height: 1.55;
+  font-weight: 600;
+}
+.alloc-msg em {
+  font-style: normal;
+  background: linear-gradient(transparent 62%, var(--br-yellow) 62%);
+}
+.alloc-hint {
+  margin: 0;
+  font-size: .78rem;
+  line-height: 1.5;
+  color: var(--br-muted);
+}
