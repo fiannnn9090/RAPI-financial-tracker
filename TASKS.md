@@ -98,3 +98,9 @@ Detail lengkap: `.github/copilot-instructions.md` → "Fase Redesign — Neo-Bru
 - [x] N8 Export & Import Data — lib/csv.js (RFC4180 parser/escaper, validasi + dup-skip),
       lib/reportPdf.js (jspdf lazy, tabel manual), section Data & backup di Profil +
       ImportSheet 2 langkah
+- [x] N9a Pengaturan mata uang tampilan — lib/fx.js (fawazahmed0+mirror+er-api, cache
+      24 jam localStorage, fallback IDR), formatter terpusat money.format, section
+      Pengaturan di Profil; DB & export tetap IDR
+- [x] N9b Ukuran teks (a11y) — konversi 120 deklarasi px→rem (brutalist+globals),
+      root `--font-scale` 100/115/130%, 10 selector ikon dekoratif di-pin px,
+      segmented control di card Pengaturan, persist localStorage
