@@ -1278,6 +1278,12 @@
   --br-lilac: #9B5DE5;         /* aksen sekunder / fokus */
   --br-gold: #FFB020;          /* tier legendary / goal tercapai */
 
+  /* Tint kartu per kategori (selaras money card, hue beda per fungsi) */
+  --br-tint-lilac: #F1EAFF;    /* pengaturan / utilitas */
+  --br-tint-mint: #DCF5EB;     /* ekspor & impor / data */
+  --br-tint-sun: #FFF1C2;      /* pengingat / streak */
+  --br-tint-blush: #FFE6EC;    /* kartu profil / share */
+
   /* Border */
   --br-border-w: 3px;
   --br-border: var(--br-ink);
@@ -1314,6 +1320,11 @@
     --br-lilac: #B388FF;
     --br-gold: #FFB020;
 
+    --br-tint-lilac: #2D2547;
+    --br-tint-mint: #17342A;
+    --br-tint-sun: #3A3115;
+    --br-tint-blush: #3C2432;
+
     /* Di dark, border terang yang memikul kontras;
        shadow hitam solid tetap memberi kesan "ditumpuk". */
     --br-shadow-c: #000000;
@@ -1333,10 +1344,21 @@
   --br-lilac: #B388FF;
   --br-gold: #FFB020;
 
+  --br-tint-lilac: #2D2547;
+  --br-tint-mint: #17342A;
+  --br-tint-sun: #3A3115;
+  --br-tint-blush: #3C2432;
+
   --br-shadow-c: #000000;
 }
 
 /* ============ Primitif dasar ============ */
+
+/* Dasar halaman mengikuti tema brutal (globals.css masih memakai --paper terang) */
+body {
+  background: var(--br-bg);
+  color: var(--br-ink);
+}
 
 .brutal-card {
   background: var(--br-surface);
@@ -1357,7 +1379,7 @@
   font-size: var(--br-fs-body);
   font-weight: 800;
   letter-spacing: .01em;
-  color: var(--br-ink);
+  color: #141414; /* teks gelap di atas kuning — kontras di kedua tema */
   background: var(--br-yellow);
   border: var(--br-border-w) solid var(--br-border);
   border-radius: var(--br-radius-sm);
@@ -1922,13 +1944,13 @@
 .brutal-sheet .type-switch button.selected.expense {
   border-color: var(--br-border);
   background: var(--br-coral);
-  color: #fff;
+  color: #141414;
 }
 
 .brutal-sheet .type-switch button.selected.income {
   border-color: var(--br-border);
   background: var(--br-green);
-  color: #fff;
+  color: #141414;
 }
 
 /* Pesan error form */
@@ -2370,12 +2392,6 @@
 /* =========================================================
    N6a — Kelola Kategori (tab Profil) + CategorySheet
    ========================================================= */
-
-.manage-categories .section-header h2 {
-  font-family: var(--br-font);
-  font-weight: 900;
-  letter-spacing: -.02em;
-}
 
 .category-manage-card {
   display: flex;
@@ -3163,4 +3179,509 @@ html {
 
 .font-scale button {
   min-width: 74px;
+}
+
+/* =========================================================
+   Profil — pola menu Settings (daftar baris + sub-halaman)
+   ========================================================= */
+.profile-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.profile-menu-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 15px 16px;
+  border: 0;
+  border-top: 2px solid var(--br-border);
+  background: var(--br-surface);
+  color: var(--br-ink);
+  font-family: var(--br-font);
+  font-size: var(--br-fs-body);
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .12s ease, background-color .12s ease;
+}
+.profile-menu-row:first-child { border-top: 0; }
+.profile-menu-row .row-icon { font-size: 20px; line-height: 1; } /* pin px (N9b) */
+.profile-menu-row .row-label { min-width: 0; }
+.profile-menu-row .row-chevron {
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--br-muted);
+}
+.profile-menu-row:active {
+  transform: translate(2px, 2px);
+  background: var(--br-bg);
+}
+/* Penanda serius Danger Zone di list utama; border tegas penuh ada di sub-halamannya */
+.profile-menu-row.danger,
+.profile-menu-row.danger .row-icon,
+.profile-menu-row.danger .row-chevron { color: var(--br-coral); }
+
+.sub-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  row-gap: 6px;
+  margin-bottom: 14px;
+}
+.sub-back {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: var(--br-border-w) solid var(--br-border);
+  border-radius: var(--br-radius-sm);
+  background: var(--br-surface);
+  color: var(--br-ink);
+  box-shadow: var(--br-shadow-sm);
+  font-family: var(--br-font);
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.sub-back:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+.sub-header h2 {
+  margin: 0;
+  font-size: var(--br-fs-h2);
+  font-weight: 900;
+  letter-spacing: -.01em;
+}
+.sub-icon { font-size: 20px; line-height: 1; } /* pin px (N9b) */
+.sub-action { margin-left: auto; }
+
+/* Transisi sub-halaman: fade-slide ringan saat mount, tanpa layer fixed */
+@keyframes prof-sub-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.profile-sub { animation: prof-sub-in .15s ease-out; }
+
+/* =========================================================
+   UI Polish — ritme seksi, toolbar swipe, badge tier,
+   normalisasi sub-halaman Profil
+   ========================================================= */
+
+/* 1) Ritme antar-seksi + header wrap-safe (toggle pindah baris saat sempit) */
+.brutal-section { margin-bottom: 22px; }
+.brutal-section .section-header {
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+
+/* 2) Toolbar swipe kategori: snap + ruang shadow chip aktif + boleh wrap */
+.list-toolbar {
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+.category-filters {
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 4px;
+  padding: 4px 6px 8px;   /* dulu padding-bottom:2px — shadow chip aktif terpotong */
+  margin: -4px -6px 0;
+}
+.category-filters button { scroll-snap-align: start; }
+
+/* 3) Badge: pill tier kembali ke alur flex (dulu position:absolute warisan
+   clay yang melayang di atas judul/catatan) + teks aman dari overflow */
+.badge-card.brutal-badge .badge .badge-tier {
+  position: static;
+  margin-left: auto;
+  font-family: var(--br-font);
+  font-size: .625rem;
+  font-weight: 800;
+}
+.badges .badge > div {
+  min-width: 0;
+  flex: 1;
+}
+.badges .badge strong,
+.badges .badge small { overflow-wrap: break-word; }
+
+/* 4) Sub-halaman Profil: netralkan margin konteks lama di dalam menu baru */
+.profile-sub .danger-zone { margin-top: 0; }
+
+/* Kartu profil: pratinjau identitas + statistik (mencerminkan isi kartu PNG) */
+.share-id {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.share-id .avatar {
+  width: 46px;
+  height: 46px;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+.share-id > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.share-id strong {
+  font-family: var(--br-font);
+  font-weight: 900;
+  letter-spacing: -.01em;
+  overflow-wrap: break-word;
+}
+.share-id small { color: var(--br-muted); font-weight: 700; }
+.share-tier {
+  margin-left: auto;
+  flex-shrink: 0;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: .625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  background: var(--br-surface);
+}
+.share-tier.tier-common { color: var(--br-muted); }
+.share-tier.tier-rare { color: var(--br-lilac); }
+.share-tier.tier-epic { color: var(--br-coral); }
+.share-tier.tier-legendary { color: #B78422; }
+.share-stats {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 10px 0 0;
+  border-top: 2px solid var(--br-border);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 14px;
+}
+.share-stats li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-weight: 700;
+  font-size: var(--br-fs-caption);
+}
+
+/* =========================================================
+   Audit dual-cascade clay+brutal — netralisasi sisa warisan clay
+   (temuan audit otomatis: properti clay yang lolos dari override brutal)
+   ========================================================= */
+
+/* Strip atas kartu: gradasi pastel clay → palet brutal (ikut mode gelap) */
+.insight-card.clay-card::before { background: linear-gradient(90deg, var(--br-lilac), var(--br-coral)); }
+.budget-item.clay-card::before { background: linear-gradient(90deg, #9FE6C4, var(--br-green)); }
+.goal-card.clay-card.clay-goal::before { background: linear-gradient(90deg, #FFE29A, var(--br-gold)); }
+.badge-card.clay-badge::before { background: linear-gradient(90deg, #FFB3C8, var(--br-coral)); }
+
+/* Titik judul seksi insight/budget: bevel ungu/mint clay → penanda flat brutal */
+.clay-insight > .section-header h2::before,
+.clay-budget > .section-header h2::before {
+  border-radius: 0;
+  box-shadow: none;
+}
+.clay-insight > .section-header h2::before { background: var(--br-lilac); }
+.clay-budget > .section-header h2::before { background: var(--br-green); }
+
+/* Handle sheet: tint ungu clay → tinta brutal */
+.modal.clay-card:not(.levelup-modal)::before { background: rgba(20, 20, 20, .28); }
+
+/* Glow teks streak aktif (warisan clay) dimatikan di konteks brutal */
+.balance-card.brutal-card .streak-chip.active { text-shadow: none; }
+
+/* Badge: hapus bevel inset clay pada tier dasar; tier epik/legendary tetap
+   pakai hard shadow brutal. Ikon tilt ±3° dan warna locked clay dibersihkan */
+.badge-card.brutal-badge .badges .badge { box-shadow: none; }
+.badge-card.brutal-badge .badges .badge.unlocked.tier-epic { box-shadow: 3px 3px 0 0 var(--br-shadow-c); }
+.badge-card.brutal-badge .badges .badge.unlocked.tier-legendary { box-shadow: 4px 4px 0 0 var(--br-gold); }
+.badge-card.brutal-badge .badges .badge > span { transform: none; }
+.badge-card.brutal-badge .badges .badge.locked strong { color: var(--br-muted); }
+.badge-card.brutal-badge .badge-progress {
+  background: var(--br-border);
+  box-shadow: none;
+}
+.badge-card.brutal-badge .badge-progress em { background: var(--br-yellow); }
+
+/* =========================================================
+   N9g — De-box sub-halaman Kelola Kategori & Rutin:
+   kartu pembungkus besar dihapus (baris chip = satu-satunya kotak),
+   teks panjang tidak boleh meluber menimpa komponen sebelah
+   ========================================================= */
+.category-manage-card,
+.recurring-manage-card {
+  background: transparent;
+  color: inherit;
+  border: none;
+  box-shadow: none;
+}
+
+.category-row,
+.recurring-row { min-width: 0; }
+
+.recurring-info,
+.category-row strong { min-width: 0; }
+
+.category-row strong,
+.recurring-info strong,
+.recurring-info small { overflow-wrap: break-word; }
+
+/* =========================================================
+   N9i — Warna kartu per kategori (selaras money card) + padding 22px
+   ========================================================= */
+.settings-card { background: var(--br-tint-lilac); }
+.data-card { background: var(--br-tint-mint); }
+.reminder-card { background: var(--br-tint-sun); }
+.brutal-share {
+  background: var(--br-tint-blush) !important; /* kalahkan gradasi clay */
+  border: var(--br-border-w) solid var(--br-border);
+  box-shadow: var(--br-shadow-b);
+}
+.settings-card,
+.data-card,
+.reminder-card {
+  padding: 22px;
+}
+.share-card.brutal-share {
+  padding: 22px; /* takluki .share-card.clay-card (21px) */
+}
+
+/* =========================================================
+   N9k — Perbaikan dark mode (kontras & permukaan)
+   ========================================================= */
+
+/* 1) Tombol aksen: teks selalu gelap di atas permukaan terang saturat
+      (kuning/lilac/coral) agar terbaca di kedua tema */
+.brutal-button.brutal-ghost {
+  color: var(--br-ink); /* ghost transparan tetap ikut tinta tema */
+}
+.sort-toggle button.active {
+  background: var(--br-lilac);
+  color: #141414; /* putih di lilac hanya 2.6:1 */
+}
+.brutal-danger-btn,
+.brutal-danger-btn.clay-button.brutal-button {
+  color: #141414;
+}
+
+/* 2) Mode gelap: flip var warisan clay + tutup komponen yang lolos */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --clay-bg: #16161F;
+    --clay-surface: #232330;
+    --clay-ink: #F5F1E8;
+    --clay-muted: #A9A3B8;
+  }
+  :root:not([data-theme='light']) .brand.dark { color: var(--br-ink); }
+  :root:not([data-theme='light']) .modal.clay-card,
+  :root:not([data-theme='light']) .modal {
+    background: var(--clay-surface);
+    box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .8);
+  }
+  :root:not([data-theme='light']) .modal-backdrop.clay-modal {
+    background: rgba(0, 0, 0, .68);
+  }
+  :root:not([data-theme='light']) .clay-modal .modal input,
+  :root:not([data-theme='light']) .clay-modal .modal select,
+  :root:not([data-theme='light']) .form-wrap input,
+  :root:not([data-theme='light']) .modal input,
+  :root:not([data-theme='light']) .modal select {
+    background: #2C2C3C;
+    color: var(--br-ink);
+    border-color: #3A3A4E;
+    box-shadow: none;
+  }
+  :root:not([data-theme='light']) .clay-modal .modal input:focus,
+  :root:not([data-theme='light']) .clay-modal .modal select:focus {
+    background: #323246;
+    border-color: var(--br-lilac);
+    box-shadow: 0 0 0 3px rgba(179, 136, 255, .25);
+  }
+  :root:not([data-theme='light']) .type-switch {
+    background: #2C2C3C;
+  }
+  :root:not([data-theme='light']) .type-switch button {
+    color: var(--br-muted);
+  }
+  :root:not([data-theme='light']) .type-switch .selected.expense {
+    background: var(--br-coral);
+    color: #141414;
+  }
+  :root:not([data-theme='light']) .type-switch .selected.income {
+    background: var(--br-green);
+    color: #141414;
+  }
+  :root:not([data-theme='light']) .badge-card.clay-badge .badge {
+    background: #2C2640;
+  }
+  :root:not([data-theme='light']) .badge-card.clay-badge .badge small,
+  :root:not([data-theme='light']) .badge-card.clay-badge .badge p {
+    color: var(--br-muted);
+  }
+  :root:not([data-theme='light']) .badge-card.clay-badge .badge-progress {
+    background: #262236;
+  }
+  :root:not([data-theme='light']) .badge-card.clay-badge .badge-progress em {
+    color: var(--br-gold);
+  }
+  :root:not([data-theme='light']) .badge-card.clay-badge .badge-tier {
+    color: #141414;
+  }
+  :root:not([data-theme='light']) .goal-button.clay-button {
+    color: var(--br-yellow);
+  }
+}
+[data-theme='dark'] {
+  --clay-bg: #16161F;
+  --clay-surface: #232330;
+  --clay-ink: #F5F1E8;
+  --clay-muted: #A9A3B8;
+}
+[data-theme='dark'] .brand.dark { color: var(--br-ink); }
+[data-theme='dark'] .modal.clay-card,
+[data-theme='dark'] .modal {
+  background: var(--clay-surface);
+  box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .8);
+}
+[data-theme='dark'] .modal-backdrop.clay-modal {
+  background: rgba(0, 0, 0, .68);
+}
+[data-theme='dark'] .clay-modal .modal input,
+[data-theme='dark'] .clay-modal .modal select,
+[data-theme='dark'] .form-wrap input,
+[data-theme='dark'] .modal input,
+[data-theme='dark'] .modal select {
+  background: #2C2C3C;
+  color: var(--br-ink);
+  border-color: #3A3A4E;
+  box-shadow: none;
+}
+[data-theme='dark'] .clay-modal .modal input:focus,
+[data-theme='dark'] .clay-modal .modal select:focus {
+  background: #323246;
+  border-color: var(--br-lilac);
+  box-shadow: 0 0 0 3px rgba(179, 136, 255, .25);
+}
+[data-theme='dark'] .type-switch {
+  background: #2C2C3C;
+}
+[data-theme='dark'] .type-switch button {
+  color: var(--br-muted);
+}
+[data-theme='dark'] .type-switch .selected.expense {
+  background: var(--br-coral);
+  color: #141414;
+}
+[data-theme='dark'] .type-switch .selected.income {
+  background: var(--br-green);
+  color: #141414;
+}
+[data-theme='dark'] .badge-card.clay-badge .badge {
+  background: #2C2640;
+}
+[data-theme='dark'] .badge-card.clay-badge .badge small,
+[data-theme='dark'] .badge-card.clay-badge .badge p {
+  color: var(--br-muted);
+}
+[data-theme='dark'] .badge-card.clay-badge .badge-progress {
+  background: #262236;
+}
+[data-theme='dark'] .badge-card.clay-badge .badge-progress em {
+  color: var(--br-gold);
+}
+[data-theme='dark'] .badge-card.clay-badge .badge-tier {
+  color: #141414;
+}
+[data-theme='dark'] .goal-button.clay-button {
+  color: var(--br-yellow);
+}
+
+/* 3) N9k lanjutan — spesifisitas & sisa detail dark */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .clay-modal .type-switch .selected.expense,
+  :root:not([data-theme='light']) .brutal-sheet .type-switch button.selected.expense {
+    background: var(--br-coral);
+    color: #141414;
+    box-shadow: none;
+  }
+  :root:not([data-theme='light']) .clay-modal .type-switch .selected.income,
+  :root:not([data-theme='light']) .brutal-sheet .type-switch button.selected.income {
+    background: var(--br-green);
+    color: #141414;
+    box-shadow: none;
+  }
+  :root:not([data-theme='light']) .badge-card.clay-badge .badge .badge-tier {
+    color: var(--br-gold); /* tier 'common': teks gold, bukan hitam */
+  }
+  :root:not([data-theme='light']) .badge.tier-rare .badge-tier,
+  :root:not([data-theme='light']) .badge.tier-epic .badge-tier,
+  :root:not([data-theme='light']) .badge.tier-legendary .badge-tier {
+    color: #141414; /* chip tier berwarna tetap teks gelap */
+  }
+  :root:not([data-theme='light']) .brutal-sheet .form-message {
+    background: #3A2430;
+    color: #FF9BA8;
+  }
+}
+[data-theme='dark'] .clay-modal .type-switch .selected.expense,
+[data-theme='dark'] .brutal-sheet .type-switch button.selected.expense {
+  background: var(--br-coral);
+  color: #141414;
+  box-shadow: none;
+}
+[data-theme='dark'] .clay-modal .type-switch .selected.income,
+[data-theme='dark'] .brutal-sheet .type-switch button.selected.income {
+  background: var(--br-green);
+  color: #141414;
+  box-shadow: none;
+}
+[data-theme='dark'] .badge-card.clay-badge .badge .badge-tier {
+  color: var(--br-gold);
+}
+[data-theme='dark'] .badge.tier-rare .badge-tier,
+[data-theme='dark'] .badge.tier-epic .badge-tier,
+[data-theme='dark'] .badge.tier-legendary .badge-tier {
+  color: #141414;
+}
+[data-theme='dark'] .brutal-sheet .form-message {
+  background: #3A2430;
+  color: #FF9BA8;
+}
+
+/* 4) N9k — sentuhan terakhir dark */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .insight-card {
+    color: #141414; /* kartu insight tetap kuning -> teks gelap */
+  }
+  :root:not([data-theme='light']) .badge.tier-legendary .badge-tier {
+    color: #141414 !important; /* chip gold: kalahkan rule umum gold-on-gold */
+  }
+  :root:not([data-theme='light']) .card-actions .ghost-button.card-button {
+    background: rgba(255, 255, 255, .10);
+    color: var(--br-ink);
+    box-shadow: none;
+  }
+}
+[data-theme='dark'] .insight-card {
+  color: #141414;
+}
+[data-theme='dark'] .badge.tier-legendary .badge-tier {
+  color: #141414 !important;
+}
+[data-theme='dark'] .card-actions .ghost-button.card-button {
+  background: rgba(255, 255, 255, .10);
+  color: var(--br-ink);
+  box-shadow: none;
 }

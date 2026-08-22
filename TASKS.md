@@ -112,3 +112,64 @@ Detail lengkap: `.github/copilot-instructions.md` → "Fase Redesign — Neo-Bru
       Fase 3: sweep bersih + fix interpolasi tl() + plural EN rc.count + <html lang> &
       document.title dinamis + resync notifikasi saat ganti bahasa; toggle ID↔EN stress
       test lolos, build + cap sync android OK
+- [x] N9d Polish layout — ritme antar-seksi (`.brutal-section` margin + header
+      wrap-safe), toolbar swipe kategori (scroll-snap, shadow chip aktif tak
+      terpotong, toolbar boleh wrap), fix badge tier pill menimpa teks
+      (`position:absolute` warisan clay → static + min-width kolom teks),
+      normalisasi sub-halaman Profil (netral `.danger-zone` margin-top 52px &
+      trailing margin seksi, sub-header wrap-safe); build + cap sync OK
+- [x] N9e Kartu profil & audit CSS — view 'kartu' diperkaya pratinjau identitas
+      (avatar, username, Lv·gelar, pill tier) + statistik streak/badge; audit
+      otomatis dual-cascade clay+brutal (skrip diff properti 16 pasangan kelas):
+      strip atas kartu & titik judul seksi dipindah ke palet brutal, handle sheet
+      & glow streak dibersihkan, sisa bevel/tilt/warna locked pada badge
+      dinetralkan (hard shadow tier epik/legendary dipertahankan); build + cap
+      sync OK
+- [x] N9f Flatten sub-halaman Profil — 5 wrapper `<section class="manage-* brutal-section">`
+      ganda (pengaturan/kategori/rutin/data/pengingat) dihapus; kartu kini anak
+      langsung `.profile-sub` (satu sumber jarak: grid gap), rule CSS mati
+      `.manage-categories .section-header h2` & override `.profile-sub
+      .brutal-section` dibuang; build + cap sync OK
+- [x] N9g De-box kategori & rutin — kartu pembungkus besar (tanpa padding,
+      menghimpit baris) dihapus: chip baris jadi satu-satunya kotak; guard
+      min-width + overflow-wrap pada nama kategori/rutin agar teks panjang tak
+      meluber menimpa komponen sebelah; APK di-rebuild & terverifikasi berisi
+      CSS baru
+- [x] N9h Fix toggle pengingat & padding kartu — akar bug toggle: dynamic-import
+      `@capacitor/local-notifications` menghasilkan error bridge "then() is not
+      implemented" (proxy plugin ter-await); ganti static import standar +
+      guard `nativeReady()` + try/catch toggleReminders agar gagal selalu tampil;
+      verifikasi end-to-end di emulator via CDP (permission → channel → jadwal
+      harian 1001 + tes 9001, state persist, pesan aktif). Padding 20px untuk
+      settings/data/reminder card (satu-satunya kartu tanpa padding, isi
+      menghimpit border); inset terverifikasi ~23 css px di 3 halaman via
+      uiautomator bounds
+- [x] N9i Warna kartu per kategori (selaras money card) — 4 var tint baru di
+      :root + kedua blok dark (--br-tint-lilac #F1EAFF pengaturan,
+      --br-tint-mint #DCF5EB ekspor&impor, --br-tint-sun #FFF1C2 pengingat,
+      --br-tint-blush #FFE6EC kartu profil); semua kartu sub-halaman diseragamkan
+      padding 22px persis money card (.share-card.brutal-share perlu specificity
+      0-2-0 untuk takluki clay 21px); gradasi clay pada share-card dikalahkan.
+      Terverifikasi via CDP computed style di emulator: 4/4 warna & padding tepat
+- [x] N9j Tema gelap + toggle — kabelkan sistem tema 3-status (system/light/dark,
+      localStorage `rapi.theme`, default system): efek menulis/membersihkan
+      [data-theme] di <html> + listener matchMedia change; toggle segmen
+      Sistem/Terang/Gelap di kartu Pengaturan (pola .sort-toggle, i18n baru).
+      Body akhirnya di-repaint brutal (`body{background:var(--br-bg)}` — globals
+      masih --paper terang). StatusBar native mengikuti tema efektif
+      (Style.Dark/Light, import statis + catch). Verifikasi CDP: toggle ✓ persist
+      reload ✓ mode sistem mengikuti emulasi prefers-color-scheme dua arah ✓ tint
+      dark terpakai (#2D2547 dkk) ✓ audit elemen-berlatar-terang bersih (sisa:
+      money card translusen & recap invert — keduanya disengaja)
+- [x] N9k Audit & perbaikan kontras dark mode — audit otomatis via CDP di 12
+      layar (beranda/transaksi/target/profil×8/form): WCAG ratio teks + deteksi
+      permukaan terang. Ditemukan & diperbaiki: (1) modal catat-transaksi masih
+      terang penuh → flip var clay (--clay-surface/ink/muted) di dark + input/
+      select/backdrop gelap; (2) heading & nominal fg #463A52 di bg gelap
+      (ratio 1.5) → ikut flip clay; (3) tombol aksen kuning/lilac/coral teks krem
+      (1.3) → teks #141414 permanen, ghost tetap tinta tema; (4) chip aktif &
+      type-switch putih-di-lilac/coral (2.6) → hitam; (5) kartu badge & goal
+      terang → surface gelap + tier legendary chip gold teks hitam (!important,
+      dua sistem selector .badge-card/.badges); (6) brand & insight-card &
+      form-message. Sisa audit = false positive gradient (mint/lilac + hitam,
+      5.8-12:1). Sanity light: tanpa regresi
