@@ -216,9 +216,25 @@ investasi. Urutan jangan dilompati; rancang F1 agar mudah dikondensasi ke F2.
       dijalankan user.
       ditandai tipe alokasi (needs/wants/savings) → perubahan skema categories +
       UI penandaan
-- [ ] F4 Multi-dompet/akun — perubahan struktural terbesar: tabel wallets baru,
-      transaksi terhubung ke wallet, UI switch antar wallet; sentuh schema, data
-      layer, dan banyak layar — kerjakan setelah F1-F3 stabil
+- [x] F4 Multi-dompet — selesai & terverifikasi on-device (qa_tint, emulator-5554).
+      Model "dompet = lensa untuk SALDO & TRANSAKSI; analitik & gamifikasi GLOBAL":
+      saldo/stat/insight/list transaksi mengikuti switcher; budget, goal, XP/streak/
+      badge, recap N7, saran F1, skor F2, reko F3 tetap global. Maks 8 dompet,
+      emoji-only (grid tetap). a) sql/f4_wallets.sql: tabel wallets + wallet_id
+      NOT NULL FK ON DELETE RESTRICT di transactions & recurring_transactions;
+      backfill ke Dompet Utama dijalankan user (34/34 tx, 3/3 rutin); probe
+      graceful degradation pra-migrasi + seed klien akun baru. b) WalletSwitcher
+      Beranda (muncul saat >1 dompet) + chip filter tab Transaksi; lensa aktif
+      persist localStorage ('rapi.wallet.active'); transaksi baru ter-stamp ke
+      dompet aktif (mode Semua → default). c) CRUD dompet: menu Profil › Dompet +
+      WalletSheet (nama unik case-insensitive + grid emoji), guard hapus
+      default/terakhir/terpakai, guard batas 8, edit prefill benar. d) Form &
+      ekspor-impor: picker dompet di TransactionForm & RecurringSheet (tampil
+      saat >1); kolom `dompet` opsional di akhir CSV/PDF (REQUIRED_COLUMNS beku,
+      file lama tetap terbaca); impor cocokkan nama dompet case-insensitive,
+      fallback dompet default. Regression smoke advice/score/recommend 3× PASS.
+      Bug diperbaiki: TDZ crash urutan deklarasi blok dompet vs memo transaksi;
+      17 goal duplikat "motor" (data QA lama) dibersihkan.
 - [ ] F5 Tantangan hemat mingguan — challenge mingguan (no-spend/limit kategori)
       terintegrasi sistem XP/badge/streak existing
 - [ ] F6 Simulasi nabung — proyeksi sederhana dari pola menabung historis user,

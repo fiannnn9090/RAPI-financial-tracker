@@ -28,7 +28,7 @@ function dateFmt() {
 }
 const today = new Date().toISOString().slice(0, 10);
 
-const initialData = { users: [], transactions: {}, goals: {}, achievements: {}, budgets: {}, badges: {}, badgeDefs: [], categories: {}, recurrings: {}, activeUserId: null };
+const initialData = { users: [], transactions: {}, goals: {}, achievements: {}, budgets: {}, badges: {}, badgeDefs: [], categories: {}, recurrings: {}, wallets: {}, hasWallets: false, activeUserId: null };
 /* Seed kategori default (is_default) — dipakai saat user belum punya baris di tabel categories.
    Lainnya bertipe 'both' supaya muncul di dropdown pemasukan & pengeluaran. */
 const DEFAULT_CATEGORIES = [
@@ -60,31 +60,46 @@ const ALLOCATIONS = ['kebutuhan', 'keinginan', 'tabungan'];
 function allocationOf(category) {
   return category?.allocationType ?? DEFAULT_ALLOCATIONS[category?.name] ?? 'kebutuhan';
 }
+/* F4c — batas & pilihan ikon dompet (v1 emoji-only, konsisten kategori) */
+const MAX_WALLETS = 8;
+const WALLET_EMOJIS = ['👛', '🏦', '💳', '🪙', '💸', '📱', '🧧', '🎒', '💼', '🫙', '🎁', '⚡'];
 /* Restrukturisasi Profil: baris menu utama (sub-halaman pengingat kondisional & danger ditangani terpisah di JSX) */
 const PROFILE_MENU_ROWS = [
   ['kartu', '🪪', 'prof.menu.kartu'],
   ['pengaturan', '⚙️', 'prof.menu.pengaturan'],
   ['kategori', '🗂️', 'cat.title'],
   ['rutin', '🔁', 'recM.title'],
+  ['dompet', '👛', 'prof.menu.dompet'],
   ['data', '📦', 'data.title'],
   ['saran', '💡', 'prof.menu.saran'],
 ];
 const MASKED_AMOUNT = 'Rp ••••••';
 
 function mapTransaction(row) {
-  return { id: row.id, type: row.type, title: row.title, amount: Number(row.amount), category: row.category, date: row.date, xp_earned: row.xp_earned ?? 0 };
+  return { id: row.id, type: row.type, title: row.title, amount: Number(row.amount), category: row.category, date: row.date, xp_earned: row.xp_earned ?? 0, walletId: row.wallet_id ?? null };
 }
 
 function mapCategory(row) {
   return { id: row.id, name: row.name, emoji: row.emoji, type: row.type, isDefault: Boolean(row.is_default), allocationType: row.allocation_type ?? null };
 }
 
+/* F4 — dompet: mirror sql/f4_wallets.sql. Nama seed harus identik dengan SQL
+   supaya guard client & backfill DB tidak membuat dua dompet berbeda makna. */
+const DEFAULT_WALLET_NAME = 'Dompet Utama';
+
+function mapWallet(row) {
+  return { id: row.id, name: row.name, emoji: row.emoji, isDefault: Boolean(row.is_default) };
+}
+
 function mapRecurring(row) {
-  return { id: row.id, type: row.type, title: row.title, amount: Number(row.amount), category: row.category, frequency: row.frequency, dayOfPeriod: row.day_of_period, nextRunDate: row.next_run_date };
+  return { id: row.id, type: row.type, title: row.title, amount: Number(row.amount), category: row.category, frequency: row.frequency, dayOfPeriod: row.day_of_period, nextRunDate: row.next_run_date, walletId: row.wallet_id ?? null };
 }
 
 async function loadData(userId) {
-  const [trx, goal, ach, bud, defs, owned, cats, recs] = await Promise.all([
+  const [probe, trx, goal, ach, bud, defs, owned, cats, recs, wallets] = await Promise.all([
+    /* F4 probe kolom wallet_id (pra-migrasi → error → hasWallets false). Head-only:
+       limit(1) tanpa konsumsi data, cukup untuk tahu keberadaan kolom. */
+    supabase.from('transactions').select('wallet_id').eq('user_id', userId).limit(1),
     supabase.from('transactions').select('*').eq('user_id', userId),
     supabase.from('goals').select('*').eq('user_id', userId).eq('is_active', true).maybeSingle(),
     supabase.from('achievements').select('*').eq('user_id', userId),
@@ -93,7 +108,9 @@ async function loadData(userId) {
     supabase.from('user_badges').select('badge_code').eq('user_id', userId),
     supabase.from('categories').select('*').eq('user_id', userId).order('created_at'),
     supabase.from('recurring_transactions').select('*').eq('user_id', userId).eq('is_active', true).order('next_run_date'),
+    supabase.from('wallets').select('*').eq('user_id', userId).order('created_at'),
   ]);
+  const hasWallets = !probe.error;
   return {
     transactions: (trx.data ?? []).map(mapTransaction),
     goal: goal.data ? { name: goal.data.name, amount: Number(goal.data.amount) } : null,
@@ -103,6 +120,8 @@ async function loadData(userId) {
     badges: (owned.data ?? []).map((row) => row.badge_code),
     categories: (cats.data ?? []).map(mapCategory),
     recurrings: (recs.data ?? []).map(mapRecurring),
+    hasWallets,
+    wallets: hasWallets ? (wallets.data ?? []).map(mapWallet) : [],
   };
 }
 
@@ -174,11 +193,38 @@ export default function Home() {
       if (!error && seeded?.length) categories = seeded.map(mapCategory);
     }
     let recurrings = snapshot.recurrings;
+    /* F4 — guard client: kolom wallet sudah ada tapi user belum punya baris dompet
+       (mis. daftar akun baru setelah migrasi jalan). Seed "Dompet Utama" lokal. */
+    let wallets = snapshot.wallets;
+    if (snapshot.hasWallets && !wallets.length) {
+      const { data: seededWallet, error: walletErr } = await supabase
+        .from('wallets')
+        .insert({ user_id: authUser.id, name: DEFAULT_WALLET_NAME, emoji: '👛', is_default: true })
+        .select();
+      if (!walletErr && seededWallet?.length) wallets = seededWallet.map(mapWallet);
+    }
     let autoCount = 0;
     try {
       const { rows, updates, generated } = generateDue(recurrings, today);
       if (rows.length) {
-        const { error } = await supabase.from('transactions').insert(rows.map((row) => ({ ...row, user_id: authUser.id, xp_earned: 0 })));
+        /* F4 — stamping dompet: ikut rule-nya; fallback dompet default.
+           Payload eksplisit (bukan spread) agar field internal ruleId tidak
+           terkirim ke PostgREST. Pra-migrasi: tanpa wallet_id sama sekali. */
+        const defaultWalletId = (wallets.find((item) => item.isDefault) ?? wallets[0])?.id ?? null;
+        const payload = rows.map((row) => {
+          const rule = recurrings.find((item) => item.id === row.ruleId);
+          return {
+            user_id: authUser.id,
+            type: row.type,
+            title: row.title,
+            amount: row.amount,
+            category: row.category,
+            date: row.date,
+            xp_earned: 0,
+            ...(snapshot.hasWallets ? { wallet_id: rule?.walletId ?? defaultWalletId } : {}),
+          };
+        });
+        const { error } = await supabase.from('transactions').insert(payload);
         if (!error) {
           autoCount = generated;
           await Promise.all(updates.map((item) => supabase.from('recurring_transactions').update({ next_run_date: item.nextRunDate }).eq('id', item.id)));
@@ -208,6 +254,8 @@ export default function Home() {
       badgeDefs: snapshot.badgeDefs,
       categories: { ...current.categories, [authUser.id]: categories },
       recurrings: { ...current.recurrings, [authUser.id]: recurrings },
+      wallets: { ...current.wallets, [authUser.id]: wallets },
+      hasWallets: snapshot.hasWallets,
       activeUserId: authUser.id,
     }));
     setReady(true);
@@ -319,6 +367,7 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
   const [goalSheet, setGoalSheet] = useState(false);
   const [categorySheet, setCategorySheet] = useState(false);
   const [recurringSheet, setRecurringSheet] = useState(false);
+  const [walletSheet, setWalletSheet] = useState(null); /* F4c: {} = buat baru, objek dompet = edit */
   const [filter, setFilter] = useState('all');
   const [levelUp, setLevelUp] = useState(null);
   const [toast, setToast] = useState('');
@@ -329,6 +378,10 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
   const [hideBalance, setHideBalance] = useState(() => typeof window !== 'undefined' && window.localStorage.getItem('rapi.balance.hidden') === '1');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [sortMode, setSortMode] = useState('newest');
+  /* F4b — lensa dompet: Beranda (saldo/stat/insight) mengikuti dompet aktif;
+     tab Transaksi punya filter dompet sendiri; keduanya 'all' default. */
+  const [activeWalletId, setActiveWalletId] = useState(() => (typeof window !== 'undefined' && window.localStorage.getItem('rapi.wallet.active')) || 'all');
+  const [txWalletFilter, setTxWalletFilter] = useState('all');
   const [recapPeriod, setRecapPeriod] = useState('week');
   const [pdfRange, setPdfRange] = useState('this');
   const [pdfCustom, setPdfCustom] = useState({ start: '', end: '' });
@@ -404,26 +457,68 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
       else if (goalSheet) setGoalSheet(false);
       else if (categorySheet) setCategorySheet(false);
       else if (recurringSheet) setRecurringSheet(false);
+      else if (walletSheet) setWalletSheet(null);
       else if (importSheetOpen) { setImportSheetOpen(false); setImportPreview(null); }
       else if (profileView) setProfileView(null);
       else if (tab !== 'beranda') setTab('beranda');
       else CapacitorApp.exitApp();
     });
     return () => subscription.remove();
-  }, [tab, showForm, budgetSheet, goalSheet, categorySheet, recurringSheet, importSheetOpen, levelUp, profileView]);
+  }, [tab, showForm, budgetSheet, goalSheet, categorySheet, recurringSheet, walletSheet, importSheetOpen, levelUp, profileView]);
+  /* F4 — dompet: daftar untuk UI dan resolusi wallet_id saat menulis.
+     Pra-migrasi hasWallets=false → field wallet_id tidak pernah dikirim.
+     Pasca-migrasi SQL seed/guard enterApp menjamin ada dompet default.
+     DIDEKLARASI DI ATAS MEMO TRANSAKSI (dipakai txScoped/lensed). */
+  const wallets = data.wallets?.[user.id] ?? [];
+  const hasWallets = Boolean(data.hasWallets);
+  const defaultWallet = useMemo(() => wallets.find((item) => item.isDefault) ?? wallets[0] ?? null, [wallets]);
+  const activeWalletKey = activeWalletId !== 'all' && wallets.some((item) => item.id === activeWalletId)
+    ? activeWalletId
+    : 'all';
+  function changeActiveWallet(id) {
+    setActiveWalletId(id);
+    try { window.localStorage.setItem('rapi.wallet.active', id); } catch {}
+  }
+  function writeWalletId() {
+    if (!hasWallets) return null;
+    /* Transaksi baru mengikuti dompet aktif; mode "Semua" → dompet default. */
+    if (activeWalletKey !== 'all') return activeWalletKey;
+    return defaultWallet?.id ?? null;
+  }
+  function walletNameOf(tx) {
+    if (!hasWallets) return '';
+    return wallets.find((item) => item.id === tx.walletId)?.name ?? '';
+  }
   const transactions = data.transactions[user.id] ?? [];
   const sortedTransactions = useMemo(() => [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date)), [transactions]);
+  /* F4b — scope tab Transaksi: filter dompet independen (chip) sebelum filter lain */
+  const txScopedTransactions = useMemo(
+    () => (txWalletFilter === 'all' || !hasWallets ? sortedTransactions : sortedTransactions.filter((item) => item.walletId === txWalletFilter)),
+    [sortedTransactions, txWalletFilter, hasWallets],
+  );
   const visibleTransactions = useMemo(() => {
-    const byType = filter === 'all' ? sortedTransactions : sortedTransactions.filter((item) => item.type === filter);
+    const byType = filter === 'all' ? txScopedTransactions : txScopedTransactions.filter((item) => item.type === filter);
     const byCategory = categoryFilter ? byType.filter((item) => item.category === categoryFilter) : byType;
     return sortMode === 'amount' ? [...byCategory].sort((a, b) => b.amount - a.amount) : byCategory;
-  }, [sortedTransactions, filter, categoryFilter, sortMode]);
-  const income = transactions.filter((item) => item.type === 'income').reduce((sum, item) => sum + item.amount, 0);
-  const expense = transactions.filter((item) => item.type === 'expense').reduce((sum, item) => sum + item.amount, 0);
+  }, [txScopedTransactions, filter, categoryFilter, sortMode]);
+  /* Lensa Beranda: saldo/stat/insight mengikuti dompet aktif ('all' = gabungan).
+     Goal tetap GLOBAL → totalBalance dihitung terpisah dari semua dompet. */
+  const lensedTransactions = useMemo(
+    () => (activeWalletKey === 'all' || !hasWallets ? transactions : transactions.filter((item) => item.walletId === activeWalletKey)),
+    [transactions, activeWalletKey, hasWallets],
+  );
+  const income = lensedTransactions.filter((item) => item.type === 'income').reduce((sum, item) => sum + item.amount, 0);
+  const expense = lensedTransactions.filter((item) => item.type === 'expense').reduce((sum, item) => sum + item.amount, 0);
   const balance = income - expense;
+  const totalBalance = useMemo(() => {
+    const inc = transactions.filter((item) => item.type === 'income').reduce((sum, item) => sum + item.amount, 0);
+    const exp = transactions.filter((item) => item.type === 'expense').reduce((sum, item) => sum + item.amount, 0);
+    return inc - exp;
+  }, [transactions]);
   const goal = data.goals?.[user.id] ?? null;
   const achievements = data.achievements?.[user.id] ?? [];
-  const goalReached = Boolean(goal && balance >= goal.amount);
+  /* Goal GLOBAL: progres dari saldo gabungan semua dompet, bukan lensa aktif */
+  const goalReached = Boolean(goal && totalBalance >= goal.amount);
   const budgets = data.budgets?.[user.id] ?? {};
   const categories = data.categories?.[user.id] ?? [];
   const recurrings = data.recurrings?.[user.id] ?? [];
@@ -436,10 +531,13 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
     return [...categories].sort((a, b) => ((counts[b.name] ?? 0) - (counts[a.name] ?? 0)) || a.name.localeCompare(b.name, 'id'));
   }, [categories, transactions]);
   const monthKey = today.slice(0, 7);
+  /* monthExpenses = GLOBAL (dipakai budget & engines); monthExpensesLens = untuk insight */
   const monthExpenses = transactions.filter((item) => item.type === 'expense' && item.date.startsWith(monthKey));
+  const monthExpensesLens = lensedTransactions.filter((item) => item.type === 'expense' && item.date.startsWith(monthKey));
   const budgetEntries = Object.entries(budgets);
   const spendingFor = (category) => monthExpenses.filter((item) => item.category === category).reduce((sum, item) => sum + item.amount, 0);
-  const categorySummary = expenseCategories.map((category) => ({ category, amount: spendingFor(category) })).filter((item) => item.amount > 0).sort((a, b) => b.amount - a.amount);
+  const lensSpendingFor = (category) => monthExpensesLens.filter((item) => item.category === category).reduce((sum, item) => sum + item.amount, 0);
+  const categorySummary = expenseCategories.map((category) => ({ category, amount: lensSpendingFor(category) })).filter((item) => item.amount > 0).sort((a, b) => b.amount - a.amount);
   const topSpending = categorySummary[0];
   const chartMax = topSpending?.amount || 1;
   const badgeViews = evaluateBadges(
@@ -485,9 +583,10 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
     const previousLevel = user.level ?? 1;
     const totalXp = (user.xp ?? 0) + xpEarned;
     const newLevel = levelFromXp(totalXp);
+    const walletId = transaction.walletId || writeWalletId();
     const { data: inserted, error } = await supabase
       .from('transactions')
-      .insert({ user_id: user.id, type: transaction.type, title: transaction.title, amount: transaction.amount, category: transaction.category, date: transaction.date, xp_earned: xpEarned })
+      .insert({ user_id: user.id, type: transaction.type, title: transaction.title, amount: transaction.amount, category: transaction.category, date: transaction.date, xp_earned: xpEarned, ...(walletId ? { wallet_id: walletId } : {}) })
       .select()
       .single();
     if (error || !inserted) return false;
@@ -531,13 +630,13 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
     if (!scoped.length) { setToast(t('toast.rangeEmpty')); return; }
     const label = pdfRange === 'this' ? t('pdf.thisMonth') : pdfRange === 'last' ? t('pdf.lastMonth') : `${range.start} ${t('pdf.to')} ${range.end}`;
     try {
-      await exportPdf({ transactions: scoped, rangeLabel: label, fileName: `rapi-laporan-${range.start}`, lang });
+      await exportPdf({ transactions: scoped, rangeLabel: label, fileName: `rapi-laporan-${range.start}`, lang, walletNameOf });
       setToast(t('toast.pdfDone'));
     } catch { setToast(t('toast.pdfFail')); }
   }
   function handleExportCsv() {
     if (!transactions.length) { setToast(t('toast.noExportData')); return; }
-    const blob = new Blob([transactionsToCsv(transactions)], { type: 'text/csv;charset=utf-8' });
+    const blob = new Blob([transactionsToCsv(transactions, walletNameOf)], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -570,8 +669,12 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
         if (seeded) createdCategories = seeded.map(mapCategory);
       }
       const inserted = [];
+      const importWalletId = writeWalletId();
+      const nameToWallet = new Map(hasWallets ? wallets.map((item) => [item.name.toLowerCase(), item.id]) : []);
       for (let i = 0; i < rows.length; i += 200) {
-        const chunk = rows.slice(i, i + 200).map((row) => ({ user_id: user.id, type: row.type, title: row.title, amount: row.amount, category: row.category, date: row.date, xp_earned: 0 }));
+        /* F4: baris dengan kolom dompet dicocokkan nama (case-insensitive);
+           tak cocok/kosong → dompet aktif/default. */
+        const chunk = rows.slice(i, i + 200).map((row) => ({ user_id: user.id, type: row.type, title: row.title, amount: row.amount, category: row.category, date: row.date, xp_earned: 0, ...(() => { const resolved = row.wallet ? nameToWallet.get(row.wallet.toLowerCase()) : null; const wid = resolved ?? importWalletId; return wid ? { wallet_id: wid } : {}; })() }));
         const { data, error } = await supabase.from('transactions').insert(chunk).select();
         if (error) throw error;
         inserted.push(...data.map(mapTransaction));
@@ -676,8 +779,9 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
   async function addRecurring(payload) {
     const tomorrow = addDays(today, 1);
     const nextRun = occurrenceOnOrAfter({ frequency: payload.frequency, dayOfPeriod: payload.dayOfPeriod }, payload.startDate > tomorrow ? payload.startDate : tomorrow);
+    const walletId = payload.walletId || writeWalletId();
     const { data: row, error } = await supabase.from('recurring_transactions')
-      .insert({ user_id: user.id, type: payload.type, title: payload.title, amount: payload.amount, category: payload.category, frequency: payload.frequency, day_of_period: payload.dayOfPeriod, next_run_date: nextRun })
+      .insert({ user_id: user.id, type: payload.type, title: payload.title, amount: payload.amount, category: payload.category, frequency: payload.frequency, day_of_period: payload.dayOfPeriod, next_run_date: nextRun, ...(hasWallets && walletId ? { wallet_id: walletId } : {}) })
       .select()
       .single();
     if (error || !row) return false;
@@ -688,6 +792,41 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
     const { error } = await supabase.from('recurring_transactions').delete().eq('id', id);
     if (error) return false;
     setData((current) => ({ ...current, recurrings: { ...current.recurrings, [user.id]: (current.recurrings[user.id] ?? []).filter((item) => item.id !== id) } }));
+    return true;
+  }
+  /* F4c — CRUD dompet. Default (Dompet Utama) tidak bisa dihapus (v1 tanpa
+     ubah-default); dompet lain hanya jika kosong transaksi/rutin — DB juga
+     melindungi lewat ON DELETE RESTRICT. */
+  async function saveWallet({ id, name, emoji }) {
+    const cleanName = name.trim();
+    const cleanEmoji = Array.from(emoji.trim())[0] ?? '';
+    if (!cleanName || !cleanEmoji) return false;
+    const currentWallets = data.wallets?.[user.id] ?? [];
+    if (!id && currentWallets.length >= MAX_WALLETS) return false;
+    if (id) {
+      const { data: row, error } = await supabase.from('wallets').update({ name: cleanName, emoji: cleanEmoji }).eq('id', id).select().single();
+      if (error || !row) return false;
+      setData((current) => ({ ...current, wallets: { ...current.wallets, [user.id]: (current.wallets[user.id] ?? []).map((item) => (item.id === id ? mapWallet(row) : item)) } }));
+      return true;
+    }
+    const { data: row, error } = await supabase.from('wallets').insert({ user_id: user.id, name: cleanName, emoji: cleanEmoji }).select().single();
+    if (error || !row) return false;
+    setData((current) => ({ ...current, wallets: { ...current.wallets, [user.id]: [...(current.wallets[user.id] ?? []), mapWallet(row)] } }));
+    return true;
+  }
+  async function removeWallet(id) {
+    const target = (data.wallets?.[user.id] ?? []).find((item) => item.id === id);
+    if (!target || target.isDefault) { setToast(t('wallet.toastLast')); return false; }
+    if ((data.wallets?.[user.id] ?? []).length <= 1) { setToast(t('wallet.toastLast')); return false; }
+    const used = transactions.some((item) => item.walletId === id) || recurrings.some((rule) => rule.walletId === id);
+    if (used) { setToast(t('wallet.toastUsed')); return false; }
+    const { error } = await supabase.from('wallets').delete().eq('id', id);
+    if (error) { setToast(t('wallet.toastUsed')); return false; }
+    setData((current) => ({ ...current, wallets: { ...current.wallets, [user.id]: (current.wallets[user.id] ?? []).filter((item) => item.id !== id) } }));
+    /* Lensa yang menunjuk dompet terhapus direset agar tidak menampilkan angka kosong diam-diam */
+    if (activeWalletKey === id) changeActiveWallet('all');
+    if (txWalletFilter === id) setTxWalletFilter('all');
+    setToast(t('wallet.toastDeleted'));
     return true;
   }
   function setReminderPref(key, value) {
@@ -754,18 +893,19 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
       pengaturan: ['⚙️', 'prof.menu.pengaturan'],
       kategori: ['🗂️', 'cat.title'],
       rutin: ['🔁', 'recM.title'],
+      dompet: ['👛', 'prof.menu.dompet'],
       data: ['📦', 'data.title'],
       saran: ['💡', 'prof.menu.saran'],
       pengingat: ['🔔', 'rem.title'],
       danger: ['⚠️', 'danger.title'],
     }[view] ?? ['📄', ''];
-    const addAction = view === 'kategori' ? () => setCategorySheet(true) : view === 'rutin' ? () => setRecurringSheet(true) : null;
+    const addAction = view === 'kategori' ? () => setCategorySheet(true) : view === 'rutin' ? () => setRecurringSheet(true) : view === 'dompet' ? () => setWalletSheet({}) : null;
     return <div className="profil-stack profile-sub">
       <header className="sub-header">
         <button type="button" className="sub-back" aria-label={t('prof.back')} onClick={onBack}>←</button>
         <span className="sub-icon" aria-hidden="true">{meta[0]}</span>
         <h2>{t(meta[1])}</h2>
-        {addAction && <button type="button" className="clay-button brutal-button sub-action" onClick={addAction}>{view === 'kategori' ? t('cat.add') : t('recM.add')}</button>}
+        {addAction && <button type="button" className="clay-button brutal-button sub-action" onClick={addAction}>{view === 'kategori' ? t('cat.add') : view === 'dompet' ? t('wallet.add') : t('recM.add')}</button>}
       </header>
       {view === 'kartu' && <article className="share-card clay-card brutal-card brutal-share"><p className="kicker">{t('share.kicker')}</p><div className="share-id"><span className="avatar big" aria-hidden="true">{user.username.slice(0, 1).toUpperCase()}</span><div><strong>{user.username}</strong><small>{t('prof.lvTitle', { lvl: profInfo.level, title: titleForLevel(user.level ?? 1, lang) })}</small></div><b className={`share-tier tier-${topCardTier}`}>{topCardTier}</b></div><ul className="share-stats"><li>🔥<span>{t('pc.statsStreak', { n: user.streakCurrent ?? 0 })}</span></li><li>🏅<span>{t('pc.statsBadge', { a: unlockedBadges, b: badgeViews.length })}</span></li></ul><p className="share-note">{t('share.note')}</p><div className="card-actions"><button className="card-button clay-button brutal-button" onClick={downloadProfileCard}>{t('share.download')}</button>{canShareCard && <button className="card-button ghost-button clay-button brutal-button brutal-ghost" onClick={shareProfileCard}>{t('share.shareBtn')}</button>}</div></article>}
       {view === 'pengaturan' && <article className="brutal-card settings-card">
@@ -813,6 +953,18 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
           <button type="button" aria-label={t('tx.deleteAria', { title: rule.title })} onClick={() => removeRecurring(rule.id)}>×</button>
         </div>) : <p className="recurring-empty">{t('recM.empty')}</p>}
       </article>}
+      {view === 'dompet' && <article className="brutal-card recurring-manage-card">
+        {wallets.map((item) => <div className="recurring-row" key={item.id}>
+          <span className="category-emoji">{item.emoji}</span>
+          <div className="recurring-info">
+            <strong>{item.name}</strong>
+            <small className="muted">{item.isDefault ? t('wallet.defaultBadge') : t('wallet.txCount', { n: transactions.filter((tx) => tx.walletId === item.id).length })}</small>
+          </div>
+          <button type="button" aria-label={t('wallet.editAria', { name: item.name })} onClick={() => setWalletSheet(item)}>✏️</button>
+          {!item.isDefault && <button type="button" aria-label={t('tx.deleteAria', { title: item.name })} onClick={() => removeWallet(item.id)}>×</button>}
+        </div>)}
+        {wallets.length >= MAX_WALLETS ? <p className="recurring-empty">{t('wallet.limit')}</p> : <p className="recurring-empty muted">{t('wallet.hint')}</p>}
+      </article>}
       {view === 'data' && <article className="brutal-card data-card">
         <p className="data-note">{t('data.note')}</p>
         <label className="data-label">{t('data.pdfRange')}</label>
@@ -859,6 +1011,7 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
     <div className="dashboard app-frame" id="dashboard">
       {tab === 'beranda' && <>
       <header className="mobile-header"><a className="brand dark brutal-brand" href="#dashboard"><span>r</span> rapi</a></header>
+      {hasWallets && wallets.length > 1 && <WalletSwitcher wallets={wallets} active={activeWalletKey} onChange={changeActiveWallet} />}
       <section className="dashboard-heading clay-heading brutal-heading">
         <div><p className="kicker">{t('home.kicker')}</p><h1>{t('home.greeting', { name: user.username })} <em>{t('home.greetingEm')}</em></h1><p className="subline">{t('home.subline')}</p></div>
         <button className="clay-button brutal-button" onClick={() => setShowForm(true)}><span>+</span> {t('btn.addTx')}</button>
@@ -889,18 +1042,22 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
       </>}
       {tab === 'target' && <>
       <section className="playful-grid tab-target">
-        <article className={`goal-card clay-card clay-goal brutal-card brutal-goal ${goalReached ? 'goal-reached' : ''}`}><div><p className="kicker">{goalReached ? t('goal.kickerDone') : t('goal.kicker')}</p><h2>{goal ? goal.name : t('goal.noGoal')}</h2>{goal ? <><div className="goal-progress"><span style={{ width: `${Math.min(100, Math.max(0, balance / goal.amount * 100))}%` }} /></div><p className="goal-caption"><strong>{money.format(Math.max(0, balance))}</strong> {t('goal.of')} {money.format(goal.amount)}</p></> : <p className="goal-caption">{t('goal.captionEmpty')}</p>}</div>{goalReached ? <button className="claim-goal clay-button brutal-button brutal-success" onClick={claimGoal}>{t('btn.claimBadge')}</button> : <button className="goal-button clay-button brutal-button" onClick={() => setGoalSheet(true)}>{t(goal ? 'btn.editGoal' : 'btn.newGoal')}</button>}</article>
+        <article className={`goal-card clay-card clay-goal brutal-card brutal-goal ${goalReached ? 'goal-reached' : ''}`}><div><p className="kicker">{goalReached ? t('goal.kickerDone') : t('goal.kicker')}</p><h2>{goal ? goal.name : t('goal.noGoal')}</h2>{goal ? <><div className="goal-progress"><span style={{ width: `${Math.min(100, Math.max(0, totalBalance / goal.amount * 100))}%` }} /></div><p className="goal-caption"><strong>{money.format(Math.max(0, totalBalance))}</strong> {t('goal.of')} {money.format(goal.amount)}</p></> : <p className="goal-caption">{t('goal.captionEmpty')}</p>}</div>{goalReached ? <button className="claim-goal clay-button brutal-button brutal-success" onClick={claimGoal}>{t('btn.claimBadge')}</button> : <button className="goal-button clay-button brutal-button" onClick={() => setGoalSheet(true)}>{t(goal ? 'btn.editGoal' : 'btn.newGoal')}</button>}</article>
         <article className="badge-card clay-card clay-badge brutal-card brutal-badge"><div className="badge-heading"><div><p className="kicker">{t('badge.kicker')}</p><h2>{t('badge.heading')}</h2></div><span>{unlockedBadges}/{badgeViews.length}</span></div><div className="badges">{badgeViews.map((badge) => <div className={`badge tier-${badge.rarity} ${badge.unlocked ? 'unlocked' : 'locked'}`} key={badge.code}><span>{badge.icon}</span><div><strong>{badge.title}</strong><small>{badge.unlocked ? badge.note : `${Math.min(badge.current, badge.target)}/${badge.target} · ${badge.note}`}</small>{!badge.unlocked && <i className="badge-progress"><em style={{ width: `${badge.progress * 100}%` }} /></i>}</div><b className="badge-tier">{badge.rarity}</b></div>)}</div></article>
       </section>
       </>}
       {tab === 'beranda' && <>
       <section className="insight-section clay-insight brutal-section"><div className="section-header"><div><h2>{t('insight.title')}</h2><p>{t('insight.sub')}</p></div></div><div className="insight-grid"><article className="insight-card clay-card brutal-card"><span>💡</span><div><p className="kicker">{topSpending ? t('insight.topKicker') : t('insight.title')}</p><strong>{topSpending ? `${emojiMap[topSpending.category] ?? '✨'} ${topSpending.category}` : t('insight.none')}</strong>{topSpending && <span className="insight-amount">{money.format(topSpending.amount)}</span>}<p className="insight-caption">{topSpending ? t('insight.captionTop') : t('insight.captionEmpty')}</p></div></article><article className="chart-card clay-card brutal-card"><div className="chart-title"><strong>{t('chart.title')}</strong><span>{t('chart.period')}</span></div>{categorySummary.length ? <div className="chart-bars">{categorySummary.map((item) => <div className="chart-row" key={item.category}><span>{emojiMap[item.category] ?? '✨'}</span><div><div><strong>{item.category}</strong><b>{money.format(item.amount)}</b></div><i><em style={{ width: `${item.amount / chartMax * 100}%` }} /></i></div></div>)}</div> : <p className="chart-empty">{t('chart.empty')}</p>}</article></div></section>
-      <section className="budget-section clay-budget brutal-section"><div className="section-header"><div><h2>{t('budget.title')}</h2><p>{t('budget.sub')}</p></div><button className="budget-add clay-button brutal-button" onClick={() => setBudgetSheet({})}>{t('budget.add')}</button></div>{budgetEntries.length ? <div className="budget-grid">{budgetEntries.map(([category, limit]) => { const spent = spendingFor(category); const ratio = spent / limit; const state = ratio >= 1 ? 'over' : ratio >= .8 ? 'near' : 'safe'; return <article className="budget-item clay-card brutal-card" key={category}><div><span>{emojiMap[category] ?? '✨'}</span><strong>{category}</strong><button onClick={() => setBudgetSheet({ category })} aria-label={t('budget.editAria', { category })}>⋯</button></div><div className="budget-bar"><span className={state} style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div><p><b>{money.format(spent)}</b> / {money.format(limit)} <em>{state === 'over' ? t('budget.over') : state === 'near' ? t('budget.near') : t('budget.safe')}</em></p></article>; })}</div> : <div className="budget-empty brutal-empty"><span>🪄</span><div><strong>{t('budget.emptyT')}</strong><p>{t('budget.emptyD')}</p></div><button className="clay-button brutal-button" onClick={() => setBudgetSheet({})}>{t('budget.createBtn')}</button></div>}</section>
+      <section className="budget-section clay-budget brutal-section"><div className="section-header"><div><h2>{t('budget.title')}</h2><p>{t('budget.sub')}{hasWallets && wallets.length > 1 ? ` · ${t('budget.scopeAll')}` : ''}</p></div><button className="budget-add clay-button brutal-button" onClick={() => setBudgetSheet({})}>{t('budget.add')}</button></div>{budgetEntries.length ? <div className="budget-grid">{budgetEntries.map(([category, limit]) => { const spent = spendingFor(category); const ratio = spent / limit; const state = ratio >= 1 ? 'over' : ratio >= .8 ? 'near' : 'safe'; return <article className="budget-item clay-card brutal-card" key={category}><div><span>{emojiMap[category] ?? '✨'}</span><strong>{category}</strong><button onClick={() => setBudgetSheet({ category })} aria-label={t('budget.editAria', { category })}>⋯</button></div><div className="budget-bar"><span className={state} style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div><p><b>{money.format(spent)}</b> / {money.format(limit)} <em>{state === 'over' ? t('budget.over') : state === 'near' ? t('budget.near') : t('budget.safe')}</em></p></article>; })}</div> : <div className="budget-empty brutal-empty"><span>🪄</span><div><strong>{t('budget.emptyT')}</strong><p>{t('budget.emptyD')}</p></div><button className="clay-button brutal-button" onClick={() => setBudgetSheet({})}>{t('budget.createBtn')}</button></div>}</section>
       </>}
       {tab === 'transaksi' && <>
       <section className="transactions-section clay-transactions brutal-section">
         <div className="section-header"><div><h2>{t('tx.title')}</h2><p>{t('tx.count', { n: transactions.length })}</p></div><div className="filters brutal-filters">{['all', 'income', 'expense'].map((id) => <button key={id} className={filter === id ? 'active' : ''} onClick={() => setFilter(id)}>{t(`filter.${id}`)}</button>)}</div></div>
         <div className="list-toolbar">
+          {hasWallets && wallets.length > 1 && <div className="wallet-switcher tx-scope" role="group" aria-label={t('wallet.switchAria')}>
+            <button type="button" className={txWalletFilter === 'all' ? 'active' : ''} aria-pressed={txWalletFilter === 'all'} onClick={() => setTxWalletFilter('all')}>Σ {t('wallet.all')}</button>
+            {wallets.map((item) => <button key={item.id} type="button" className={txWalletFilter === item.id ? 'active' : ''} aria-pressed={txWalletFilter === item.id} onClick={() => setTxWalletFilter(item.id)}>{item.emoji}</button>)}
+          </div>}
           <div className="category-filters" role="group" aria-label={t('tx.filterAria')}>
             {categoryChips.map((item) => <button key={item.id} type="button" className={categoryFilter === item.name ? 'active' : ''} aria-pressed={categoryFilter === item.name} onClick={() => setCategoryFilter(categoryFilter === item.name ? '' : item.name)}>{item.emoji} {item.name}</button>)}
           </div>
@@ -926,11 +1083,12 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
     </div>
     {toast && <div className="brutal-toast" role="status">{toast}</div>}
     <BottomNav active={tab} onChange={setTab} onAdd={() => setShowForm(true)} />
-    {showForm && <TransactionForm expenseOptions={expenseCategories} incomeOptions={incomeCategories} onClose={() => setShowForm(false)} onSubmit={addTransaction} />}
+    {showForm && <TransactionForm expenseOptions={expenseCategories} incomeOptions={incomeCategories} wallets={wallets} hasWallets={hasWallets} defaultWalletId={defaultWallet?.id ?? null} onClose={() => setShowForm(false)} onSubmit={addTransaction} />}
     {budgetSheet && <BudgetSheet options={expenseCategories} initialCategory={budgetSheet.category ?? ''} currentLimit={budgetSheet.category ? budgets[budgetSheet.category] : ''} onClose={() => setBudgetSheet(null)} onSubmit={saveBudget} />}
     {goalSheet && <GoalSheet goal={goal} onClose={() => setGoalSheet(false)} onSubmit={saveGoal} />}
     {categorySheet && <CategorySheet existingNames={categories.map((item) => item.name)} onClose={() => setCategorySheet(false)} onSubmit={saveCategory} />}
-    {recurringSheet && <RecurringSheet categories={categories} onClose={() => setRecurringSheet(false)} onSubmit={addRecurring} />}
+    {recurringSheet && <RecurringSheet categories={categories} wallets={wallets} hasWallets={hasWallets} defaultWalletId={defaultWallet?.id ?? null} onClose={() => setRecurringSheet(false)} onSubmit={addRecurring} />}
+    {walletSheet && <WalletSheet existingNames={(data.wallets?.[user.id] ?? []).map((item) => item.name)} initial={walletSheet.id ? walletSheet : null} onClose={() => setWalletSheet(null)} onSubmit={saveWallet} />}
     {importSheetOpen && <ImportSheet preview={importPreview} busy={importBusy} money={money} onClose={() => { setImportSheetOpen(false); setImportPreview(null); }} onFile={handleImportFile} onReset={() => setImportPreview(null)} onConfirm={confirmImport} />}
     {levelUp && <LevelUpModal {...levelUp} title={titleForLevel(levelUp.level, lang)} onClose={() => setLevelUp(null)} />}
   </main>;
@@ -942,6 +1100,15 @@ function BalanceCard({ balance, hidden = false, onToggleHidden, xp, streak = 0, 
 }
 function StatCard({ label, amount, icon, variant, hidden = false, money }) { return <article className={`stat-card clay-card brutal-card ${variant}`}><span className={`stat-icon ${variant}`}>{icon}</span><div><p>{label}</p><strong>{hidden ? MASKED_AMOUNT : money.format(amount)}</strong><small>{variant === 'income' ? t('stat.incomeSub') : t('stat.expenseSub')}</small></div></article>; }
 
+/* F4b — switcher dompet Beranda: chip scroll-snap ala toolbar kategori.
+   Muncul hanya saat >1 dompet; pilihan "Semua" = gabungan seluruh dompet. */
+function WalletSwitcher({ wallets = [], active, onChange }) {
+  return <div className="wallet-switcher" role="group" aria-label={t('wallet.switchAria')}>
+    <button type="button" className={active === 'all' ? 'active' : ''} aria-pressed={active === 'all'} onClick={() => onChange('all')}>Σ {t('wallet.all')}</button>
+    {wallets.map((item) => <button key={item.id} type="button" className={active === item.id ? 'active' : ''} aria-pressed={active === item.id} onClick={() => onChange(item.id)}>{item.emoji} {item.name}</button>)}
+  </div>;
+}
+
 function Transaction({ item, emojiMap = {}, onDelete , money }) {
   const income = item.type === 'income';
   return <article className="transaction clay-card brutal-card brutal-row"><span className={`transaction-icon ${income ? 'income' : 'expense'}`}>{emojiMap[item.category] || '✨'}</span><div className="transaction-info"><strong>{item.title}</strong><span>{item.category} <i>•</i> {dateFmt().format(new Date(`${item.date}T00:00:00`))}</span></div><strong className={income ? 'amount income-text' : 'amount expense-text'}>{income ? '+' : '−'} {money.format(item.amount)}</strong><button className="delete-transaction" aria-label={t('tx.deleteAria', { title: item.title })} onClick={() => onDelete(item.id)}>×</button></article>;
@@ -949,22 +1116,25 @@ function Transaction({ item, emojiMap = {}, onDelete , money }) {
 
 function EmptyState({ filter, filtered = false, onAdd }) { return <div className="empty brutal-empty-state"><span>⌁</span><h3>{filtered ? t('empty.filtered') : filter === 'all' ? t('empty.all') : t('empty.type')}</h3><p>{filtered ? t('empty.filteredHint') : t('empty.hint')}</p>{filter === 'all' && !filtered && <button className="empty-button clay-button brutal-button" onClick={onAdd}>{t('btn.addTx')}</button>}</div>; }
 
-function TransactionForm({ expenseOptions = [], incomeOptions = [], onClose, onSubmit }) {
+function TransactionForm({ expenseOptions = [], incomeOptions = [], wallets = [], hasWallets = false, defaultWalletId = null, onClose, onSubmit }) {
   const [type, setType] = useState('expense');
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [date, setDate] = useState(today);
+  const [walletId, setWalletId] = useState(defaultWalletId);
   const [message, setMessage] = useState('');
   const categories = type === 'income' ? incomeOptions : expenseOptions;
   async function submit(event) {
     event.preventDefault();
     const numericAmount = Number(amount);
     if (!title.trim() || !category || !date || !Number.isFinite(numericAmount) || numericAmount <= 0) return setMessage(t('err.completeTx'));
-    const saved = await onSubmit({ title: title.trim(), amount: numericAmount, category, date, type });
+    const saved = await onSubmit({ title: title.trim(), amount: numericAmount, category, date, type, walletId });
     if (!saved) setMessage(t('err.saveTx'));
   }
-  return <div className="modal-backdrop clay-modal brutal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal clay-card brutal-sheet" role="dialog" aria-modal="true" aria-labelledby="form-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label={t('common.close')}>×</button><p className="kicker">{t('form.tx.kicker')}</p><h2 id="form-title">{t('form.tx.title')}</h2><form onSubmit={submit}><div className="type-switch"><button type="button" className={type === 'expense' ? 'selected expense' : ''} onClick={() => { setType('expense'); setCategory(''); }}>{t('form.expense')}</button><button type="button" className={type === 'income' ? 'selected income' : ''} onClick={() => { setType('income'); setCategory(''); }}>{t('form.income')}</button></div><label>{t('label.name')}<input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder={type === 'income' ? t('form.tx.phIncome') : t('form.tx.phExpense')} /></label><label>{t('label.amount')}<input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))} placeholder={t('form.tx.phAmount')} /></label><div className="form-pair"><label>{t('label.category')}<select value={category} onChange={(e) => setCategory(e.target.value)}><option value="">{t('opt.pickCategory')}</option>{categories.map((item) => <option key={item}>{item}</option>)}</select></label><label>{t('label.date')}<input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label></div>{message && <p className="form-message">{message}</p>}<div className="form-actions"><button className="ghost-button clay-button brutal-button brutal-ghost" type="button" onClick={onClose}>{t('common.cancel')}</button><button className="primary-button clay-button brutal-button" type="submit">{t('btn.saveTx')} <span>→</span></button></div></form></section></div>;
+  /* F4d — pilih dompet saat ada lebih dari satu; satu dompet → otomatis. */
+  const showWalletPicker = hasWallets && wallets.length > 1;
+  return <div className="modal-backdrop clay-modal brutal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal clay-card brutal-sheet" role="dialog" aria-modal="true" aria-labelledby="form-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label={t('common.close')}>×</button><p className="kicker">{t('form.tx.kicker')}</p><h2 id="form-title">{t('form.tx.title')}</h2><form onSubmit={submit}><div className="type-switch"><button type="button" className={type === 'expense' ? 'selected expense' : ''} onClick={() => { setType('expense'); setCategory(''); }}>{t('form.expense')}</button><button type="button" className={type === 'income' ? 'selected income' : ''} onClick={() => { setType('income'); setCategory(''); }}>{t('form.income')}</button></div><label>{t('label.name')}<input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder={type === 'income' ? t('form.tx.phIncome') : t('form.tx.phExpense')} /></label><label>{t('label.amount')}<input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))} placeholder={t('form.tx.phAmount')} /></label><div className="form-pair"><label>{t('label.category')}<select value={category} onChange={(e) => setCategory(e.target.value)}><option value="">{t('opt.pickCategory')}</option>{categories.map((item) => <option key={item}>{item}</option>)}</select></label><label>{t('label.date')}<input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label></div>{showWalletPicker && <label>{t('form.wallet.select')}<select value={walletId ?? ''} onChange={(e) => setWalletId(e.target.value)}><option value="">{t('wallet.all')}</option>{wallets.map((item) => <option key={item.id} value={item.id}>{`${item.emoji} ${item.name}`}</option>)}</select></label>}{message && <p className="form-message">{message}</p>}<div className="form-actions"><button className="ghost-button clay-button brutal-button brutal-ghost" type="button" onClick={onClose}>{t('common.cancel')}</button><button className="primary-button clay-button brutal-button" type="submit">{t('btn.saveTx')} <span>→</span></button></div></form></section></div>;
 }
 
 function BudgetSheet({ options = [], initialCategory = '', currentLimit = '', onClose, onSubmit }) {
@@ -1029,7 +1199,7 @@ function CategorySheet({ existingNames = [], onClose, onSubmit }) {
   return <div className="modal-backdrop clay-modal brutal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal clay-card brutal-sheet" role="dialog" aria-modal="true" aria-labelledby="category-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label={t('common.close')}>×</button><p className="kicker">{t('form.cat.kicker')}</p><h2 id="category-title">{t('form.cat.title')}</h2><form onSubmit={submit}><div className="type-switch"><button type="button" className={type === 'expense' ? 'selected expense' : ''} onClick={() => setType('expense')}>{t('form.expense')}</button><button type="button" className={type === 'income' ? 'selected income' : ''} onClick={() => setType('income')}>{t('form.income')}</button><button type="button" className={type === 'both' ? 'selected both' : ''} onClick={() => setType('both')}>{t('form.both')}</button></div><label>{t('form.cat.name')}<input value={name} onChange={(e) => setName(e.target.value)} maxLength={24} placeholder={t('form.cat.ph')} /></label><label>{t('form.cat.emoji')}<div className="emoji-field"><span>{Array.from(emoji.trim())[0] || '❓'}</span><input value={emoji} onChange={(e) => setEmoji(e.target.value)} maxLength={8} placeholder="📦" /></div></label>{type !== 'income' && <div className="settings-field alloc-field" role="group" aria-label={t('alloc.label')}><span>{t('alloc.label')}</span><div className="sort-toggle alloc-switch">{ALLOCATIONS.map((a) => <button key={a} type="button" className={allocation === a ? 'active' : ''} aria-pressed={allocation === a} onClick={() => setAllocation(a)}>{t(`alloc.${a}`)}</button>)}</div></div>}{message && <p className="form-message">{message}</p>}<div className="form-actions"><button className="ghost-button clay-button brutal-button brutal-ghost" type="button" onClick={onClose}>{t('common.cancel')}</button><button className="primary-button clay-button brutal-button" type="submit">{t('btn.saveCat')} <span>→</span></button></div></form></section></div>;
 }
 
-function RecurringSheet({ categories = [], onClose, onSubmit }) {
+function RecurringSheet({ categories = [], wallets = [], hasWallets = false, defaultWalletId = null, onClose, onSubmit }) {
   const [type, setType] = useState('expense');
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
@@ -1037,6 +1207,7 @@ function RecurringSheet({ categories = [], onClose, onSubmit }) {
   const [dayOfPeriod, setDayOfPeriod] = useState('');
   const [category, setCategory] = useState('');
   const [startDate, setStartDate] = useState(today);
+  const [walletId, setWalletId] = useState(defaultWalletId);
   const [message, setMessage] = useState('');
   const options = categories.filter((item) => item.type === type || item.type === 'both');
   async function submit(event) {
@@ -1047,10 +1218,29 @@ function RecurringSheet({ categories = [], onClose, onSubmit }) {
     if (!category) return setMessage(t('err.pickCategory'));
     if (!dayOfPeriod) return setMessage(frequency === 'monthly' ? t('err.pickBillDate') : t('err.pickBillDay'));
     if (!startDate) return setMessage(t('err.pickStart'));
-    if (!(await onSubmit({ type, title: title.trim(), amount: numericAmount, category, frequency, dayOfPeriod: Number(dayOfPeriod), startDate }))) return setMessage(t('err.saveRec'));
+    if (!(await onSubmit({ type, title: title.trim(), amount: numericAmount, category, frequency, dayOfPeriod: Number(dayOfPeriod), startDate, walletId }))) return setMessage(t('err.saveRec'));
     onClose();
   }
-  return <div className="modal-backdrop clay-modal brutal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal clay-card brutal-sheet" role="dialog" aria-modal="true" aria-labelledby="recurring-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label={t('common.close')}>×</button><p className="kicker">{t('form.rec.kicker')}</p><h2 id="recurring-title">{t('form.rec.title')}</h2><form onSubmit={submit}><div className="type-switch"><button type="button" className={type === 'expense' ? 'selected expense' : ''} onClick={() => { setType('expense'); setCategory(''); }}>{t('form.expense')}</button><button type="button" className={type === 'income' ? 'selected income' : ''} onClick={() => { setType('income'); setCategory(''); }}>{t('form.income')}</button></div><label>{t('form.rec.name')}<input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={30} placeholder={t('form.rec.ph')} /></label><label>{t('label.amount')}<input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))} placeholder={t('form.rec.phAmount')} /></label><div className="form-pair"><label>{t('form.rec.freq')}<select value={frequency} onChange={(e) => { setFrequency(e.target.value); setDayOfPeriod(''); }}><option value="monthly">{t('rec.monthly')}</option><option value="weekly">{t('rec.weekly')}</option></select></label><label>{t('label.category')}<select value={category} onChange={(e) => setCategory(e.target.value)}><option value="">{t('opt.pickCategory')}</option>{options.map((item) => <option key={item.name}>{item.name}</option>)}</select></label></div>{frequency === 'monthly' ? <label>{t('form.rec.billDate')}<select value={dayOfPeriod} onChange={(e) => setDayOfPeriod(e.target.value)}><option value="">{t('rec.pickDay')}</option>{Array.from({ length: 28 }, (_, i) => i + 1).map((d) => <option key={d} value={d}>{t('rec.dayN', { d })}</option>)}</select></label> : <label>{t('form.rec.billDay')}<div className="weekday-chips">{[1, 2, 3, 4, 5, 6, 7].map((d) => <button type="button" key={d} className={String(dayOfPeriod) === String(d) ? 'selected' : ''} onClick={() => setDayOfPeriod(String(d))}>{t(`wd.${d}`)}</button>)}</div></label>}<label>{t('form.rec.startDate')}<input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></label>{message && <p className="form-message">{message}</p>}<div className="form-actions"><button className="ghost-button clay-button brutal-button brutal-ghost" type="button" onClick={onClose}>{t('common.cancel')}</button><button className="primary-button clay-button brutal-button" type="submit">{t('btn.saveRec')} <span>→</span></button></div></form></section></div>;
+  return <div className="modal-backdrop clay-modal brutal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal clay-card brutal-sheet" role="dialog" aria-modal="true" aria-labelledby="recurring-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label={t('common.close')}>×</button><p className="kicker">{t('form.rec.kicker')}</p><h2 id="recurring-title">{t('form.rec.title')}</h2><form onSubmit={submit}><div className="type-switch"><button type="button" className={type === 'expense' ? 'selected expense' : ''} onClick={() => { setType('expense'); setCategory(''); }}>{t('form.expense')}</button><button type="button" className={type === 'income' ? 'selected income' : ''} onClick={() => { setType('income'); setCategory(''); }}>{t('form.income')}</button></div><label>{t('form.rec.name')}<input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={30} placeholder={t('form.rec.ph')} /></label><label>{t('label.amount')}<input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))} placeholder={t('form.rec.phAmount')} /></label><div className="form-pair"><label>{t('form.rec.freq')}<select value={frequency} onChange={(e) => { setFrequency(e.target.value); setDayOfPeriod(''); }}><option value="monthly">{t('rec.monthly')}</option><option value="weekly">{t('rec.weekly')}</option></select></label><label>{t('label.category')}<select value={category} onChange={(e) => setCategory(e.target.value)}><option value="">{t('opt.pickCategory')}</option>{options.map((item) => <option key={item.name}>{item.name}</option>)}</select></label></div>{frequency === 'monthly' ? <label>{t('form.rec.billDate')}<select value={dayOfPeriod} onChange={(e) => setDayOfPeriod(e.target.value)}><option value="">{t('rec.pickDay')}</option>{Array.from({ length: 28 }, (_, i) => i + 1).map((d) => <option key={d} value={d}>{t('rec.dayN', { d })}</option>)}</select></label> : <label>{t('form.rec.billDay')}<div className="weekday-chips">{[1, 2, 3, 4, 5, 6, 7].map((d) => <button type="button" key={d} className={String(dayOfPeriod) === String(d) ? 'selected' : ''} onClick={() => setDayOfPeriod(String(d))}>{t(`wd.${d}`)}</button>)}</div></label>}<label>{t('form.rec.startDate')}<input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></label>{hasWallets && wallets.length > 1 && <label>{t('form.wallet.select')}<select value={walletId ?? ''} onChange={(e) => setWalletId(e.target.value)}><option value="">{t('wallet.all')}</option>{wallets.map((item) => <option key={item.id} value={item.id}>{`${item.emoji} ${item.name}`}</option>)}</select></label>}{message && <p className="form-message">{message}</p>}<div className="form-actions"><button className="ghost-button clay-button brutal-button brutal-ghost" type="button" onClick={onClose}>{t('common.cancel')}</button><button className="primary-button clay-button brutal-button" type="submit">{t('btn.saveRec')} <span>→</span></button></div></form></section></div>;
+}
+
+/* F4c — sheet buat/edit dompet: nama + ikon dari grid tetap (tanpa input bebas
+   supaya hasil selalu satu emoji bersih). */
+function WalletSheet({ existingNames = [], initial = null, onClose, onSubmit }) {
+  const [name, setName] = useState(initial?.name ?? '');
+  const [emoji, setEmoji] = useState(initial?.emoji ?? '');
+  const [message, setMessage] = useState('');
+  async function submit(event) {
+    event.preventDefault();
+    const cleanName = name.trim();
+    if (!cleanName) return setMessage(t('err.catName'));
+    if (!emoji) return setMessage(t('err.pickEmoji'));
+    const dup = existingNames.some((item) => item.toLowerCase() === cleanName.toLowerCase() && item !== (initial?.name ?? ''));
+    if (dup) return setMessage(t('err.catDup'));
+    if (!(await onSubmit({ id: initial?.id ?? null, name: cleanName, emoji }))) return setMessage(t('err.saveWallet'));
+    onClose();
+  }
+  return <div className="modal-backdrop clay-modal brutal-backdrop" role="presentation" onMouseDown={onClose}><section className="modal clay-card brutal-sheet" role="dialog" aria-modal="true" aria-labelledby="wallet-title" onMouseDown={(event) => event.stopPropagation()}><button className="close-modal" onClick={onClose} aria-label={t('common.close')}>×</button><p className="kicker">{t('form.wallet.kicker')}</p><h2 id="wallet-title">{initial ? t('form.wallet.edit') : t('form.wallet.new')}</h2><form onSubmit={submit}><label>{t('form.wallet.name')}<input autoFocus value={name} onChange={(e) => setName(e.target.value)} maxLength={24} placeholder={t('form.wallet.ph')} /></label><div className="settings-field emoji-grid-field" role="radiogroup" aria-label={t('form.wallet.emoji')}><span>{t('form.wallet.emoji')}</span><div className="emoji-grid">{WALLET_EMOJIS.map((item) => <button key={item} type="button" className={emoji === item ? 'active' : ''} aria-pressed={emoji === item} aria-label={item} onClick={() => setEmoji(item)}>{item}</button>)}</div></div>{message && <p className="form-message">{message}</p>}<div className="form-actions"><button className="ghost-button clay-button brutal-button brutal-ghost" type="button" onClick={onClose}>{t('common.cancel')}</button><button className="primary-button clay-button brutal-button" type="submit">{t('btn.saveWallet')} <span>→</span></button></div></form></section></div>;
 }
 
 function Highlighted({ text }) {

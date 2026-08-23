@@ -4109,3 +4109,84 @@ html {
   line-height: 1.5;
   color: var(--br-muted);
 }
+
+/* =========================================================
+   F4 — Multi-dompet: switcher chip + filter dompet tab Transaksi
+   ========================================================= */
+.wallet-switcher {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+  margin-bottom: 14px;
+}
+
+.wallet-switcher::-webkit-scrollbar {
+  display: none;
+}
+
+.wallet-switcher.tx-scope {
+  flex-shrink: 0;
+  margin-bottom: 0;
+  max-width: 45%;
+}
+
+.wallet-switcher button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 2px solid var(--br-border);
+  border-radius: 999px;
+  background: var(--br-surface);
+  color: var(--br-ink);
+  font-weight: 700;
+  font-size: var(--br-fs-caption);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.wallet-switcher button.active {
+  background: var(--br-yellow);
+  color: #141414;
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+}
+
+/* =========================================================
+   F4c — Kelola dompet: baris list reuse recurring-row; sheet emoji grid
+   ========================================================= */
+.emoji-grid-field > span {
+  font-weight: 800;
+  font-size: var(--br-fs-caption);
+  color: var(--br-ink);
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(44px, 1fr));
+  gap: 8px;
+}
+
+.emoji-grid button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 2px solid var(--br-border);
+  border-radius: 12px;
+  background: var(--br-surface);
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.emoji-grid button.active {
+  background: var(--br-yellow);
+  box-shadow: 2px 2px 0 0 var(--br-shadow-c);
+}
+
+.recurring-row button[aria-label^="Edit dompet"],
+.recurring-row button[aria-label^="Edit wallet"] {
+  margin-right: 4px;
+}
