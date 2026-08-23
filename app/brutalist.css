@@ -4449,3 +4449,130 @@ html {
   color: inherit;
   cursor: pointer;
 }
+
+/* ===== F7 — Kelola akun (username & password) ===== */
+.account-settings {
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 3px solid var(--br-line);
+}
+
+.account-form + .account-form {
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 2px dashed var(--br-line);
+}
+
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.account-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--br-muted);
+}
+
+.account-form input {
+  font-size: 15px;
+  color: inherit;
+  padding: 10px 12px;
+  border: 2px solid var(--br-line);
+  border-radius: 10px;
+  background: transparent;
+}
+
+.account-form .form-message {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* ===== F7b — baris menu Akun di dalam Pengaturan ===== */
+.settings-submenu {
+  margin: 0 0 16px;
+}
+.settings-submenu .profile-menu-row {
+  border-top: 0;
+}
+
+/* =========================================================
+   Pengaturan — baris seragam (F7b polish)
+   Satu pola untuk: Akun (nav), Mata uang, Ukuran teks,
+   Bahasa, Tema. Kontrol pill sama dgn .sort-toggle.
+   ========================================================= */
+.settings-submenu {
+  margin: 0;
+}
+.settings-submenu .profile-menu-row {
+  border-top: 0;
+}
+.setting-row {
+  padding-top: 14px;
+  border-top: 2px solid var(--br-border);
+}
+.setting-row:first-of-type {
+  border-top: 0;
+  padding-top: 2px;
+}
+.setting-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: var(--br-fs-caption);
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.setting-label .row-icon {
+  font-size: 18px; /* pin px (N9b) */
+  line-height: 1;
+}
+.setting-seg {
+  display: flex;
+  width: 100%;
+  border: 2px solid var(--br-border);
+  border-radius: 999px;
+  background: var(--br-surface);
+  overflow: hidden;
+}
+.setting-seg button {
+  flex: 1;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: none;
+  border-left: 2px solid var(--br-border);
+  background: transparent;
+  color: var(--br-muted);
+  font-family: var(--br-font);
+  font-weight: 800;
+  font-size: var(--br-fs-caption);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color .12s ease, color .12s ease;
+}
+.setting-seg button:first-child {
+  border-left: 0;
+}
+.setting-seg button.active {
+  background: var(--br-lilac);
+  color: #fff;
+}
+.setting-seg button:active {
+  transform: translate(1px, 1px);
+}
+.setting-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid var(--br-border);
+  border-radius: 999px;
+  background: var(--br-surface);
+  color: var(--br-ink);
+  font-family: var(--br-font);
+  font-weight: 800;
+  font-size: var(--br-fs-body);
+}

@@ -246,3 +246,14 @@ investasi. Urutan jangan dilompati; rancang F1 agar mudah dikondensasi ke F2.
       dompet; panel di halaman Saran setelah ScorePanel + deep-link dari goal card;
       guard data tipis/deficit/reached; disclaimer historis bukan janji.
       Bonus fix: wallet.txCount & wallet.editAria kurung ganda → single-brace)
+- [x] F7 Kelola akun — ganti username & password (Pengaturan › baris menu
+      🔑 "Akun & kata sandi" › sub-halaman form; back nested ke Pengaturan)
+      (password: verifikasi ulang lewat signIn lalu updateUser — hash dikelola
+      Supabase Auth; username: identitas tampilan saja, pre-check unik
+      case-insensitive via ilike + escape wildcard. Temuan: GoTrue menolak
+      updateUser({email}) @rapi.local (email_address_invalid pada email
+      tersimpan) → kolom baru profiles.auth_email stabil + RPC security
+      definer resolve_login_email untuk login pre-auth (RLS memblokir select
+      langsung). sql/f7_account.sql. Catatan: Danger Zone tak menghapus row
+      auth.users (butuh service-role) → username bekas akun terhapus tak bisa
+      didaftarkan ulang — keterbatasan pre-existing yang didokumentasikan)
