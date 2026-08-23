@@ -235,7 +235,14 @@ investasi. Urutan jangan dilompati; rancang F1 agar mudah dikondensasi ke F2.
       fallback dompet default. Regression smoke advice/score/recommend 3× PASS.
       Bug diperbaiki: TDZ crash urutan deklarasi blok dompet vs memo transaksi;
       17 goal duplikat "motor" (data QA lama) dibersihkan.
-- [ ] F5 Tantangan hemat mingguan — challenge mingguan (no-spend/limit kategori)
+- [x] F5 Tantangan hemat mingguan — challenge mingguan (no-spend/limit kategori)
       terintegrasi sistem XP/badge/streak existing
-- [ ] F6 Simulasi nabung — proyeksi sederhana dari pola menabung historis user,
+      (katalog 4 jenis deterministik, aktivasi manual 1/minggu, reward XP +15/25/30/35,
+      badge challenge_1/challenge_5; plus fix persistensi XP historis & seed badge_defs)
+- [x] F6 Simulasi nabung — proyeksi sederhana dari pola historis user,
       output naratif + angka (bukan prediksi investasi)
+      (lib/simulate.js pure dari computeStats: surplusAvg 3 bln penuh; slider what-if
+      0–2jt real-time; ETA goal ±bulan kalender; proyeksi saldo 6/12 bln; global lintas
+      dompet; panel di halaman Saran setelah ScorePanel + deep-link dari goal card;
+      guard data tipis/deficit/reached; disclaimer historis bukan janji.
+      Bonus fix: wallet.txCount & wallet.editAria kurung ganda → single-brace)
