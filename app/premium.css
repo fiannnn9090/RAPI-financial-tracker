@@ -1224,3 +1224,113 @@
   background: var(--dp-expense) !important;
   color: #fff !important;
 }
+
+/* =========================================================
+   DP8 — Halaman Auth (panel malam + form tema) & LevelUpModal
+   ========================================================= */
+
+/* ---- Panel kiri: intro gelap permanen di kedua tema ---- */
+.auth-page.dp-auth .auth-intro {
+  background: #0F0F13;
+  color: #EDEDF2;
+}
+.auth-page.dp-auth .auth-intro::after { content: none; }
+.auth-page.dp-auth .brand {
+  color: #EDEDF2;
+}
+.auth-page.dp-auth .brand span {
+  border-radius: 8px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+}
+.auth-page.dp-auth .intro-copy h1 em {
+  color: var(--dp-accent);
+}
+.auth-page.dp-auth .kicker { letter-spacing: .02em; }
+.auth-page.dp-auth .auth-intro .kicker { color: rgba(237, 237, 242, 0.55); }
+.auth-page.dp-auth .intro-copy > p:last-child {
+  color: rgba(237, 237, 242, 0.66);
+}
+.auth-page.dp-auth .feature-note { color: rgba(237, 237, 242, 0.72); }
+.auth-page.dp-auth .feature-note > span { color: var(--dp-accent); }
+.auth-page.dp-auth .feature-note small { color: rgba(237, 237, 242, 0.5); }
+
+/* ---- Panel kanan: mengikuti tema ---- */
+.auth-page.dp-auth .auth-panel { background: var(--dp-bg); }
+[data-theme='dark'] .auth-page.dp-auth .auth-panel { background: #0F0F13; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .auth-page.dp-auth .auth-panel { background: #0F0F13; }
+}
+
+/* Kartu form */
+.auth-page.dp-auth .form-wrap.dp-card {
+  background: var(--dp-card);
+  border: none;
+  border-radius: var(--dp-radius-lg);
+  box-shadow: var(--dp-shadow-md);
+}
+.auth-page.dp-auth .form-wrap .welcome { color: var(--dp-muted); }
+.auth-page.dp-auth .form-wrap h2 { color: var(--dp-text); }
+
+/* Input — pola DP4/DP7 */
+.auth-page.dp-auth .form-wrap input {
+  min-height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  box-shadow: none;
+  transition: box-shadow .15s ease;
+}
+.auth-page.dp-auth .form-wrap input:focus {
+  outline: none;
+  border: none;
+  box-shadow: 0 0 0 2px var(--dp-accent);
+}
+.auth-page.dp-auth .form-wrap ::placeholder { color: var(--dp-muted); opacity: 1; }
+.auth-page.dp-auth .form-wrap label { color: var(--dp-muted); }
+
+/* Submit kuning solid + link switch */
+.auth-page.dp-auth .primary-button.dp-button,
+.auth-page.dp-auth .clay-button.brutal-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+}
+.auth-page.dp-auth .switch-form button {
+  border: none;
+  background: none;
+  color: var(--dp-gold-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.auth-page.dp-auth .form-message { color: var(--dp-expense-ink); }
+
+/* ---- LevelUpModal — frame dp, confetti tidak disentuh ---- */
+.modal-backdrop.levelup-backdrop.dp-backdrop {
+  background: rgba(10, 10, 14, 0.6);
+}
+.levelup-modal.brutal-levelup.dp-levelup {
+  background: var(--dp-card);
+  border: none;
+  border-radius: var(--dp-radius-lg);
+  box-shadow: var(--dp-shadow-md), 0 12px 48px rgba(255, 198, 41, 0.10);
+  color: var(--dp-text);
+}
+.levelup-modal.dp-levelup .levelup-emoji { filter: none; }
+.levelup-modal.dp-levelup .kicker { color: var(--dp-muted); text-transform: none; letter-spacing: .01em; }
+.levelup-modal.dp-levelup h2 { color: var(--dp-text); }
+.levelup-modal.dp-levelup .levelup-copy { color: var(--dp-muted); }
+.levelup-modal.dp-levelup .levelup-copy strong { color: var(--dp-gold-ink); }
+.levelup-modal.dp-levelup .levelup-xp { color: var(--dp-income-ink); font-weight: 700; }
+.levelup-modal.dp-levelup .primary-button.dp-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+}

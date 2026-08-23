@@ -346,7 +346,7 @@ function Auth({ onEnter }) {
     setMode(next); setMessage(''); setUsername(''); setPassword('');
   }
 
-  return <main className="auth-page clay-auth brutal-auth">
+  return <main className="auth-page clay-auth brutal-auth dp-auth">
     <section className="auth-intro">
       <a className="brand dark brutal-brand" href="#top"><span>r</span> rapi</a>
       <div className="intro-copy">
@@ -357,7 +357,7 @@ function Auth({ onEnter }) {
       <div className="feature-note"><span>✦</span><div><strong>{t('auth.privacyTitle')}</strong><small>{t('auth.privacyNote')}</small></div></div>
     </section>
     <section className="auth-panel" id="top">
-      <div className="form-wrap clay-card brutal-card">
+      <div className="form-wrap clay-card brutal-card dp-card">
         <p className="welcome">{t(mode === 'login' ? 'welcome.login' : 'welcome.register')}</p>
         <h2>{t(mode === 'login' ? 'auth.titleLogin' : 'auth.titleRegister')}</h2>
         <p className="form-description">{t(mode === 'login' ? 'auth.descLogin' : 'auth.descRegister')}</p>
@@ -1531,7 +1531,6 @@ function SimulationPanel({ sim, extra, onExtra, money, lang, goalName, multiWall
    dikelola Supabase Auth. */
 function AccountSettings({ user, notify, onRenamed }) {
   const [name, setName] = useState('');
-  const [curPass, setCurPass] = useState('');
   const [newPass, setNewPass] = useState('');
   const [again, setAgain] = useState('');
   const [nameMsg, setNameMsg] = useState('');
@@ -1570,16 +1569,15 @@ function AccountSettings({ user, notify, onRenamed }) {
     if (newPass !== again) return setPassMsg(t('acct.mismatch'));
     setBusy('pass');
     try {
-      const { data: me, error: meError } = await supabase.auth.getUser();
-      if (meError || !me?.user?.email) return setPassMsg(t('acct.fail', { msg: meError?.message ?? 'no session' }));
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email: me.user.email, password: curPass });
-      if (signInError) return setPassMsg(t('acct.wrongCurrent'));
+      /* Tidak ada re-verifikasi password lama: user ber-sesi aktif cukup
+         updateUser (best practice Supabase). Krusial di sini karena auth_email
+         palsu (@rapi.local) → tanpa jalur reset password sama sekali;
+         mewajibkan password lama = lockout permanen kalau lupa. */
       const { error } = await supabase.auth.updateUser({ password: newPass });
       if (error) {
         if (error.code === 'weak_password' || /weak password|at least \d+ characters/i.test(error.message)) return setPassMsg(t('err.passWeak'));
         return setPassMsg(t('acct.fail', { msg: error.message }));
       }
-      setCurPass('');
       setNewPass('');
       setAgain('');
       notify(t('acct.passDone'));
@@ -1595,7 +1593,6 @@ function AccountSettings({ user, notify, onRenamed }) {
       <button type="submit" className="clay-button brutal-button" disabled={busy === 'name'}>{t('acct.nameSave')}</button>
     </form>
     <form className="account-form" onSubmit={savePassword}>
-      <label>{t('acct.curPass')}<input type="password" value={curPass} onChange={(e) => setCurPass(e.target.value)} autoComplete="current-password" /></label>
       <label>{t('acct.newPass')}<input type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)} autoComplete="new-password" /></label>
       <label>{t('acct.again')}<input type="password" value={again} onChange={(e) => setAgain(e.target.value)} autoComplete="new-password" /></label>
       {passMsg && <p className="form-message">{passMsg}</p>}

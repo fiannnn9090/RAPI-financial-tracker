@@ -21,8 +21,8 @@ export default function LevelUpModal({ level, title, xpEarned, onClose }) {
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  return <div className="modal-backdrop clay-modal levelup-backdrop" role="presentation" onMouseDown={onClose}>
-    <section className="modal clay-card levelup-modal brutal-card brutal-levelup" role="dialog" aria-modal="true" aria-labelledby="levelup-title" onMouseDown={(event) => event.stopPropagation()}>
+  return <div className="modal-backdrop clay-modal levelup-backdrop dp-backdrop" role="presentation" onMouseDown={onClose}>
+    <section className="modal clay-card levelup-modal brutal-card brutal-levelup dp-levelup" role="dialog" aria-modal="true" aria-labelledby="levelup-title" onMouseDown={(event) => event.stopPropagation()}>
       <div className="confetti-layer" aria-hidden="true">
         {confetti.map((piece, index) => <i
           key={index}
@@ -43,7 +43,7 @@ export default function LevelUpModal({ level, title, xpEarned, onClose }) {
       <h2 id="levelup-title">{t('lvl.title', { level })}</h2>
       <p className="levelup-copy">{t('lvl.copy')} <strong>“{title}”</strong>.</p>
       {xpEarned ? <p className="levelup-xp">{t('lvl.xp', { n: xpEarned })}</p> : null}
-      <button className="primary-button brutal-button" onClick={onClose}>{t('lvl.cta')} <span>→</span></button>
+      <button className="primary-button brutal-button dp-button" onClick={onClose}>{t('lvl.cta')} <span>→</span></button>
     </section>
   </div>;
 }

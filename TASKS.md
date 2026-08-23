@@ -328,5 +328,27 @@ tab Analisis. Detail lengkap: `.github/copilot-instructions.md` →
       tint coral + tombol solid #FF6B6B tinta putih; patch !important utk
       lawan .brutal-share (blush !important); verifikasi CDP kedua tema lolos
       (fokus ring terkonfirmasi setelah transisi 300ms — bukan bug)
-- [ ] DP8 Terapkan Auth (+ modal level-up)
+- [x] DP8 Terapkan Auth (+ modal level-up) — panel intro kiri jadi "panel malam"
+      permanen #0F0F13 di kedua tema (konsisten kartu Recap): teks pucat,
+      em tagline & chip brand kuning, dekorasi ::after clay dibuang; panel form
+      kanan mengikuti tema (#F7F7FA/#0F0F13) dengan kartu dp radius-lg;
+      input no-border elev radius 14 + fokus ring kuning (pola DP4/DP7);
+      submit pill kuning + link switch gold-ink; LevelUpModal frame dp-card +
+      glow kuning tipis, kicker/judul/copy/xp pakai token (XP = income-ink),
+      CTA pill kuning — confetti CSS TIDAK disentuh; verifikasi CDP light+dark
+      lolos (auth via swap sesi sementara, levelup via injeksi replika).
+      CATATAN KEHATI-HATIAN: swap sesi utk verifikasi memakai backup di
+      window global yang hilang saat reload → sesi device ter-logout dan tak
+      bisa dipulihkan dari sisi client. Ke depan: simpan backup di luar
+      window ATAU gunakan akun QA ber-password dikenal untuk uji auth.
+- [x] FIX UX kritis — ganti password tanpa password lama: form AccountSettings
+      sebelumnya me-re-autentikasi via signInWithPassword(password lama) sebelum
+      updateUser → dengan auth_email palsu (@rapi.local) & tanpa jalur reset,
+      lupa password lama = lockout permanen. Sekarang: field "kata sandi saat
+      ini" dihapus, alur langsung updateUser({password}) setelah validasi lokal
+      (best practice Supabase utk sesi aktif); key i18n acct.curPass &
+      acct.wrongCurrent dibuang; verifikasi CDP: form tinggal 2 field,
+      pesan validasi mismatch & terlalu-pendek tampil, string lama bersih dari
+      bundle; smoke 4x PASS. Uji fungsional ganti password asli diserahkan ke
+      user (sesi live).
 - [ ] DP9 Cleanup: hapus brutalist.css lama + audit kontras dark+light menyeluruh
