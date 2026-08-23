@@ -1,5 +1,6 @@
 import './globals.css';
 import './brutalist.css';
+import './premium.css';
 
 export const metadata = {
   title: 'Rapi | Catatan Keuangan',

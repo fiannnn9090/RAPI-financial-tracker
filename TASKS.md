@@ -257,3 +257,30 @@ investasi. Urutan jangan dilompati; rancang F1 agar mudah dikondensasi ke F2.
       langsung). sql/f7_account.sql. Catatan: Danger Zone tak menghapus row
       auth.users (butuh service-role) → username bekas akun terhapus tak bisa
       didaftarkan ulang — keterbatasan pre-existing yang didokumentasikan)
+
+## Fase Redesign 2 — Dark Premium
+Ganti TOTAL neo-brutalist: base gelap nyaris hitam (#0F0F13/#1C1C24, varian terang
+#F7F7FA/#FFFFFF), satu aksen kuning #FFC629, hijau #34D399 terkunci pemasukan,
+coral #FF6B6B terkunci pengeluaran, tanpa border, radius 18-24px, shadow nyaris
+tak terlihat, hierarki via ukuran/warna tipografi. Navigasi jadi 5 tab + FAB
+(Beranda/Transaksi/[FAB +]/Analisis BARU/Target/Profil, aktif = pill kuning solid);
+konten Profil › Saran finansial (Recap, Skor, Saran, 50/30/20, Simulasi) pindah ke
+tab Analisis. Detail lengkap: `.github/copilot-instructions.md` →
+"Fase Redesign 2 — Dark Premium".
+- [x] DP1 Fondasi token dark premium (light+dark) + primitif dp-* — app/premium.css
+      (token via mekanisme [data-theme] N9j; .dp-card, .dp-button + ghost/soft;
+      belum dipakai komponen). DP2 nav: premium.css di-import layout.js
+- [x] DP2 Restrukturisasi navigasi — 5 tab + FAB tengah geometris (grid
+      1.5+1.5fr|64px|3×1fr), skin dp-* penuh (aktif = pill kuning icon+label,
+      nonaktif ikon saja); tab Analisis baru berisi ScorePanel/Simulasi/50-30-20/
+      saran F1 (pindah penuh dari Profil › Saran); recap N7 tetap di Beranda tanpa
+      duplikasi; 3 deep-link retarget setTab('analisis'); menu Profil: baris 💡
+      dihapus → 🔑 Ganti username & password jadi level-atas (submenu akun keluar
+      dari Pengaturan); i18n nav.analisis/an.title/an.sub, prof.menu.saran dihapus
+- [ ] DP3 Terapkan tab Beranda
+- [ ] DP4 Terapkan tab Transaksi (+ bottom-sheet form)
+- [ ] DP5 Terapkan tab Target (goal card, badge list)
+- [ ] DP6 Polish visual tab Analisis (Recap/Skor/Saran/50-30-20/Simulasi)
+- [ ] DP7 Terapkan Profil (termasuk fitur ganti username & password)
+- [ ] DP8 Terapkan Auth (+ modal level-up)
+- [ ] DP9 Cleanup: hapus brutalist.css lama + audit kontras dark+light menyeluruh

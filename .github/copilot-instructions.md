@@ -118,6 +118,50 @@ nudge pola belanja, pacing budget, kebiasaan menabung. Urutan pengerjaan
 Prinsip lintas F1-F6: fungsi engine = murni & testable di `lib/` (pola `recap.js`/
 `badges.js`), UI hanya presentasi; semua string via i18n; saran selalu sertakan "mengapa".
 
+## Fase Redesign 2 — Dark Premium (DP1–DP9)
+Bahasa desain berikutnya yang menggantikan TOTAL Neo-Brutalist — bukan penyesuaian:
+semua border tebal, shadow hard-edge, dan label kapital ala brutalist akan dihapus.
+Karakter bahasa desain baru:
+- Base gelap nyaris hitam: `#0F0F13` background / `#1C1C24` card; varian terang:
+  `#F7F7FA` background / `#FFFFFF` card. Light + dark adalah SATU set token, bukan
+  stylesheet terpisah (pola sama dengan token brutalist saat ini).
+- SATU aksen dominan kuning `#FFC629` untuk CTA, progress bar, level pill, streak.
+- Warna semantik TERKUNCI: hijau `#34D399` khusus pemasukan, coral `#FF6B6B` khusus
+  pengeluaran — coral tidak lagi dipakai untuk tombol netral seperti di brutalist.
+- TANPA border; radius besar 18–24px; shadow nyaris tak terlihat (bukan hard-edge).
+- Hierarki tipografi lewat ukuran & warna teks — BUKAN label kapital mono-spasi
+  ala brutalist.
+
+Restrukturisasi navigasi (berjalan bareng redesign):
+- Bottom nav tetap 5 tab + FAB, di-re-style: tab aktif jadi pill kuning solid.
+  Urutan: **Beranda / Transaksi / [FAB +] / Analisis (BARU) / Target / Profil**.
+- Tab **Analisis** baru: memindahkan konten yang saat ini terkubur di
+  Profil › "Saran finansial" menjadi tab level-atas — Skor kesehatan (F2),
+  Saran finansial (F1), Rekomendasi 50/30/20 (F3), Simulasi nabung (F6).
+  Recap cerita (N7) TETAP di Beranda tanpa duplikasi — hook keterbukaan
+  harian; keputusan final saat perencanaan DP2.
+- Profil disederhanakan pasca-pemindahan: Kartu profil, Ganti username & password
+  (baru), Pengaturan (mata uang/teks/bahasa/tema), Kelola Kategori,
+  Langganan & Rutin, Data & Backup, Pengingat, Danger Zone.
+
+Urutan milestone (jangan lompat urutan tanpa konfirmasi user):
+- **DP1 — Fondasi token**: buat CSS token dark premium (light + dark) + primitif
+  dasar kartu/tombol `dp-*`; belum menyentuh page.js.
+- **DP2 — Restrukturisasi navigasi**: bottom nav baru + tab Analisis +
+  migrasi konten dari halaman Saran ke tab tersebut.
+- **DP3 — Beranda**, **DP4 — Transaksi**, **DP5 — Target**,
+  **DP6 — Analisis** (polish visual konten yang sudah pindah),
+  **DP7 — Profil** (termasuk fitur ganti username & password),
+  **DP8 — Auth**.
+- **DP9 — Cleanup**: hapus `app/brutalist.css` lama + audit kontras dark+light
+  menyeluruh.
+
+Pola migrasi sama seperti transisi Claymorphism→Brutalist dulu: class `dp-*`
+DITAMBAHKAN berdampingan dengan brutalist.css terlebih dahulu, lalu rule brutalist
+dihapus di akhir (DP9) setelah semua layar terverifikasi di kedua tema.
+Begitu fase ini dimulai: JANGAN menambah rule brutalist/clay baru lagi — semua
+style baru masuk bahasa dark premium (`dp-*`). Status: DP1–DP2 selesai.
+
 ## Konvensi kode yang sudah ada (pertahankan gayanya)
 - Komponen fungsi di `app/page.js`, memakai `'use client'` di baris pertama file
 - Helper domain ditaruh sebagai fungsi murni di `lib/`: `xp.js` (XP & level),
