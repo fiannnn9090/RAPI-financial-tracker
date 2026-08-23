@@ -222,3 +222,638 @@
   transform: translateX(-50%) scale(0.94);
   box-shadow: var(--dp-shadow-sm);
 }
+
+/* =========================================================
+   DP3 — Tab Beranda
+   Pola migrasi: class dp-* BERDAMPINGAN dengan brutal-*,
+   override ter-scope di sini; pembuangan rule lama menunggu DP9.
+   ========================================================= */
+
+/* Token tambahan: tint semantik untuk ikon/latar chip */
+:root {
+  --dp-income-tint: rgba(52, 211, 153, 0.14);
+  --dp-expense-tint: rgba(255, 107, 107, 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --dp-income-tint: rgba(52, 211, 153, 0.16);
+    --dp-expense-tint: rgba(255, 107, 107, 0.14);
+  }
+}
+[data-theme='dark'] {
+  --dp-income-tint: rgba(52, 211, 153, 0.16);
+  --dp-expense-tint: rgba(255, 107, 107, 0.14);
+}
+
+/* Kanvas halaman */
+.dashboard-page.dp-page {
+  background: var(--dp-bg);
+  color: var(--dp-text);
+}
+
+/* Hierarki lewat ukuran & warna — label kecil tak lagi kapital mono-spasi */
+.dp-page .kicker {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--dp-muted);
+}
+
+/* Semua kartu Beranda: tanpa border, radius besar, shadow halus */
+.dp-page .dp-card {
+  background: var(--dp-card);
+  color: var(--dp-text);
+  border: none;
+  border-radius: var(--dp-radius);
+  box-shadow: var(--dp-shadow-sm);
+}
+
+/* Heading + CTA */
+.dp-heading h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--dp-text);
+}
+.dp-heading h1 em {
+  font-style: normal;
+  color: var(--dp-accent);
+}
+.dp-heading .subline {
+  color: var(--dp-muted);
+}
+.dp-page .dashboard-heading .dp-button {
+  min-height: 48px;
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+}
+.dp-page .dashboard-heading .dp-button:active {
+  transform: scale(0.97);
+  filter: brightness(0.95);
+  box-shadow: none;
+}
+
+/* Kartu saldo */
+.dp-page .balance-card .eye-toggle {
+  border: none;
+  box-shadow: none;
+  background: var(--dp-elev);
+  border-radius: 999px;
+}
+.dp-page .level-chip {
+  border: none;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+} /* level-pill kuning sesuai spesifikasi */
+.dp-page .level-bar {
+  background: var(--dp-elev);
+}
+.dp-page .level-bar span {
+  background: var(--dp-accent);
+}
+.dp-page .streak-chip.active {
+  background: var(--dp-expense-tint); /* api streak: hangat namun bukan tombol */
+  color: var(--dp-text);
+}
+.dp-page .streak-chip.idle {
+  background: var(--dp-elev);
+  color: var(--dp-muted);
+}
+
+/* StatCard — hijau TERKUNCI pemasukan, coral TERKUNCI pengeluaran */
+.dp-page .stat-icon {
+  border: none;
+  border-radius: 999px;
+}
+.dp-page .stat-icon.income {
+  background: var(--dp-income-tint);
+  color: var(--dp-income-ink);
+}
+.dp-page .stat-icon.expense {
+  background: var(--dp-expense-tint);
+  color: var(--dp-expense-ink);
+}
+.dp-page .stat-card.income strong {
+  color: var(--dp-income-ink);
+}
+.dp-page .stat-card.expense strong {
+  color: var(--dp-expense-ink);
+}
+.dp-page .stat-card p,
+.dp-page .stat-card small {
+  color: var(--dp-muted);
+}
+
+/* Progress bar anggaran: netral→kuning→coral (hijau TIDAK dipakai di sini) */
+.dp-page .budget-bar {
+  background: var(--dp-elev);
+}
+.dp-page .budget-bar > span {
+  background: var(--dp-accent);
+}
+.dp-page .budget-bar > span.safe {
+  background: var(--dp-muted);
+}
+.dp-page .budget-bar > span.near {
+  background: var(--dp-accent);
+}
+.dp-page .budget-bar > span.over {
+  background: var(--dp-expense);
+}
+
+/* Tombol tambah budget: kuning standar — BUKAN hijau (alasan locking) */
+.dp-page .budget-add.dp-button,
+.dp-page .budget-empty .dp-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+/* Chip switcher dompet (dipakai juga di tab Transaksi — konsisten) */
+.dp-page .wallet-switcher button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  color: var(--dp-muted);
+}
+.dp-page .wallet-switcher button.active {
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+}
+
+/* Toggle Minggu/Bulan recap & sort-toggle turunannya */
+.dp-page .sort-toggle.recap-toggle {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  overflow: hidden;
+}
+.dp-page .sort-toggle.recap-toggle button {
+  font-family: inherit;
+  font-weight: 700;
+  color: var(--dp-muted);
+}
+.dp-page .sort-toggle.recap-toggle button.active {
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+}
+
+/* Teaser saran tinggi */
+.dp-page .advice-teaser {
+  text-align: left;
+}
+.dp-page .advice-teaser-count {
+  background: var(--dp-elev);
+  color: var(--dp-text);
+}
+
+/* Brand kecil di header */
+.dp-page .brand.brutal-brand {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+}
+
+/* DP3 — patch specificity: rule brutalist komponen (0-3/0-4-0) harus dikalahkan */
+.dp-page .stat-card.dp-card .stat-icon.income {
+  background: var(--dp-income-tint);
+  color: var(--dp-income-ink);
+}
+.dp-page .stat-card.dp-card .stat-icon.expense {
+  background: var(--dp-expense-tint);
+  color: var(--dp-expense-ink);
+}
+.dp-page .balance-card.dp-card .level-chip {
+  border: none;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+}
+.dp-page .balance-card.dp-card .level-bar span {
+  background: var(--dp-accent);
+}
+.dp-page .balance-card.dp-card .streak-chip.active {
+  background: var(--dp-expense-tint);
+  color: var(--dp-text);
+}
+.dp-page .balance-card.dp-card .streak-chip.idle {
+  background: var(--dp-elev);
+  color: var(--dp-muted);
+}
+
+/* =========================================================
+   DP3b — Recap "kartu malam" (disetujui user)
+   Permanen gelap di kedua tema; ring inset kuning + ambient glow.
+   ========================================================= */
+.dp-page .recap-card.dp-card {
+  background: #17171C;
+  color: #EDEDF2;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 198, 41, 0.30),
+    0 8px 32px rgba(255, 198, 41, 0.10);
+}
+.dp-page .recap-card p {
+  color: #EDEDF2;
+}
+.dp-page .recap-card em {
+  font-style: normal;
+  background: rgba(255, 198, 41, 0.18);
+  color: #FFD97A;
+  border-radius: 6px;
+  padding: 0 4px;
+}
+.dp-page .recap-card .recap-stats small {
+  color: rgba(237, 237, 242, 0.60);
+}
+.dp-page .recap-card .recap-stats b.in {
+  color: var(--dp-income);   /* di atas #17171C, warna penuh terbaca */
+}
+.dp-page .recap-card .recap-stats b.out {
+  color: var(--dp-expense);
+}
+
+/* =========================================================
+   DP4 — Tab Transaksi
+   ========================================================= */
+
+/* Filter pills (Semua / Pemasukan / Pengeluaran) */
+.dp-page .filters.dp-pills {
+  gap: 6px;
+}
+.dp-page .filters.dp-pills button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  color: var(--dp-muted);
+  font-family: inherit;
+  font-weight: 700;
+  box-shadow: none;
+}
+.dp-page .filters.dp-pills button.active {
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+}
+
+/* Chip kategori */
+.dp-page .category-filters button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  font-family: inherit;
+  box-shadow: none;
+}
+.dp-page .category-filters button.active {
+  background: var(--dp-text);
+  color: var(--dp-bg);
+}
+
+/* Segmented sort */
+.dp-page .sort-toggle.dp-seg {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  overflow: hidden;
+}
+.dp-page .sort-toggle.dp-seg button {
+  font-family: inherit;
+  font-weight: 700;
+  color: var(--dp-muted);
+}
+.dp-page .sort-toggle.dp-seg button.active {
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+}
+
+/* Item list — kartu flat tanpa shadow (lebih ringan utk item berulang) */
+.dp-page .transaction.dp-item {
+  background: var(--dp-card);
+  color: var(--dp-text);
+  border: none;
+  border-radius: 16px;
+  box-shadow: none;
+}
+.dp-page .transaction.dp-item .transaction-icon {
+  border-radius: 12px;
+}
+.dp-page .transaction.dp-item .transaction-icon.income {
+  background: var(--dp-income-tint);
+  border: none;
+}
+.dp-page .transaction.dp-item .transaction-icon.expense {
+  background: var(--dp-expense-tint);
+  border: none;
+}
+.dp-page .transaction.dp-item .income-text {
+  color: var(--dp-income-ink);
+}
+.dp-page .transaction.dp-item .expense-text {
+  color: var(--dp-expense-ink);
+}
+.dp-page .transaction.dp-item .delete-transaction {
+  color: var(--dp-muted);
+}
+.dp-page .transaction.dp-item .delete-transaction:active {
+  color: var(--dp-expense-ink);
+}
+
+/* Empty state */
+.dp-page .empty.dp-card {
+  text-align: center;
+}
+.dp-page .empty.dp-card h3 {
+  color: var(--dp-text);
+}
+.dp-page .empty.dp-card p,
+.dp-page .empty.dp-card > span {
+  color: var(--dp-muted);
+}
+.dp-page .empty.dp-card .empty-button.dp-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+/* Bottom-sheet form transaksi */
+.modal-backdrop.dp-backdrop {
+  background: rgba(10, 10, 14, 0.55);
+}
+.modal.dp-sheet {
+  background: var(--dp-card);
+  border: none;
+  border-radius: var(--dp-radius-lg) var(--dp-radius-lg) 0 0;
+  box-shadow: var(--dp-shadow-md);
+  color: var(--dp-text);
+}
+.modal.dp-sheet h2 {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.modal.dp-sheet .close-modal {
+  border: none;
+  background: var(--dp-elev);
+  color: var(--dp-muted);
+  border-radius: 999px;
+}
+/* Input & select: no border, radius sedang, fokus = ring tipis kuning */
+.modal.dp-sheet input,
+.modal.dp-sheet select {
+  min-height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  box-shadow: none;
+  font-family: inherit;
+  transition: box-shadow .15s ease;
+}
+.modal.dp-sheet input:focus,
+.modal.dp-sheet select:focus {
+  outline: none;
+  border: none;
+  box-shadow: 0 0 0 2px var(--dp-accent);
+}
+.modal.dp-sheet ::placeholder {
+  color: var(--dp-muted);
+  opacity: 1;
+}
+/* Type switch — semantik terkunci (pemilih tipe, bukan dekorasi netral) */
+.modal.dp-sheet .type-switch.dp-typeswitch {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  padding: 4px;
+}
+.modal.dp-sheet .type-switch.dp-typeswitch button {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dp-muted);
+  font-family: inherit;
+  font-weight: 700;
+  box-shadow: none;
+}
+.modal.dp-sheet .type-switch.dp-typeswitch button.selected.expense {
+  background: var(--dp-expense-tint);
+  color: var(--dp-expense-ink);
+  box-shadow: none;
+}
+.modal.dp-sheet .type-switch.dp-typeswitch button.selected.income {
+  background: var(--dp-income-tint);
+  color: var(--dp-income-ink);
+  box-shadow: none;
+}
+/* Tombol aksi sheet */
+.modal.dp-sheet .primary-button.dp-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+}
+.modal.dp-sheet .ghost-button {
+  border: none;
+  background: transparent;
+  color: var(--dp-muted);
+  box-shadow: none;
+}
+
+/* DP4 — patch penentu: rule warisan N9k (.clay-modal / :root:not dark-fix)
+   ber-spesifikasi lebih tinggi; !important ter-scope di sini, dibuang saat DP9 */
+.modal.dp-sheet {
+  background: var(--dp-card) !important;
+  border: none !important;
+  border-radius: var(--dp-radius-lg) var(--dp-radius-lg) 0 0 !important;
+}
+.dp-page .modal.dp-sheet input,
+.dp-page .modal.dp-sheet select {
+  background: var(--dp-elev) !important;
+  color: var(--dp-text) !important;
+}
+.dp-page .modal.dp-sheet input:focus,
+.dp-page .modal.dp-sheet select:focus {
+  box-shadow: 0 0 0 2px var(--dp-accent) !important;
+}
+
+/* =========================================================
+   DP5 — Tab Target: Goal card + Koleksi badge (rarity system)
+   Rarity via tint ikon + chip label; legendary = warna mahkota aksen.
+   ========================================================= */
+:root {
+  --dp-gold-ink: #946F00;
+  --dp-rare: #60A5FA;
+  --dp-epic: #A78BFA;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) { --dp-gold-ink: #FFD97A; }
+}
+[data-theme='dark'] { --dp-gold-ink: #FFD97A; }
+
+/* ---- Goal card ---- */
+.dp-page .goal-card.dp-card h2 { color: var(--dp-text); }
+.dp-page .goal-card.dp-card .goal-caption { color: var(--dp-muted); }
+.dp-page .goal-card.dp-card .goal-caption strong { color: var(--dp-text); }
+.dp-page .goal-card.dp-card .goal-progress {
+  height: 8px;
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+}
+.dp-page .goal-card.dp-card .goal-progress span {
+  background: var(--dp-accent);   /* kuning, bukan gradient lilac/gold */
+}
+.dp-page .goal-card.dp-card .goal-sim-link.dp-link {
+  color: var(--dp-accent);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(255, 198, 41, .5);
+}
+.dp-page .tab-target .goal-button.dp-button,
+.dp-page .tab-target .claim-goal.dp-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+/* goal-reached — perlakuan istimewa ala kartu Recap: ambient glow + ring
+   tipis, TANPA border tebal/shadow keras brutalist */
+.dp-page .goal-card.dp-card.goal-reached {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 198, 41, 0.25),
+    0 8px 32px rgba(255, 198, 41, 0.12);
+}
+.dp-page .goal-card.dp-card.goal-reached::before { content: none; }
+.dp-page .goal-card.dp-card.goal-reached .kicker {
+  display: inline-block;
+  border-radius: 999px;
+  background: rgba(255, 198, 41, 0.15);
+  color: var(--dp-gold-ink);
+  padding: 3px 10px;
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.dp-page .goal-card.dp-card.goal-reached .goal-progress span {
+  background: var(--dp-accent);
+}
+/* netralkan hover clay ungu */
+.dp-page .tab-target .goal-card.dp-card:hover {
+  transform: none;
+  box-shadow: var(--dp-shadow-sm);
+}
+.dp-page .tab-target .goal-card.dp-card.goal-reached:hover {
+  transform: none;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 198, 41, 0.25),
+    0 8px 32px rgba(255, 198, 41, 0.12);
+}
+
+/* ---- Kartu koleksi badge ---- */
+.dp-page .badge-card.dp-card::after { content: none; }
+.dp-page .badge-card.dp-card .badge-heading > span {
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 198, 41, 0.15);
+  color: var(--dp-gold-ink);
+  padding: 3px 10px;
+  font-weight: 800;
+}
+.dp-page .badge-card.dp-card .badges .badge.dp-item {
+  border: none;
+  border-radius: 16px;
+  background: var(--dp-card);
+  box-shadow: none;
+  transition: none;
+}
+.dp-page .badges .badge.dp-item:hover { transform: none; }
+.dp-page .badges .badge.dp-item strong { color: var(--dp-text); }
+.dp-page .badges .badge.dp-item small { color: var(--dp-muted); }
+
+/* Tile ikon — radius sedang, tint per tier (unlocked) */
+.dp-page .badges .badge.dp-item > span {
+  border: none;
+  border-radius: 12px;
+  background: var(--dp-elev);
+}
+.dp-page .badges .badge.dp-item.unlocked.tier-common > span { background: var(--dp-elev); }
+.dp-page .badges .badge.dp-item.unlocked.tier-rare > span { background: rgba(96, 165, 250, 0.14); }
+.dp-page .badges .badge.dp-item.unlocked.tier-epic > span { background: rgba(167, 139, 250, 0.16); }
+.dp-page .badges .badge.dp-item.unlocked.tier-legendary > span {
+  background: rgba(255, 198, 41, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 198, 41, 0.35);
+}
+
+/* Chip label tier — tanpa border; legendary satu-satunya chip solid kuning */
+.dp-page .badges .badge.dp-item .badge-tier {
+  border: none;
+  background: var(--dp-elev);
+  color: var(--dp-muted);
+}
+.dp-page .badges .badge.dp-item.locked .badge-tier {
+  background: transparent;
+  color: var(--dp-muted);
+}
+.dp-page .badges .badge.dp-item.unlocked.tier-rare .badge-tier {
+  background: rgba(96, 165, 250, 0.14);
+  color: var(--dp-rare);
+}
+.dp-page .badges .badge.dp-item.unlocked.tier-epic .badge-tier {
+  background: rgba(167, 139, 250, 0.16);
+  color: var(--dp-epic);
+}
+.dp-page .badges .badge.dp-item.unlocked.tier-legendary .badge-tier {
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  font-weight: 800;
+}
+
+/* Locked — item redup, tanpa dashed border */
+.dp-page .badges .badge.dp-item.locked {
+  border: none;
+  background: var(--dp-elev);
+}
+
+/* Progress bar badge locked — tipis, tanpa border, fill abu */
+.dp-page .badges .badge.dp-item .badge-progress {
+  height: 6px;
+  margin-top: 6px;
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-bg);
+}
+.dp-page .badges .badge.dp-item .badge-progress em {
+  background: var(--dp-muted);
+}
+
+/* DP5 — patch dasar kartu Target (rule clay 0-3-0 menang dari primitif .dp-card) */
+.dp-page .tab-target .goal-card.dp-card,
+.dp-page .tab-target .badge-card.dp-card {
+  background: var(--dp-card);
+  border: none;
+  border-radius: var(--dp-radius-lg);
+  box-shadow: var(--dp-shadow-sm);
+}
+.dp-page .tab-target .goal-card.dp-card::before,
+.dp-page .tab-target .badge-card.dp-card::after { content: none; }
+
+/* DP5 — reached harus menang atas patch dasar di atas (urutan kaskade) */
+.dp-page .tab-target .goal-card.dp-card.goal-reached {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 198, 41, 0.25),
+    0 8px 32px rgba(255, 198, 41, 0.12);
+}

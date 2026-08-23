@@ -277,9 +277,33 @@ tab Analisis. Detail lengkap: `.github/copilot-instructions.md` →
       duplikasi; 3 deep-link retarget setTab('analisis'); menu Profil: baris 💡
       dihapus → 🔑 Ganti username & password jadi level-atas (submenu akun keluar
       dari Pengaturan); i18n nav.analisis/an.title/an.sub, prof.menu.saran dihapus
-- [ ] DP3 Terapkan tab Beranda
-- [ ] DP4 Terapkan tab Transaksi (+ bottom-sheet form)
-- [ ] DP5 Terapkan tab Target (goal card, badge list)
+- [x] DP3 Terapkan tab Beranda — heading+CTA dp-button kuning, BalanceCard/StatCard/
+      Insight/Budget/Tantangan/teaser/score → dp-card (tanpa border, radius 20,
+      shadow halus); StatCard pakai --dp-income/-expense terkunci (tint ikon +
+      ink teks per tema); level pill & bar kuning; budget-bar netral→kuning→coral
+      (hijau tidak dipakai untuk progress); patch specificity utk rule brutalist
+      komponen 0-4-0; perlakuan khusus kartu Recap menyusul (usulan dark-night
+      card menunggu konfirmasi user)
+- [x] DP4 Terapkan tab Transaksi (+ bottom-sheet form) — filter pills & chip
+      kategori & segmented sort dp-*; item list flat radius 16 tanpa shadow;
+      EmptyState dp-card + tombol kuning pill; nominal semantik terkunci
+      (ink per tema); sheet form: input/select no-border bg elev radius 14 +
+      fokus ring 2px kuning, type-switch selected pakai tint semantik
+      (income/expense), submit dp-button kuning; kartu Recap jadi "kartu malam"
+      permanen #17171C di kedua tema dengan ring inset + ambient glow kuning,
+      mark <em> highlight kuning muda; rule warisan N9k (.clay-modal /
+      :root:not dark-fix) dikalahkan via !important ter-scope (dibuang saat DP9);
+      verifikasi CDP kedua tema lolos semua
+- [x] DP5 Terapkan tab Target (goal card, badge list) — goal-card/badge-card
+      dp-card (patch dasar atas rule clay 0-3-0); progress bar kuning pill 8px;
+      goal-reached = ambient glow kuning + ring inset tipis (pola kartu Recap),
+      kicker jadi pill "Tercapai!" tint kuning tanpa kapital, tombol klaim solid
+      kuning; sistem rarity baru TANPA border/shadow: tangga tint ikon + chip
+      (common netral / rare biru #60A5FA / epic ungu #A78BFA / legendary =
+      aksen kuning sebagai "mahkota" — chip solid + ring inset di tile ikon);
+      locked flat elev tanpa dashed + progress bar 6px fill abu; hover clay
+      dinetralkan; verifikasi CDP kedua tema lolos (goal QA dibuat via UI lalu
+      dihapus bersih via REST)
 - [ ] DP6 Polish visual tab Analisis (Recap/Skor/Saran/50-30-20/Simulasi)
 - [ ] DP7 Terapkan Profil (termasuk fitur ganti username & password)
 - [ ] DP8 Terapkan Auth (+ modal level-up)

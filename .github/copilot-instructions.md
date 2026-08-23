@@ -160,7 +160,7 @@ Pola migrasi sama seperti transisi Claymorphism→Brutalist dulu: class `dp-*`
 DITAMBAHKAN berdampingan dengan brutalist.css terlebih dahulu, lalu rule brutalist
 dihapus di akhir (DP9) setelah semua layar terverifikasi di kedua tema.
 Begitu fase ini dimulai: JANGAN menambah rule brutalist/clay baru lagi — semua
-style baru masuk bahasa dark premium (`dp-*`). Status: DP1–DP2 selesai.
+style baru masuk bahasa dark premium (`dp-*`). Status: DP1–DP5 selesai.
 
 ## Konvensi kode yang sudah ada (pertahankan gayanya)
 - Komponen fungsi di `app/page.js`, memakai `'use client'` di baris pertama file
