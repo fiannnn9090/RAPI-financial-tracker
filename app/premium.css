@@ -857,3 +857,370 @@
     inset 0 0 0 1px rgba(255, 198, 41, 0.25),
     0 8px 32px rgba(255, 198, 41, 0.12);
 }
+
+/* =========================================================
+   DP6 — Tab Analisis: gauge, slider, 50/30/20, saran, chip level
+   ========================================================= */
+
+/* ---- Kartu kontainer analisis ---- */
+.dp-page .advice-page.brutal-card {
+  background: var(--dp-card);
+  border: none;
+  border-radius: var(--dp-radius-lg);
+  box-shadow: var(--dp-shadow-sm);
+}
+.dp-page .sim-body.brutal-card {
+  background: var(--dp-elev);
+  border: none;
+  border-radius: var(--dp-radius);
+  box-shadow: none;
+}
+
+/* ---- Gauge skor: track netral + arc level + dot ujung + tick ambang ---- */
+.gauge-track,
+.gauge-value { fill: none; stroke-linecap: round; }
+.gauge-track { stroke: var(--dp-elev); stroke-width: 10; }
+.gauge-value { stroke-width: 10; }
+.gauge-value.lvl-low { stroke: var(--dp-expense); }
+.gauge-value.lvl-mid { stroke: var(--dp-accent); }
+.gauge-value.lvl-high { stroke: var(--dp-income); }
+.gauge-dot { stroke: var(--dp-card); stroke-width: 3; }
+.gauge-dot.lvl-low { fill: var(--dp-expense); }
+.gauge-dot.lvl-mid { fill: var(--dp-accent); }
+.gauge-dot.lvl-high { fill: var(--dp-income); }
+.gauge-tick {
+  stroke: var(--dp-muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: .45;
+}
+[data-theme='dark'] .gauge-track { stroke: #2A2A35; }
+
+/* ---- Chip level skor & delta ---- */
+.dp-page .score-chip {
+  border: none;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-weight: 800;
+}
+.dp-page .score-chip.sehat { background: var(--dp-income-tint); color: var(--dp-income-ink); }
+.dp-page .score-chip.waspada { background: rgba(255, 198, 41, 0.15); color: var(--dp-gold-ink); }
+.dp-page .score-chip.perhatian { background: var(--dp-expense-tint); color: var(--dp-expense-ink); }
+.dp-page .score-delta.up { color: var(--dp-income-ink); }
+.dp-page .score-delta.down { color: var(--dp-expense-ink); }
+.dp-page .score-num { color: var(--dp-text); }
+
+/* Breakdown komponen skor — bar flat pill */
+.dp-page .score-row > i {
+  border: none;
+  background: var(--dp-elev);
+  border-radius: 999px;
+}
+.dp-page .score-row > i em { background: var(--dp-accent); }
+
+/* ---- Slider simulasi: track tipis + fill kuning + thumb kuning solid ---- */
+.dp-page input[type='range']#sim-extra-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--dp-accent) var(--fill, 0%), var(--dp-elev) var(--fill, 0%));
+  outline: none;
+  padding: 0;
+}
+.dp-page input[type='range']#sim-extra-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--dp-accent);
+  border: none;
+  box-shadow: 0 1px 4px rgba(15, 15, 19, 0.25);
+}
+.dp-page input[type='range']#sim-extra-range:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(255, 198, 41, 0.35);
+}
+.dp-page .sim-scale span { color: var(--dp-muted); }
+
+/* Chip sim (win/hot/netral) */
+.dp-page .sim-chip { border: none; border-radius: 999px; background: var(--dp-elev); color: var(--dp-muted); }
+.dp-page .sim-chip.win { background: var(--dp-income-tint); color: var(--dp-income-ink); }
+.dp-page .sim-chip.hot { background: var(--dp-expense-tint); color: var(--dp-expense-ink); }
+.dp-page .sim-eta.win { color: var(--dp-income-ink); }
+
+/* ---- 50/30/20 — bar flat seragam kuning, tag netral ---- */
+.dp-page .alloc-tag {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  color: var(--dp-muted);
+}
+.dp-page .alloc-rows i {
+  border: none;
+  background: var(--dp-elev);
+  border-radius: 999px;
+}
+.dp-page .alloc-rows i em { background: var(--dp-accent); }
+.dp-page .alloc-status.ok { color: var(--dp-income-ink); }
+.dp-page .alloc-status.warn { color: var(--dp-gold-ink); }
+.dp-page .alloc-status.bad { color: var(--dp-expense-ink); }
+
+/* ---- Saran F1 — severity via tint + ink, tanpa border ---- */
+.dp-page .advice-item {
+  background: var(--dp-elev);
+  border: none;
+  border-radius: 16px;
+  box-shadow: none;
+}
+.dp-page .advice-item strong { color: var(--dp-text); }
+.dp-page .advice-item-body p { color: var(--dp-muted); }
+.dp-page .advice-item-body p em {
+  font-style: normal;
+  color: var(--dp-gold-ink);
+  background: rgba(255, 198, 41, 0.15);
+  border-radius: 6px;
+  padding: 0 3px;
+}
+.dp-page .advice-item-icon {
+  border: none;
+  border-radius: 12px;
+}
+.dp-page .advice-item.sev-tinggi .advice-item-icon { background: rgba(255, 107, 107, 0.14); }
+.dp-page .advice-item.sev-sedang .advice-item-icon { background: rgba(255, 198, 41, 0.15); }
+.dp-page .advice-item.sev-ringan .advice-item-icon { background: var(--dp-bg); }
+.dp-page .advice-sev {
+  border: none;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-weight: 700;
+  background: var(--dp-elev);
+  color: var(--dp-muted);
+}
+.dp-page .advice-item.sev-tinggi .advice-sev {
+  background: rgba(255, 107, 107, 0.14);
+  color: var(--dp-expense-ink);
+}
+.dp-page .advice-item.sev-sedang .advice-sev {
+  background: rgba(255, 198, 41, 0.15);
+  color: var(--dp-gold-ink);
+}
+.dp-page .advice-item.sev-ringan .advice-sev { background: transparent; color: var(--dp-muted); }
+
+/* Disclaimer & empty state */
+.dp-page .advice-disclaimer { color: var(--dp-muted); }
+.dp-page .advice-empty strong { color: var(--dp-text); }
+.dp-page .advice-empty p { color: var(--dp-muted); }
+
+/* =========================================================
+   DP7 — Tab Profil: head, menu, sub-halaman, akun, danger
+   ========================================================= */
+
+/* ---- Head profil ---- */
+.dp-page .profile-head .avatar {
+  border: none;
+  border-radius: 14px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+}
+.dp-page .profile-head strong { color: var(--dp-text); }
+.dp-page .profile-head small { color: var(--dp-muted); }
+
+/* ---- Menu utama ---- */
+.dp-page .profile-menu {
+  background: var(--dp-card);
+  border: none;
+  border-radius: var(--dp-radius);
+  box-shadow: var(--dp-shadow-sm);
+  padding: 6px;
+}
+.dp-page .profile-menu .profile-menu-row.dp-item {
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  box-shadow: none;
+  color: var(--dp-text);
+}
+.dp-page .profile-menu .profile-menu-row.dp-item:active {
+  background: var(--dp-elev);
+}
+.dp-page .profile-menu .row-icon {
+  border: none;
+  border-radius: 10px;
+  background: var(--dp-elev);
+}
+.dp-page .profile-menu .row-chevron { color: var(--dp-muted); }
+.dp-page .profile-menu .profile-menu-row.danger.dp-item,
+.dp-page .profile-menu .profile-menu-row.danger .row-label { color: var(--dp-expense-ink); }
+.dp-page .profile-menu .profile-menu-row.danger .row-icon {
+  background: rgba(255, 107, 107, 0.14);
+}
+
+/* Tombol keluar — netral dengan ink coral */
+.dp-page .logout-full.dp-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  color: var(--dp-expense-ink);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+/* ---- Header sub-halaman ---- */
+.dp-page .sub-back {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+}
+.dp-page .sub-header h2 { color: var(--dp-text); }
+.dp-page .sub-action.dp-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+/* ---- Kartu sub-halaman generik ---- */
+.dp-page .profil-stack .settings-card.dp-card,
+.dp-page .profil-stack .category-manage-card.dp-card,
+.dp-page .profil-stack .recurring-manage-card.dp-card,
+.dp-page .profil-stack .data-card.dp-card,
+.dp-page .profil-stack .reminder-card.dp-card,
+.dp-page .profil-stack .share-card.dp-card {
+  background: var(--dp-card);
+  border: none;
+  border-radius: var(--dp-radius);
+  box-shadow: var(--dp-shadow-sm);
+}
+/* Baris daftar di dalam kartu kelola */
+.dp-page .recurring-row,
+.dp-page .reminder-row {
+  background: var(--dp-elev);
+  border: none;
+  border-radius: 14px;
+}
+.dp-page .recurring-info strong,
+.dp-page .recurring-row strong { color: var(--dp-text); }
+.dp-page .recurring-info small,
+.dp-page .recurring-row small,
+.dp-page .recurring-empty,
+.dp-page .data-note,
+.dp-page .alloc-note.muted { color: var(--dp-muted); }
+
+/* ---- Pengaturan: select & segmented ---- */
+.dp-page .setting-select {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  box-shadow: none;
+}
+.dp-page .setting-seg {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+}
+.dp-page .setting-seg button {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dp-muted);
+}
+.dp-page .setting-seg button.active {
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+}
+.dp-page .setting-label { color: var(--dp-text); }
+.dp-page .fx-note { color: var(--dp-muted); }
+
+/* ---- Akun (ganti username & password) ---- */
+.dp-page .account-settings input {
+  min-height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  box-shadow: none;
+  transition: box-shadow .15s ease;
+}
+.dp-page .account-settings input:focus {
+  outline: none;
+  border: none;
+  box-shadow: 0 0 0 2px var(--dp-accent);
+}
+.dp-page .account-settings ::placeholder { color: var(--dp-muted); opacity: 1; }
+.dp-page .account-settings .clay-button.brutal-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+}
+.dp-page .account-settings .form-message { color: var(--dp-expense-ink); }
+
+/* ---- Kartu profil (share/kartu) ---- */
+.dp-page .share-card .share-id strong { color: var(--dp-text); }
+.dp-page .share-card .share-id small { color: var(--dp-muted); }
+.dp-page .share-card .share-stats li {
+  border: none;
+  background: var(--dp-elev);
+  border-radius: 12px;
+  color: var(--dp-muted);
+}
+.dp-page .card-button.dp-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+}
+.dp-page .card-button.dp-button.brutal-ghost {
+  background: var(--dp-elev);
+  color: var(--dp-text);
+}
+.dp-page .share-tier {
+  border: none;
+  border-radius: 999px;
+  padding: 2px 9px;
+  background: var(--dp-elev);
+  color: var(--dp-muted);
+  text-transform: capitalize;
+}
+.dp-page .share-tier.tier-rare { background: rgba(96, 165, 250, 0.14); color: var(--dp-rare); }
+.dp-page .share-tier.tier-epic { background: rgba(167, 139, 250, 0.16); color: var(--dp-epic); }
+.dp-page .share-tier.tier-legendary { background: var(--dp-accent); color: var(--dp-on-accent); font-weight: 800; }
+
+/* ---- Danger zone ---- */
+.dp-page .danger-zone.dp-danger {
+  background: rgba(255, 107, 107, 0.10);
+  border: none;
+  border-radius: var(--dp-radius);
+  box-shadow: none;
+}
+.dp-page .danger-zone.dp-danger strong { color: var(--dp-expense-ink); }
+.dp-page .danger-zone.dp-danger p { color: var(--dp-muted); }
+.dp-page .danger-button.dp-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-expense);
+  color: #fff;
+  box-shadow: none;
+  font-weight: 700;
+}
+
+/* DP7 — patch penentu (lawan pakai !important / compound lebih tinggi);
+   dibuang saat DP9 */
+.dp-page .profil-stack .share-card.dp-card {
+  background: var(--dp-card) !important;
+}
+.dp-page .danger-zone .danger-button.dp-button {
+  background: var(--dp-expense) !important;
+  color: #fff !important;
+}

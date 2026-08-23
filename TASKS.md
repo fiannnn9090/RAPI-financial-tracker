@@ -304,7 +304,29 @@ tab Analisis. Detail lengkap: `.github/copilot-instructions.md` →
       locked flat elev tanpa dashed + progress bar 6px fill abu; hover clay
       dinetralkan; verifikasi CDP kedua tema lolos (goal QA dibuat via UI lalu
       dihapus bersih via REST)
-- [ ] DP6 Polish visual tab Analisis (Recap/Skor/Saran/50-30-20/Simulasi)
-- [ ] DP7 Terapkan Profil (termasuk fitur ganti username & password)
+- [x] DP6 Polish visual tab Analisis (Recap/Skor/Saran/50-30-20/Simulasi) —
+      Gauge di-REWRITE (JSX): semicircle dipertahankan tapi 3 segmen keras +
+      jarum diganti track netral pill + arc nilai berwarna level skor
+      (<60 coral / 60-79 kuning / >=80 hijau) + dot ujung ber-inti kartu +
+      2 tick ambang di 60/80 (ambang riil lib/score.js, bukan 50/80);
+      chip level & delta pakai tint+ink semantik; breakdown bar flat;
+      slider: track 4px fill kuning via CSS var --fill dari state + thumb
+      kuning solid tanpa border; sim-chip win/hot tint; 50/30/20 bar flat
+      fill kuning seragam + status ok/warn/bad ink semantik; saran F1
+      severity baru: tinggi=coral tint .14 + expense-ink, sedang=kuning tint
+      .15 + gold-ink, ringan=elev+muted (mundur visual disengaja); item saran
+      flat radius 16; verifikasi CDP live dengan data asli ter-seed (skor 100
+      -> arc hijau) + injeksi utk tinggi/sedang, kedua tema
+- [x] DP7 Terapkan Profil (termasuk fitur ganti username & password) — avatar
+      kuning squircle radius 14; menu utama dp-card dengan row flat + tile ikon
+      elev + chevron muted; baris Danger pakai tint coral + expense-ink; logout
+      pill elev dengan ink coral; sub-header (back circle elev + aksi kuning
+      pill); semua kartu kelola (Pengaturan/Kategori/Rutin/Dompet/Data/Pengingat/
+      Akun/Kartu) dp-card; select & segmented Pengaturan pill elev/aksen;
+      input AccountSettings ala sheet (elev radius 14 + fokus ring kuning),
+      submit kuning; share-tier chip ikut tangga rarity DP5; danger-zone bg
+      tint coral + tombol solid #FF6B6B tinta putih; patch !important utk
+      lawan .brutal-share (blush !important); verifikasi CDP kedua tema lolos
+      (fokus ring terkonfirmasi setelah transisi 300ms — bukan bug)
 - [ ] DP8 Terapkan Auth (+ modal level-up)
 - [ ] DP9 Cleanup: hapus brutalist.css lama + audit kontras dark+light menyeluruh
