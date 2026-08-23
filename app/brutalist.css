@@ -4190,3 +4190,112 @@ html {
 .recurring-row button[aria-label^="Edit wallet"] {
   margin-right: 4px;
 }
+
+/* =========================================================
+   F5 — Tantangan hemat mingguan (Beranda, setelah recap)
+   ========================================================= */
+.challenge-section {
+  display: grid;
+  gap: 12px;
+}
+
+.challenge-card,
+.challenge-empty,
+.challenge-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.challenge-emoji {
+  font-size: 1.6rem;
+}
+
+.challenge-body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.challenge-body small {
+  color: var(--br-muted);
+}
+
+.challenge-body em {
+  font-style: normal;
+  font-size: var(--br-fs-caption);
+  color: var(--br-muted);
+}
+
+.challenge-bar {
+  margin-top: 4px;
+}
+
+.challenge-chip {
+  white-space: nowrap;
+  border: 2px solid var(--br-border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: var(--br-fs-caption);
+  background: var(--br-yellow);
+}
+
+.challenge-chip.muted {
+  background: transparent;
+  color: var(--br-muted);
+}
+
+.challenge-done .challenge-chip {
+  background: var(--br-green, #b8f2c9);
+}
+
+.challenge-failed .challenge-emoji {
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+.challenge-empty {
+  justify-content: space-between;
+}
+
+.challenge-empty p {
+  color: var(--br-muted);
+  font-size: var(--br-fs-caption);
+}
+
+.challenge-options {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.challenge-option {
+  width: 100%;
+  text-align: left;
+  border: 2px solid var(--br-border);
+  border-radius: 14px;
+  background: var(--br-surface);
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.challenge-option:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.challenge-option:not(:disabled):active {
+  transform: translate(1px, 1px);
+}
+
+.challenge-option div {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.challenge-option small {
+  color: var(--br-muted);
+}
