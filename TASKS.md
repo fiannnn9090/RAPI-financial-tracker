@@ -351,4 +351,134 @@ tab Analisis. Detail lengkap: `.github/copilot-instructions.md` →
       pesan validasi mismatch & terlalu-pendek tampil, string lama bersih dari
       bundle; smoke 4x PASS. Uji fungsional ganti password asli diserahkan ke
       user (sesi live).
-- [ ] DP9 Cleanup: hapus brutalist.css lama + audit kontras dark+light menyeluruh
+- [x] DP9 Cleanup: brutalist.css DIHAPUS + audit kontras WCAG dark+light.
+      Investigasi: 890 rule (6 keyframes) → 312 blok struktural (335 selektor)
+      dimigrasi VERBATIM ke premium.css sebagai seksi "STRUKTUR LEGASI"
+      (kerangka layout/spacing/animasi masih menopang class brutal-/clay- di
+      JSX; keyframes clay-sheet-up dll ikut), 457 rule dekoratif + 35 rule
+      mati dibuang. PELAJARAN: blok legasi awalnya ditempel di akhir file →
+      30 selektor ber-properti visual menimpa patch dp DP1–DP8 (chip alokasi
+      jadi putih-di-putih); diperbaiki dengan memindah legasi KE POSISI SETARA
+      file lama (sebelum semua seksi dp). Audit otomatis via CDP (teks vs bg
+      efektif, ambang 4.5 / 3.0 large-text) menemukan & memperbaiki: token
+      light --dp-muted #66666F, --dp-income-ink #087954, --dp-expense-ink
+      #B3382F (lolos di tint 12%), --dp-gold-ink #836200 (di atas krem modal),
+      rare/epic dipisah per tema (light #2563EB/#7C3AED, dark pastel
+      #93C5FD/#C4B5FD); warna legacy hardcoded dipetakan dual-scope (label
+      balance-card, greeting em, meta transaksi, levelup-xp pill krem → tinta
+      gelap di dark); tombol warisan tanpa dp diberi perlakuan (challenge
+      "Pilih tantangan" = pill aksen, data-actions = ghost elev, alloc-chip =
+      pill elev via .dp-page .alloc-chip); halaman Auth: kicker/welcome/
+      switch-form/privacy dinaikkan kontrasnya. Hasil akhir: 0 pelanggaran
+      live di 5 tab + sub-halaman Profil + sheet + LevelUpModal, kedua tema;
+      pasangan statis Auth ≥4.5; smoke score/simulate/advice/recommend PASS.
+
+---
+
+# Fase Pasca-Redesign — Roadmap
+
+Urutan pelaksanaan terkunci dari atas ke bawah; satu fase tuntas dulu baru
+lanjut ke bawah. Scope detail tiap fase didiskusikan saat gilirannya tiba.
+
+- [x] **DP9b — Bugfix & Konsistensi Visual** *(tuntas 2026-08-24)*:
+  - **#8 logic simulate (akar ditemukan & diperbaiki)**: `computeStats`
+    membagi `surplusAvg` dengan 3 bulan TETAP termasuk bulan kosong
+    (income=0 & expense=0 → surplus 0), sementara `avgIncome`/`monthlyExpense`
+    menyaring bulan kosong — ETA nabung pengguna baru terdilusi sampai 3×.
+    Fix: bulan tanpa aktivitas dikeluarkan dari `surplusList`/`buffer.surplus3m`
+    (bulan aktif tapi deficit tetap dihitung); smoke case 6 (sparse) ditambah,
+    4 smoke suite PASS semua. Gap smoke test = hanya kasus 3-bulan-stabil.
+  - **#2 chip alokasi overlap DEFAULT**: legacy `.category-row button{width:30px}`
+    (rule tombol hapus ×) menekan `.alloc-chip` jadi 30px → teks tumpah ke badge.
+    Fix: `.dp-page .category-row button.alloc-chip{width:auto}` + strong
+    margin-right:auto; em jadi pill elev tanpa border. Terverifikasi CDP.
+  - **#1 teks kepotong tepi kanan**: track grid/flex nowrap tak bisa menyusut
+    (`score-row minmax(96px,auto)`, label span nowrap, dsb) + font-scale besar.
+    Fix: track `minmax(0,…)`, label boleh wrap, nilai nowrap+flex:none;
+    overflow scan CDP beranda/transaksi = 0 elemen keluar viewport.
+  - **#3 toolbar Transaksi**: `.list-toolbar` kolom, filter kategori flex-wrap,
+    sort toggle tak lagi bertabrakan (right=186 < vw).
+  - **#4 FAB clearance**: padding-bottom dashboard = 144px (120 + safe-area).
+  - **#5 switch pengingat**: styling legacy-nya terbuang saat migrasi DP9
+    (terdeteksi "dead" padahal dipakai JSX) — dibangun ulang sebagai dp switch
+    (off: elev + knob gelap; on: aksen + knob putih geser 22px; ring halus
+    agar knob putih terlihat di track elev light).
+  - **#6 kartu pengingat** pakai token dp (bg #1C1C24 dark), form-message
+    coral di dark.
+  - **#7 segmen rentang PDF**: track elev pill border-0 + indikator aktif aksen
+    /on-accent.
+  - **#9 ChallengeSheet**: opsi bg elev radius 18 border-0, teks dp-text/muted —
+    terbaca di kedua tema (diverifikasi via replika DOM karena sheet tak bisa
+    dibuka saat tantangan live).
+  - **#10 ikon nav monokrom**: emoji tab diganti SVG stroke currentColor
+    (NAV_ICON_PATHS + NavIcon); warna ikut state tab.
+  - **#12 lilac sisa** → aksen (bar skor, level-chip/bar, chip "Bulan ini").
+  - **#13 maroon ad-hoc** → severity tint resmi (streak chip expense-tint +
+    ink resmi; idle = elev/muted).
+  - **#14 serif Playfair sisa** → DM Sans untuk semua heading area app
+    (auth intro brand tidak disentuh).
+  - **#15 border sisa** dihapus (disclaimer Analisis, alloc-status/tag,
+    advice-sev, score/streak/level chips).
+  - **#16 avatar** satu treatment: kuning squircle radius 14 (56px di kartu
+    profil), monospace bold, on-accent.
+  - **#11 sistem ikon konsisten (TUNTAS 2026-08-24)**: library `ICON_PATHS` +
+    komponen `Icon` di page.js (~30 ikon SVG stroke currentColor 1.9px).
+    Emoji fungsional → SVG: menu profil & sub-halaman (card/key/sliders/grid/
+    repeat/wallet/box/bell/alert/file), label pengaturan (exchange/type/globe/
+    moon), edit dompet (pencil), stat income/expense (arrowDown/arrowUp),
+    chip tantangan selesai (trophy), kartu insight (bulb), budget kosong
+    (sparkle), toggle saldo (eye/eyeOff), status impor (xCircle/checkCircle/
+    repeat/alert), tombol kembali sub-halaman (chevronLeft). Emoji KONTEN USER
+    tetap: kategori default & pilihan emoji, WALLET_EMOJIS, ikon tantangan,
+    fallback ✨/❓/📦, 🔥🏅 kartu share (paritas dengan render Canvas), ✦
+    ornamen auth. Status impor ikut tint severity resmi. Verifikasi CDP:
+    9/9 row-icon SVG, 4/4 setting icons, nav 5 SVG, 0 overflow.
+  - Build + deploy emulator sukses; verifikasi CDP per item ✓.
+- [x] **Revisi IA Beranda + Navigasi** *(tuntas penuh 2026-08-24)*:
+  - Recap Cerita pindah PENUH ke tab Analisis sebagai headline (section
+    pertama, sebelum advice/ScorePanel); Beranda bersih tanpa jejak recap.
+  - Tantangan Minggu Ini pindah PENUH ke tab Target tepat setelah
+    goal+badge (satu keluarga gamifikasi); ChallengeSheet terbuka dari Target.
+  - Urutan Beranda final: header+switcher → heading+CTA → BalanceCard →
+    StatCard×2 → insight (money check-in) → budget. ScoreCard & advice-teaser
+    dihapus dari Beranda (duplikat konten Analisis); komponen ScoreCard +
+    state adviceHigh ikut dibuang. CSS .score-card/.advice-teaser sengaja
+    disimpan untuk kemungkinan dipakai lagi.
+  - FAB "+" kembali ke kolom tengah geometris bar: grid
+    `1.5fr 1.5fr 64px 1fr 1fr 1fr` + slot + FAB absolute center terangkat
+    16px, skin pill aksen dp (geometri identik pra-DP9).
+  - Deep-link audit: goal-sim-link & back-handler tetap valid; tidak ada lagi
+    link menuju lokasi lama Recap/Tantangan dari Beranda.
+  - Auth mobile dikompak: tagline clamp ~22px satu-dua baris, intro padding
+    ringkas, panel min-height auto → form naik (form-top ±340px dari atas
+    layar, sebelumnya lebih dalam).
+  - Verifikasi CDP: urutan beranda ✓, analisis recap-first ✓, target
+    challenge-setelah-badge ✓, sheet buka ✓, toggle week/month ✓, FAB center
+    absolute ✓, overflow 0 ✓.
+  - **Heading Opsi A (tuntas)**: "Halo, {nama} 👋" saja — DM Sans 20px bold
+    1 baris (terukur 25px), em pertanyaan & subline dihapus dari markup;
+    `home.greeting` i18n kehilangan titik akhir; kicker RINGKASAN KEUANGAN
+    tetap; CTA "+" sejajar kanan. Verifikasi CDP live ✓.
+- [x] **Hutang Piutang & Cicilan** *(tuntas — F8)*: track dua arah
+      `receivable`/`payable` pada satu tabel `debts` (diskriminator `schedule`
+      flex|installment) + kolom nullable `transactions.debt_id`. Saldo tetap
+      murni kas; metrik baru **Kekayaan Bersih** = totalBalance global +
+      Σpiutang aktif − Σhutang aktif, tampil berdampingan di BalanceCard dan
+      jadi pintu masuk DebtsPage. Pembayaran (manual & auto catch-up) tercatat
+      sebagai transaksi biasa: saldo normal, XP hanya untuk bayar manual
+      (catch-up `xp_earned: 0`, konvensi N6b anti-farming). Cicilan reuse mesin
+      jadwal recurring dengan clamp angsuran terakhir; auto-lunas pindah baris
+      ke grup "Riwayat lunas". "Hapus sebagai rugi" (`written_off`) v1, hanya
+      receivable, tanpa transaksi penolong. Guard pra-migrasi `hasDebts`
+      menyembunyikan fitur bersih. Verifikasi CDP live end-to-end ✓ (matematika
+      net worth persis di 4 titik, XP +10/pembayaran manual, tempo maju
+      benar, clamp tepat, write-off tanpa transaksi, overflow scan 0 di 5
+      permukaan). Bug perjalanan: insert debts wajib `user_id` eksplisit (RLS);
+      `splitPrincipal` wajib diimpor di page.js (ReferenceError mematikan
+      renderer tanpa error boundary).
+- [ ] **Sistem Avatar + Misi**: avatar & misi terbuka via pencapaian;
+      TANPA mekanisme beli untuk sekarang.
+- [ ] **Leaderboard**: opt-in, pakai nickname bukan nama asli.
+- [ ] **Mode Tanpa-Login / Guest Mode** *(paling akhir — proyek arsitektur
+      besar)*: data guest tersimpan lokal + migrasi ke cloud saat login;
+      scope detail didiskusikan saat gilirannya tiba.

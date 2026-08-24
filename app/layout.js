@@ -1,5 +1,4 @@
 import './globals.css';
-import './brutalist.css';
 import './premium.css';
 
 export const metadata = {

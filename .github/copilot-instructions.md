@@ -160,7 +160,40 @@ Pola migrasi sama seperti transisi Claymorphism→Brutalist dulu: class `dp-*`
 DITAMBAHKAN berdampingan dengan brutalist.css terlebih dahulu, lalu rule brutalist
 dihapus di akhir (DP9) setelah semua layar terverifikasi di kedua tema.
 Begitu fase ini dimulai: JANGAN menambah rule brutalist/clay baru lagi — semua
-style baru masuk bahasa dark premium (`dp-*`). Status: DP1–DP8 selesai.
+style baru masuk bahasa dark premium (`dp-*`). brutalist.css DIHAPUS saat DP9:
+kerangka layout/spacing/animasinya kini hidup sebagai seksi "STRUKTUR LEGASI" di
+premium.css — diposkan SEBELUM seksi-seksi patch dp (urutan = cascade file lama;
+jangan pindah ke bawah atau patch dp akan ditimpa). Status: Fase Redesign 2 TUNTAS
+(DP1–DP9); audit kontras WCAG kedua tema bersih, token light/dark lihat blok token atas + catatan DP9 di TASKS.md.
+
+## Fase Pasca-Redesign — Roadmap (urutan terkunci)
+1. **DP9b — Bugfix & Konsistensi Visual** — TUNTAS PENUH 2026-08-24 (termasuk
+   #11 sistem ikon): 16 item review ditangani (lihat rincian TASKS.md). Yang
+   penting ingat:
+   - `computeStats` kini mengecualikan bulan kosong dari `surplusAvg`/`buffer`
+     (bulan aktif-deficit tetap dihitung); smoke case sparse ada di
+     `scripts/simulate.smoke.mjs`.
+   - `.category-row button.alloc-chip` punya width:auto sendiri — jangan biarkan
+     legacy `width:30px` menekannya lagi.
+   - **Ikon UI = library `ICON_PATHS` + komponen `<Icon name size>` di page.js**
+     (SVG stroke currentColor ~1.9px). Untuk ikon UI baru: tambah path ke
+     ICON_PATHS, JANGAN pakai emoji. Emoji hanya untuk konten user (kategori,
+     dompet, tantangan, badge) dan ornamen kartu share/auth.
+2. Revisi IA Beranda + Navigasi — TUNTAS PENUH 2026-08-24: Recap → headline
+   tab Analisis; Tantangan → tab Target setelah goal/badge; Beranda = heading
+   ringkas "Halo, {nama} 👋" (DM Sans 20px, tanpa subline/pertanyaan) + CTA,
+   Balance, Stat×2, insight, budget (ScoreCard & advice-teaser dibuang —
+   komponen ScoreCard sudah dihapus, CSS .score-card/.advice-teaser
+   dipertahankan); FAB tengah geometris (grid `1.5fr 1.5fr 64px 1fr 1fr 1fr`,
+   slot + FAB absolute); Auth mobile dikompak via blok media ≤770px di ekor
+   premium.css.
+3. Hutang Piutang & Cicilan (TUNTAS — F8; lihat catatan di bawah)
+4. Sistem Avatar + Misi (unlock via pencapaian; tanpa mekanisme beli)
+5. Leaderboard (opt-in; nickname bukan nama asli)
+6. Mode Tanpa-Login / Guest Mode (paling akhir; proyek arsitektur besar:
+   guest data lokal + migrasi ke cloud saat login; scope diskusi nanti)
+
+Jangan mulai fase berikutnya sebelum fase berjalan tuntas; rinci scope saat gilirannya tiba.
 
 ## Konvensi kode yang sudah ada (pertahankan gayanya)
 - Komponen fungsi di `app/page.js`, memakai `'use client'` di baris pertama file
@@ -168,6 +201,8 @@ style baru masuk bahasa dark premium (`dp-*`). Status: DP1–DP8 selesai.
   `streak.js` (daily streak), `badges.js` (evaluasi badge + progress),
   `profileCard.js` (kartu shareable via Canvas API, tanpa dependency tambahan),
   `recurring.js` (jadwal & catch-up transaksi berulang, fungsi murni — cap 6 per aturan),
+  `debts.js` (F8 hutang/piutang: jadwal cicilan reuse pola recurring dengan clamp
+  angsuran terakhir, netWorth = totalBalance global + Σpiutang − Σhutang, fungsi murni),
   `reminders.js` (wrapper @capacitor/local-notifications, no-op aman di web)
 - Formatter: `rupiah` (Intl.NumberFormat IDR) dan `dateFormatter` (Intl.DateTimeFormat id-ID)
   sudah didefinisikan di scope module — pakai ulang, jangan bikin formatter baru
@@ -190,6 +225,11 @@ style baru masuk bahasa dark premium (`dp-*`). Status: DP1–DP8 selesai.
   dummy) — JANGAN simpan password mentah di tabel sendiri seperti versi localStorage lama
 - Selain `sql/schema.sql`, ada `sql/badge_seed.sql` yang WAJIB dijalankan manual di
   Supabase — `user_badges` tidak bisa di-insert sebelum `badge_defs` terisi (FK)
+- Migrasi F8 (`sql/f8_debts.sql`) menambah tabel `debts` + kolom nullable
+  `transactions.debt_id`; insert baris `debts` WAJIB menyertakan `user_id` eksplisit
+  (kegagalan = 403 RLS "new row violates row-level security policy")
+- Fitur yang butuh migrasi baru dijaga guard data (mis. `hasDebts` dari probe
+  `loadData`) supaya build lama/pra-migrasi tetap aman tanpa crash
 
 ## Desain — Claymorphism (legacy; digantikan mulai N1)
 - Warna cerah, saturasi tinggi, background soft/pastel base

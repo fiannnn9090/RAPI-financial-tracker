@@ -91,5 +91,19 @@ console.log('5) data tipis & tanpa riwayat income');
   check('tanpa income bulan penuh → thin', [noInc.enoughData, noInc.reason], [false, 'thin']);
 }
 
+console.log('6) riwayat sparse: bulan kosong tidak mendilusi surplusAvg (bug DP9b #8)');
+{
+  const sparseTx = [
+    ...stableMonth('2026', '07'),
+    { date: '2026-08-01', type: 'income', amount: 4000000, category: 'Gaji' },
+    { date: '2026-08-02', type: 'expense', amount: 100000, category: 'Makan' },
+    { date: '2026-08-03', type: 'expense', amount: 50000, category: 'Transport' },
+  ];
+  /* Mei & Juni kosong; hanya Juli aktif (+500rb). Pembagi lama = 3 → 167rb. */
+  const sim = buildSimulation({ transactions: sparseTx, totalBalance: 1000000, goal: { name: 'PS5', amount: 4000000 }, extraMonthly: 0, today: TODAY });
+  check('surplusAvg tak terdilusi 500rb', sim.surplusAvg, 500000);
+  check('baselineMonths 3jt/500rb=6 (bukan 18)', sim.baselineMonths, 6);
+}
+
 console.log(failures ? `\n${failures} CEK GAGAL` : '\nSEMUA PASS');
 process.exit(failures ? 1 : 0);
