@@ -4230,3 +4230,136 @@
   .debts-overview { gap: 8px; }
   .debt-row { padding: 13px; }
 }
+
+/* ===== F9 — Avatar & Misi Border (Dark Premium) ===== */
+/* Frame avatar: ring = padding + background pada frame; isi = lingkaran dalam.
+   Tanpa hard shadow brutalist — glow lembut per tier, progresif Perunggu→Platinum. */
+.avatar-frame {
+  --av-size: 96px;
+  position: relative;
+  display: inline-flex;
+  width: var(--av-size);
+  height: var(--av-size);
+  flex: 0 0 auto;
+  border-radius: 50%;
+  padding: calc(var(--av-size) * 0.045 + 1px);
+  background: color-mix(in srgb, var(--dp-line, #2a3140) 70%, transparent);
+}
+.avatar-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--dp-panel-2, #171d28);
+}
+.avatar-inner svg { width: 100%; height: 100%; display: block; }
+.avatar-fallback {
+  font-weight: 700;
+  font-size: calc(var(--av-size) * 0.42);
+  color: var(--dp-dim, #8b93a5);
+}
+.avatar-frame.tier-bronze {
+  background: #b08d57;
+  box-shadow: 0 0 12px rgba(176, 141, 87, 0.35);
+}
+.avatar-frame.tier-silver {
+  background: linear-gradient(145deg, #edeff3, #9aa0ac);
+  box-shadow: 0 0 12px rgba(200, 206, 218, 0.4);
+}
+.avatar-frame.tier-gold {
+  background: linear-gradient(145deg, #f6d572, #c08a2d);
+  box-shadow: 0 0 16px rgba(246, 213, 114, 0.45);
+}
+/* Platinum: ring "hidup" — conic gradient berputar lambat di belakang isi */
+.avatar-frame.tier-platinum { box-shadow: 0 0 20px rgba(214, 226, 240, 0.5); }
+.avatar-frame.tier-platinum::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(#f4f7fa, #8e99a8, #e7edf4, #93a0b4, #f4f7fa);
+  animation: f9-spin 8s linear infinite;
+}
+.avatar-frame.tier-platinum .avatar-inner { position: relative; z-index: 1; }
+@keyframes f9-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .avatar-frame.tier-platinum::before { animation: none; }
+}
+
+/* Avatar kecil di header Beranda (tap → halaman avatar) */
+.home-avatar {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  line-height: 0;
+  border-radius: 50%;
+}
+.dashboard-heading { gap: 12px; }
+.dashboard-heading > div:first-of-type { flex: 1; min-width: 0; }
+
+/* Halaman Avatar & Misi (sub-halaman Profil) */
+.avatar-page { display: grid; gap: 14px; }
+.avatar-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+}
+.avatar-hero strong { display: block; font-size: 1.05rem; }
+.avatar-hero small { color: var(--dp-dim, #8b93a5); }
+.avatar-pick { padding: 16px; }
+.pick-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.pick-shuffle { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; font-size: 0.75rem; }
+.pick-shuffle svg { width: 15px; height: 15px; }
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  justify-items: center;
+}
+.avatar-choice {
+  padding: 3px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.avatar-choice:hover { transform: scale(1.05); }
+.avatar-choice.active { border-color: var(--dp-accent, #c9f24b); }
+.pick-hint { margin-top: 10px; font-size: 0.78rem; color: var(--dp-dim, #8b93a5); }
+.avatar-missions { padding: 16px; }
+.mission-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 12px; }
+.mission-row { display: flex; gap: 12px; opacity: 0.62; }
+.mission-row.done { opacity: 1; }
+.mission-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 2px solid var(--dp-line, #2a3140);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.mission-dot.tier-bronze { border-color: #b08d57; }
+.mission-dot.tier-silver { border-color: #b9bfcb; }
+.mission-dot.tier-gold { border-color: #e3b64f; }
+.mission-dot.tier-platinum { border-color: #dfe7f0; }
+.mission-row.done .mission-dot.tier-bronze { background: #b08d57; color: #1c1608; }
+.mission-row.done .mission-dot.tier-silver { background: #ccd2dc; color: #191d26; }
+.mission-row.done .mission-dot.tier-gold { background: linear-gradient(145deg, #f6d572, #c08a2d); color: #241a04; }
+.mission-row.done .mission-dot.tier-platinum { background: conic-gradient(#f4f7fa, #8e99a8, #f4f7fa); color: #10141c; }
+.mission-row strong { display: block; font-size: 0.86rem; }
+.mission-row small { color: var(--dp-dim, #8b93a5); font-size: 0.76rem; }
+.mission-checklist { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; }
+.mission-checklist li { font-size: 0.74rem; color: var(--dp-dim, #8b93a5); }
+.mission-checklist li::before { content: '○ '; }
+.mission-checklist li.ok { color: var(--dp-accent, #c9f24b); }
+.mission-checklist li.ok::before { content: '● '; }

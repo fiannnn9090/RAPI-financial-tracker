@@ -23,6 +23,7 @@ import {
   splitPrincipal,
   totalsByDirection,
 } from '../lib/debts';
+import { MISSIONS as AVATAR_MISSIONS, avatarSvg, borderRank, evaluateMissions, highestTier, seedsBatch } from '../lib/avatar';
 import { buildRecap } from '../lib/recap';
 import { buildAdvice } from '../lib/advice';
 import { buildScore, previousMonthEnd } from '../lib/score';
@@ -42,7 +43,7 @@ function dateFmt() {
 }
 const today = new Date().toISOString().slice(0, 10);
 
-const initialData = { users: [], transactions: {}, goals: {}, achievements: {}, budgets: {}, badges: {}, badgeDefs: [], categories: {}, recurrings: {}, wallets: {}, challenges: {}, debts: {}, hasWallets: false, hasDebts: false, activeUserId: null };
+const initialData = { users: [], transactions: {}, goals: {}, achievements: {}, budgets: {}, badges: {}, badgeDefs: [], categories: {}, recurrings: {}, wallets: {}, challenges: {}, debts: {}, missions: {}, featureUsage: {}, hasWallets: false, hasDebts: false, hasAvatar: false, activeUserId: null };
 /* Seed kategori default (is_default) — dipakai saat user belum punya baris di tabel categories.
    Lainnya bertipe 'both' supaya muncul di dropdown pemasukan & pengeluaran. */
 const DEFAULT_CATEGORIES = [
@@ -124,6 +125,7 @@ const WALLET_EMOJIS = ['👛', '🏦', '💳', '🪙', '💸', '📱', '🧧', '
 /* Restrukturisasi Profil: baris menu utama (sub-halaman pengingat kondisional & danger ditangani terpisah di JSX) */
 const PROFILE_MENU_ROWS = [
   ['kartu', 'card', 'prof.menu.kartu'],
+  ['avatar', 'sparkle', 'prof.menu.avatar'],
   ['akun', 'key', 'prof.menu.akun'],
   ['pengaturan', 'sliders', 'prof.menu.pengaturan'],
   ['kategori', 'grid', 'cat.title'],
@@ -165,7 +167,7 @@ function debtPatchPayload(patch) {
 }
 
 async function loadData(userId) {
-  const [probe, trx, goal, ach, bud, defs, owned, cats, recs, wallets, chl, debtRows] = await Promise.all([
+  const [probe, trx, goal, ach, bud, defs, owned, cats, recs, wallets, chl, debtRows, avProbe, missionRows, usageRows] = await Promise.all([
     /* F4 probe kolom wallet_id (pra-migrasi → error → hasWallets false). Head-only:
        limit(1) tanpa konsumsi data, cukup untuk tahu keberadaan kolom. */
     supabase.from('transactions').select('wallet_id').eq('user_id', userId).limit(1),
@@ -182,9 +184,14 @@ async function loadData(userId) {
     supabase.from('challenges').select('*').eq('user_id', userId),
     /* F8 — pra-migrasi tabel debts → error → hasDebts false (fitur off). */
     supabase.from('debts').select('*').eq('user_id', userId).order('created_at'),
+    /* F9 — pra-migrasi user_missions → error → hasAvatar false (fitur off). */
+    supabase.from('user_missions').select('code').eq('user_id', userId).limit(1),
+    supabase.from('user_missions').select('code,unlocked_at').eq('user_id', userId).order('unlocked_at'),
+    supabase.from('feature_usage').select('feature').eq('user_id', userId),
   ]);
   const hasWallets = !probe.error;
   const hasDebts = !debtRows.error;
+  const hasAvatar = !avProbe.error;
   return {
     transactions: (trx.data ?? []).map(mapTransaction),
     goal: goal.data ? { name: goal.data.name, amount: Number(goal.data.amount) } : null,
@@ -199,6 +206,9 @@ async function loadData(userId) {
     challenges: (chl.data ?? []).map((row) => ({ id: row.id, code: row.code, weekStart: row.week_start, status: row.status, completedAt: row.completed_at })),
     hasDebts,
     debts: hasDebts ? (debtRows.data ?? []).map(mapDebt) : [],
+    hasAvatar,
+    missions: hasAvatar ? (missionRows.data ?? []).map((row) => row.code) : [],
+    featureUsage: hasAvatar ? (usageRows.data ?? []).map((row) => row.feature) : [],
   };
 }
 
@@ -353,7 +363,7 @@ export default function Home() {
       const reminderHour = Number(window.localStorage.getItem('rapi.reminder.hour')) || 20;
       await syncReminders({ enabled: true, hour: reminderHour, recurrings, lang });
     }
-    const account = { id: authUser.id, username: profile.username, authEmail: profile.auth_email ?? null, xp: profile.xp ?? 0, level: profile.level ?? 1, streakCurrent: profile.streak_current ?? 0, streakLongest: profile.streak_longest ?? 0 };
+    const account = { id: authUser.id, username: profile.username, authEmail: profile.auth_email ?? null, xp: profile.xp ?? 0, level: profile.level ?? 1, streakCurrent: profile.streak_current ?? 0, streakLongest: profile.streak_longest ?? 0, avatarSeed: profile.avatar_seed ?? null, avatarBorder: profile.avatar_border ?? 'none' };
     setData((current) => ({
       ...current,
       users: current.users.some((user) => user.id === authUser.id)
@@ -370,8 +380,11 @@ export default function Home() {
       wallets: { ...current.wallets, [authUser.id]: wallets },
       challenges: { ...current.challenges, [authUser.id]: snapshot.challenges },
       debts: { ...current.debts, [authUser.id]: debts },
+      missions: { ...current.missions, [authUser.id]: snapshot.missions },
+      featureUsage: { ...current.featureUsage, [authUser.id]: snapshot.featureUsage },
       hasWallets: snapshot.hasWallets,
       hasDebts: snapshot.hasDebts,
+      hasAvatar: snapshot.hasAvatar,
       activeUserId: authUser.id,
     }));
     setReady(true);
@@ -656,6 +669,18 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
   const hasDebts = Boolean(data.hasDebts);
   const debtTotals = useMemo(() => totalsByDirection(debts), [debts]);
   const netWorthValue = useMemo(() => netWorth(totalBalance, debts), [totalBalance, debts]);
+  /* F9 — avatar & misi border: evaluasi murni tiap render (pola badge);
+     tier tampilan = gabungan misi tercatat (persist) + terbuka live, agar
+     streak patah tidak menurunkan border yang sudah diraih. */
+  const hasAvatarSupport = Boolean(data.hasAvatar);
+  const usedFeatures = data.featureUsage?.[user.id] ?? [];
+  const ownedMissions = data.missions?.[user.id] ?? [];
+  const missionViews = useMemo(() => evaluateMissions({ avatarSeed: user.avatarSeed ?? null, streakCurrent: user.streakCurrent ?? 0, level: user.level ?? 1, usage: usedFeatures }), [user.avatarSeed, user.streakCurrent, user.level, usedFeatures]);
+  const activeBorder = useMemo(() => highestTier([...ownedMissions, ...missionViews.filter((mission) => mission.unlocked).map((mission) => mission.code)]), [ownedMissions, missionViews]);
+  const patchAccount = (fields) => setData((current) => ({
+    ...current,
+    users: current.users.map((item) => (item.id === user.id ? { ...item, ...fields } : item)),
+  }));
   const goal = data.goals?.[user.id] ?? null;
   const achievements = data.achievements?.[user.id] ?? [];
   /* Goal GLOBAL: progres dari saldo gabungan semua dompet, bukan lensa aktif */
@@ -734,6 +759,26 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
       setData((current) => ({ ...current, badges: { ...current.badges, [user.id]: [...(current.badges[user.id] ?? []), ...fresh.map((badge) => badge.code)] } }));
     });
   }, [badgeViews]);
+
+  /* F9 — persist misi baru: catat user_missions + naikkan avatar_border bila
+     tier lebih tinggi; toast perayaan sekali per batch unlock (pola badge). */
+  useEffect(() => {
+    if (!hasAvatarSupport) return;
+    const fresh = missionViews.filter((mission) => mission.unlocked && !ownedMissions.includes(mission.code));
+    if (!fresh.length) return;
+    const codes = fresh.map((mission) => mission.code);
+    const nextTier = highestTier([...ownedMissions, ...codes]);
+    patchAccount({ avatarBorder: nextTier });
+    setToast(t(`av.toast.${nextTier}`));
+    supabase.from('user_missions').insert(codes.map((code) => ({ user_id: user.id, code }))).then(({ error }) => {
+      if (error) { console.warn('F9 mission persist', error.message); return; }
+      setData((current) => ({ ...current, missions: { ...current.missions, [user.id]: [...new Set([...(current.missions?.[user.id] ?? []), ...codes])] } }));
+    });
+    if (borderRank(nextTier) > borderRank(user.avatarBorder ?? 'none')) {
+      supabase.from('profiles').update({ avatar_border: nextTier }).eq('id', user.id).then(() => {}, () => {});
+    }
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [missionViews]);
 
   /* F5 — reward tantangan: XP bonus + status completed (sekali). Persist xp ke
      profiles di sini dan di addTransaction — sebelumnya xp hanya state lokal. */
@@ -858,6 +903,7 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
     const payload = debtPayload({ ...form, remaining: form.principal });
     const { data: inserted, error } = await supabase.from('debts').insert({ ...payload, user_id: user.id }).select().single();
     if (error || !inserted) return false;
+    markFeatureUsed('debts');
     setData((current) => ({ ...current, debts: { ...current.debts, [user.id]: [...(current.debts[user.id] ?? []), mapDebt(inserted)] } }));
     setToast(t('debts.toastSaved'));
     return true;
@@ -1013,10 +1059,25 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
       await downloadProfileCard();
     }
   }
+  /* F9 — flag "pernah pakai fitur": optimistic di memori + upsert best-effort.
+     Sengaja event-based (bukan derivasi data) agar kredit bertahan walau
+     goal/debt kemudian dihapus. */
+  function markFeatureUsed(feature) {
+    if (!hasAvatarSupport) return;
+    if (usedFeatures.includes(feature)) return;
+    setData((current) => ({ ...current, featureUsage: { ...current.featureUsage, [user.id]: [...(current.featureUsage?.[user.id] ?? []), feature] } }));
+    supabase.from('feature_usage').upsert({ user_id: user.id, feature }, { onConflict: 'user_id,feature', ignoreDuplicates: true }).then(() => {}, () => {});
+  }
+  async function saveAvatarSeed(seed) {
+    patchAccount({ avatarSeed: seed });
+    const { error } = await supabase.from('profiles').update({ avatar_seed: seed }).eq('id', user.id);
+    if (!error) setToast(t('av.toastSaved'));
+  }
   async function saveGoal(name, amount) {
     const existing = await supabase.from('goals').select('id').eq('user_id', user.id).eq('is_active', true).maybeSingle();
     if (existing.data) await supabase.from('goals').update({ name: name.trim(), amount }).eq('id', existing.data.id);
     else await supabase.from('goals').insert({ user_id: user.id, name: name.trim(), amount });
+    markFeatureUsed('goal');
     setData((current) => ({ ...current, goals: { ...current.goals, [user.id]: { name: name.trim(), amount } } }));
     return true;
   }
@@ -1184,6 +1245,7 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
   function ProfileSubPage({ view, onBack }) {
     const meta = {
       kartu: ['card', 'prof.menu.kartu'],
+      avatar: ['sparkle', 'prof.menu.avatar'],
       akun: ['key', 'prof.menu.akun'],
       pengaturan: ['sliders', 'prof.menu.pengaturan'],
       kategori: ['grid', 'cat.title'],
@@ -1201,6 +1263,7 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
         <h2>{t(meta[1])}</h2>
         {addAction && <button type="button" className="clay-button brutal-button sub-action dp-button" onClick={addAction}>{view === 'kategori' ? t('cat.add') : view === 'dompet' ? t('wallet.add') : t('recM.add')}</button>}
       </header>
+      {view === 'avatar' && <AvatarSection user={user} missionViews={missionViews} ownedMissions={ownedMissions} usedFeatures={usedFeatures} onSaveSeed={saveAvatarSeed} />}
       {view === 'kartu' && <article className="share-card clay-card brutal-card brutal-share dp-card"><p className="kicker">{t('share.kicker')}</p><div className="share-id"><span className="avatar big" aria-hidden="true">{user.username.slice(0, 1).toUpperCase()}</span><div><strong>{user.username}</strong><small>{t('prof.lvTitle', { lvl: profInfo.level, title: titleForLevel(user.level ?? 1, lang) })}</small></div><b className={`share-tier tier-${topCardTier}`}>{topCardTier}</b></div><ul className="share-stats"><li>🔥<span>{t('pc.statsStreak', { n: user.streakCurrent ?? 0 })}</span></li><li>🏅<span>{t('pc.statsBadge', { a: unlockedBadges, b: badgeViews.length })}</span></li></ul><p className="share-note">{t('share.note')}</p><div className="card-actions"><button className="card-button clay-button brutal-button dp-button" onClick={downloadProfileCard}>{t('share.download')}</button>{canShareCard && <button className="card-button ghost-button clay-button brutal-button brutal-ghost dp-button" onClick={shareProfileCard}>{t('share.shareBtn')}</button>}</div></article>}
       {view === 'pengaturan' && <article className="brutal-card settings-card dp-card">
         <div className="setting-row" role="group" aria-label={t('settings.currency')}>
@@ -1230,7 +1293,7 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
           <p className="setting-label"><span className="row-icon" aria-hidden="true"><Icon name="moon" size={18} /></span>{t('settings.theme')}</p>
           <div className="setting-seg">
             {[['system', 'theme.system'], ['light', 'theme.light'], ['dark', 'theme.dark']].map(([value, key]) => (
-              <button key={value} type="button" className={theme === value ? 'active' : ''} aria-pressed={theme === value} onClick={() => onChangeTheme(value)}>{t(key)}</button>
+              <button key={value} type="button" className={theme === value ? 'active' : ''} aria-pressed={theme === value} onClick={() => { markFeatureUsed('theme'); onChangeTheme(value); }}>{t(key)}</button>
             ))}
           </div>
         </div>
@@ -1286,7 +1349,7 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
         {reminderMsg && <p className="form-message">{reminderMsg}</p>}
       </article>}
       {view === 'akun' && <article className="brutal-card recurring-manage-card dp-card">
-        <AccountSettings user={user} notify={setToast} onRenamed={renameAccount} />
+        <AccountSettings user={user} notify={setToast} onRenamed={renameAccount} onFeatureUsed={markFeatureUsed} />
       </article>}
       {view === 'danger' && <section className="danger-zone clay-danger brutal-danger dp-danger"><div><strong>{t('danger.title')}</strong><p>{t('danger.desc')}</p></div><button className="danger-button clay-button brutal-button brutal-danger-btn dp-button" onClick={deleteAccount}>{t('danger.title')}</button></section>}
     </div>;
@@ -1299,6 +1362,9 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
       <header className="mobile-header"><a className="brand dark brutal-brand" href="#dashboard"><span>r</span> rapi</a></header>
       {hasWallets && wallets.length > 1 && <WalletSwitcher wallets={wallets} active={activeWalletKey} onChange={changeActiveWallet} />}
       <section className="dashboard-heading clay-heading brutal-heading dp-heading">
+        {hasAvatarSupport && <button type="button" className="home-avatar" aria-label={t('av.openAria')} onClick={() => { setTab('profil'); setProfileView('avatar'); window.scrollTo(0, 0); }}>
+          <AvatarFrame seed={user.avatarSeed} username={user.username} size={40} tier={activeBorder} />
+        </button>}
         <div><p className="kicker">{t('home.kicker')}</p><h1>{t('home.greeting', { name: user.username })} <span aria-hidden="true">👋</span></h1></div>
         <button className="clay-button brutal-button dp-button" onClick={() => setShowForm(true)}><span>+</span> {t('btn.addTx')}</button>
       </section>
@@ -1326,7 +1392,7 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
         <article className="brutal-card advice-page">
           <p className="advice-sub">{t('adv.sub')}</p>
           {health.now.score != null && <ScorePanel health={health} />}
-          <SimulationPanel sim={simulation} extra={extraMonthly} onExtra={setExtraMonthly} money={money} lang={lang} goalName={goal?.name ?? null} multiWallet={hasWallets && wallets.length > 1} todayStr={today} />
+          <SimulationPanel sim={simulation} extra={extraMonthly} onExtra={(value) => { if (value > 0) markFeatureUsed('simulate'); setExtraMonthly(value); }} money={money} lang={lang} goalName={goal?.name ?? null} multiWallet={hasWallets && wallets.length > 1} todayStr={today} />
           {reco.enoughData ? <AllocSection reco={reco} money={money} /> : <div className="advice-empty"><strong>{t('alloc.empty.title')}</strong><p>{t('alloc.empty.msg')}</p></div>}
           {!advice.items.length ? <div className="advice-empty"><strong>{t('adv.empty.title')}</strong><p>{t('adv.empty.msg')}</p></div> : <>
             {(() => {
@@ -1408,7 +1474,7 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
       {tab === 'profil' && (profileView ? <ProfileSubPage view={profileView} onBack={() => setProfileView(null)} /> : <section className="profil-stack">
       <div className="profile-head"><span className="avatar big">{user.username.slice(0, 1).toUpperCase()}</span><div><strong>{user.username}</strong><small>{t('prof.lvTitle', { lvl: profInfo.level, title: titleForLevel(user.level ?? 1, lang) })}</small></div></div>
       <nav className="profile-menu brutal-card dp-card" aria-label={t('prof.menu.aria')}>
-        {PROFILE_MENU_ROWS.map(([id, icon, labelKey]) => <button key={id} type="button" className="profile-menu-row dp-item" onClick={() => setProfileView(id)}><span className="row-icon" aria-hidden="true"><Icon name={icon} size={20} /></span><span className="row-label">{t(labelKey)}</span><span className="row-chevron" aria-hidden="true">›</span></button>)}
+        {PROFILE_MENU_ROWS.filter(([id]) => id !== 'avatar' || hasAvatarSupport).map(([id, icon, labelKey]) => <button key={id} type="button" className="profile-menu-row dp-item" onClick={() => setProfileView(id)}><span className="row-icon" aria-hidden="true"><Icon name={icon} size={20} /></span><span className="row-label">{t(labelKey)}</span><span className="row-chevron" aria-hidden="true">›</span></button>)}
         {showReminderCard && <button type="button" className="profile-menu-row dp-item" onClick={() => setProfileView('pengingat')}><span className="row-icon" aria-hidden="true"><Icon name="bell" size={20} /></span><span className="row-label">{t('rem.title')}</span><span className="row-chevron" aria-hidden="true">›</span></button>}
         <button type="button" className="profile-menu-row danger dp-item" onClick={() => setProfileView('danger')}><span className="row-icon" aria-hidden="true"><Icon name="alert" size={20} /></span><span className="row-label">{t('danger.title')}</span><span className="row-chevron" aria-hidden="true">›</span></button>
       </nav>
@@ -1958,13 +2024,76 @@ function SimulationPanel({ sim, extra, onExtra, money, lang, goalName, multiWall
   </section>;
 }
 
+/* F9 — avatar DiceBear offline + frame border tier.
+   SVG di-generate dari seed (deterministik); tanpa seed → fallback inisial
+   huruf (perilaku lama). Border tier murni CSS via class tier-*. */
+function AvatarFrame({ seed, username, size = 96, tier = 'none' }) {
+  const svg = useMemo(() => (seed ? avatarSvg(seed, size * 2) : null), [seed, size]);
+  return <span className={`avatar-frame tier-${tier}`} style={{ '--av-size': `${size}px` }}>
+    {svg
+      ? <span className="avatar-inner" aria-hidden="true" dangerouslySetInnerHTML={{ __html: svg }} />
+      : <span className="avatar-inner avatar-fallback">{(username ?? '?').slice(0, 1).toUpperCase()}</span>}
+  </span>;
+}
+
+/* F9 — halaman Avatar & Misi: pilih avatar (grid 12 varian deterministik +
+   acak lagi) dan pantau progres misi border Perunggu→Platinum. */
+function AvatarSection({ user, missionViews, ownedMissions, usedFeatures, onSaveSeed }) {
+  const [batch, setBatch] = useState(0);
+  const seeds = useMemo(() => seedsBatch(user.username, batch), [user.username, batch]);
+  const owned = new Set(ownedMissions);
+  return <section className="avatar-page">
+    <article className="brutal-card dp-card avatar-hero">
+      <AvatarFrame seed={user.avatarSeed} username={user.username} size={96} tier={highestTier([...ownedMissions, ...missionViews.filter((mission) => mission.unlocked).map((mission) => mission.code)])} />
+      <div><strong>{user.username}</strong><small>{t('av.activeTier', { tier: t(`av.tier.${owned.has('platinum_explore') ? 'platinum' : owned.has('gold_level5') ? 'gold' : owned.has('silver_streak') ? 'silver' : owned.has('bronze_profile') ? 'bronze' : 'none'}`) })}</small></div>
+    </article>
+    <article className="brutal-card dp-card avatar-pick">
+      <div className="pick-head"><p className="kicker">{t('av.pickKicker')}</p><button type="button" className="clay-button brutal-button brutal-ghost dp-button pick-shuffle" onClick={() => setBatch((value) => value + 1)}><Icon name="repeat" size={16} /> {t('av.shuffle')}</button></div>
+      <div className="avatar-grid" role="radiogroup" aria-label={t('av.pickAria')}>
+        {seeds.map((seed) => (
+          <button key={seed} type="button" role="radio" aria-checked={seed === user.avatarSeed} className={`avatar-choice${seed === user.avatarSeed ? ' active' : ''}`} onClick={() => onSaveSeed(seed)}>
+            <AvatarFrame seed={seed} username={user.username} size={64} tier="none" />
+          </button>
+        ))}
+      </div>
+      {!user.avatarSeed && <p className="pick-hint">{t('av.pickHint')}</p>}
+    </article>
+    <article className="brutal-card dp-card avatar-missions">
+      <p className="kicker">{t('av.missionTitle')}</p>
+      <ul className="mission-list">
+        {AVATAR_MISSIONS.map((mission) => {
+          const view = missionViews.find((item) => item.code === mission.code);
+          const done = owned.has(mission.code);
+          return (
+            <li key={mission.code} className={`mission-row ${done || view?.unlocked ? 'done' : ''}`}>
+              <span className={`mission-dot tier-${mission.tier}`} aria-hidden="true">{done || view?.unlocked ? '✓' : ''}</span>
+              <div>
+                <strong>{t(`av.m.${mission.tier}.title`)}</strong>
+                <small>{t(`av.m.${mission.tier}.desc`)}</small>
+                {mission.code === 'platinum_explore' && !done && !view?.unlocked && (
+                  <ul className="mission-checklist">
+                    {[['simulate', 'simulate'], ['goal', 'goal'], ['debts', 'debts'], ['theme', 'theme']].map(([feature, key]) => (
+                      <li key={feature} className={usedFeatures.includes(feature) ? 'ok' : ''}>{t(`av.check.${key}`)}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </article>
+  </section>;
+}
+
+
 /* F7 — kelola akun dari Pengaturan: ganti username & password.
    Username = identitas tampilan (profiles.username, unik case-insensitive
    saat dicek); login tetap memakai profiles.auth_email yang stabil, karena
    GoTrue menolak updateUser ke email @rapi.local (sql/f7_account.sql).
    Password diverifikasi ulang lewat signInWithPassword; hash-nya sepenuhnya
    dikelola Supabase Auth. */
-function AccountSettings({ user, notify, onRenamed }) {
+function AccountSettings({ user, notify, onRenamed, onFeatureUsed }) {
   const [name, setName] = useState('');
   const [newPass, setNewPass] = useState('');
   const [again, setAgain] = useState('');
@@ -1989,6 +2118,7 @@ function AccountSettings({ user, notify, onRenamed }) {
       const { error: profileError } = await supabase.from('profiles').update({ username: clean }).eq('id', user.id);
       if (profileError) return setNameMsg(t('acct.fail', { msg: profileError.message }));
       onRenamed(clean);
+      onFeatureUsed?.('username_changed');
       setName('');
       notify(t('acct.nameDone'));
     } finally {

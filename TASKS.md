@@ -476,8 +476,22 @@ lanjut ke bawah. Scope detail tiap fase didiskusikan saat gilirannya tiba.
       permukaan). Bug perjalanan: insert debts wajib `user_id` eksplisit (RLS);
       `splitPrincipal` wajib diimpor di page.js (ReferenceError mematikan
       renderer tanpa error boundary).
-- [ ] **Sistem Avatar + Misi**: avatar & misi terbuka via pencapaian;
-      TANPA mekanisme beli untuk sekarang.
+- [x] **Sistem Avatar + Misi** *(tuntas — F9)*: avatar DiceBear **offline** via
+      paket npm `@dicebear/core`+`@dicebear/collection` (SVG deterministik dari
+      seed — tanpa network/API, aman offline). Pemilih: grid 12 varian
+      deterministik per (username,batch) + "Acak lagi"; tanpa seed → fallback
+      inisial huruf. Border = sistem misi terpisah dari badge: 4 tier
+      Perunggu(lengkapi profil: avatar+ganti username)→Perak(streak 7)→
+      Emas(Level 5)→Platinum(4 flag jelajah: simulasi/goal/hutang/tema),
+      evaluasi murni tiap render ala badge; unlock persist di `user_missions`
+      + `profiles.avatar_border` (auto-highest, tidak pernah turun tier);
+      toast perayaan sekali per batch. Flag "pernah pakai" event-based di
+      tabel `feature_usage` (tahan hapus-data), ditembakkan di 5 titik.
+      Avatar ber-border tampil di header Beranda (tap → halaman); halaman
+      "Avatar & Misi" submenu Profil. Platinum = ring conic-gradient berputar
+      (hormati prefers-reduced-motion). Verifikasi CDP live ✓ (Perunggu &
+      Platinum terbuka dengan toast, persist lintas restart, checklist live,
+      overflow 0). Pilih border manual = backlog.
 - [ ] **Leaderboard**: opt-in, pakai nickname bukan nama asli.
 - [ ] **Mode Tanpa-Login / Guest Mode** *(paling akhir — proyek arsitektur
       besar)*: data guest tersimpan lokal + migrasi ke cloud saat login;

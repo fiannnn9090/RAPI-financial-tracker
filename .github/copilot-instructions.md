@@ -188,7 +188,7 @@ jangan pindah ke bawah atau patch dp akan ditimpa). Status: Fase Redesign 2 TUNT
    slot + FAB absolute); Auth mobile dikompak via blok media ≤770px di ekor
    premium.css.
 3. Hutang Piutang & Cicilan (TUNTAS — F8; lihat catatan di bawah)
-4. Sistem Avatar + Misi (unlock via pencapaian; tanpa mekanisme beli)
+4. Sistem Avatar + Misi (TUNTAS — F9; lihat catatan di bawah)
 5. Leaderboard (opt-in; nickname bukan nama asli)
 6. Mode Tanpa-Login / Guest Mode (paling akhir; proyek arsitektur besar:
    guest data lokal + migrasi ke cloud saat login; scope diskusi nanti)
@@ -203,6 +203,8 @@ Jangan mulai fase berikutnya sebelum fase berjalan tuntas; rinci scope saat gili
   `recurring.js` (jadwal & catch-up transaksi berulang, fungsi murni — cap 6 per aturan),
   `debts.js` (F8 hutang/piutang: jadwal cicilan reuse pola recurring dengan clamp
   angsuran terakhir, netWorth = totalBalance global + Σpiutang − Σhutang, fungsi murni),
+  `avatar.js` (F9 avatar & misi border: DiceBear offline via @dicebear/core — SVG
+  deterministik dari seed TANPA network, evaluasi misi murni ala badge, fungsi murni),
   `reminders.js` (wrapper @capacitor/local-notifications, no-op aman di web)
 - Formatter: `rupiah` (Intl.NumberFormat IDR) dan `dateFormatter` (Intl.DateTimeFormat id-ID)
   sudah didefinisikan di scope module — pakai ulang, jangan bikin formatter baru
@@ -228,7 +230,11 @@ Jangan mulai fase berikutnya sebelum fase berjalan tuntas; rinci scope saat gili
 - Migrasi F8 (`sql/f8_debts.sql`) menambah tabel `debts` + kolom nullable
   `transactions.debt_id`; insert baris `debts` WAJIB menyertakan `user_id` eksplisit
   (kegagalan = 403 RLS "new row violates row-level security policy")
-- Fitur yang butuh migrasi baru dijaga guard data (mis. `hasDebts` dari probe
+- Migrasi F9 (`sql/f9_avatar.sql`) menambah kolom `profiles.avatar_seed/avatar_border`
+  + tabel `user_missions`/`feature_usage`; fitur "pernah pakai" SENGAJA event-based
+  (bukan derivasi data) agar kredit bertahan walau goal/hutang kemudian dihapus —
+  jangan ganti jadi query data; tier border auto-highest & tidak pernah turun
+- Fitur yang butuh migrasi baru dijaga guard data (mis. `hasDebts`, `hasAvatar` dari probe
   `loadData`) supaya build lama/pra-migrasi tetap aman tanpa crash
 
 ## Desain — Claymorphism (legacy; digantikan mulai N1)

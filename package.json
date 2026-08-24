@@ -17,6 +17,8 @@
     "@capacitor/local-notifications": "^8.3.1",
     "@capacitor/splash-screen": "^8.0.2",
     "@capacitor/status-bar": "^8.0.3",
+    "@dicebear/collection": "^9.4.2",
+    "@dicebear/core": "^9.4.3",
     "@supabase/supabase-js": "^2.112.3",
     "jspdf": "^4.2.1",
     "next": "16.3.0",
