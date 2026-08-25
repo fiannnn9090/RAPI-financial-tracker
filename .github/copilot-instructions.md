@@ -254,3 +254,36 @@ Jangan mulai fase berikutnya sebelum fase berjalan tuntas; rinci scope saat gili
 - Jangan hardcode string teks UI — semua lewat DICT di lib/i18n.js (lihat bagian i18n);
   kalau menambah kunci, isi lengkap pasangan id+en dan update backup /tmp/i18n_entries.json
 - Jangan tambah dependency besar (Tailwind, UI library) tanpa konfirmasi user dulu
+
+## Responsif & Verifikasi Device
+- CDP emulator (411dp) TERBUKTI buta terhadap bug overflow yang muncul di device
+  fisik ±360dp — elemen intrinsik-lebar lolos karena slack lebar. WAJIB jalankan
+  gerbang `node scripts/check-overflow.mjs` (scan 340/360/384/411dp × 5 tab,
+  exit 1 bila meluap) sebelum menganggap perubahan layout tuntas, dan minta user
+  verifikasi di device fisik untuk perubahan layout besar
+- Elemen `position:fixed` JANGAN di-center dengan `left:50%+translateX()` — pola
+  fixed+transform rentan "hilang" saat halaman dalam keadaan pan/zoom di WebView
+  Android; pakai `inset-inline:0 + margin-inline:auto`. Guard global
+  `html,body{overflow-x:clip}` ada sebagai safety-net — jangan dihapus
+- Grid/flex dengan kolom `auto` berukuran intrinsik (label uppercase, angka
+  `nowrap`, chip ber-border) bisa meluap di layar sempit — kecilkan via media
+  query ≤400px atau pakai `minmax(0,…)`; lihat `.alloc-row` di premium.css
+- Gotcha CSS: shorthand `font: 800 .68rem/1 inherit` TIDAK VALID (kata kunci
+  `inherit` tak boleh jadi komponen shorthand) — seluruh deklarasi dibuang
+  parser diam-diam dan elemen jatuh ke ukuran default. Pakai longhand
+  (`font-weight/font-size/line-height`)
+
+## Notifikasi & Perayaan
+- Dua jalur resmi, jangan campur: (1) **perayaan** (border misi, avatar baru,
+  tantangan selesai, claim goal) → `CelebrateModal` (app/CelebrateModal.js,
+  reuse shell LevelUpModal + confetti) via state `celebrate` — modal WAJIB
+  ditutup manual (tombol/back/ESC), tanpa auto-dismiss; (2) **informasional**
+  (hapus/simpan, ekspor-impor, peringatan) → toast global via `setToast`,
+  auto-dismiss universal 3,2 dtk di useEffect (JANGAN bikin setTimeout
+  sendiri di titik pemanggil)
+- Toast & pesan status WAJIB pakai token dp-* (`--dp-card/--dp-text/
+  --dp-radius`) sehingga kontras aman di light+dark — dilarang hardcode
+  warna hex untuk teks/background elemen UI yang tampil di kedua tema
+- Naikkan `versionCode` di android/app/build.gradle setiap kali APK
+  dibagikan untuk di-install ulang di device fisik (versionCode sama bisa
+  gagal replace diam-diam)

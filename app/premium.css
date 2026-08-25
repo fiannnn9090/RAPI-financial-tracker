@@ -157,8 +157,11 @@
 .bottom-nav {
   position: fixed;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  /* Centering TANPA transform: fixed + translateX() memicu quirk komposit
+     Android WebView saat halaman dalam keadaan pan/zoom (nav bisa "hilang").
+     inset-inline + margin auto memberi hasil identik tanpa layer transform. */
+  inset-inline: 0;
+  margin-inline: auto;
   width: min(100%, 520px);
   display: flex;
   gap: 4px;
@@ -1183,13 +1186,15 @@
   margin: 0 auto;
   padding: 12px 18px;
   text-align: center;
-  border: 2px solid var(--br-border);
-  border-radius: var(--br-radius-md);
-  background: var(--br-yellow);
-  color: #141414;
-  font-family: var(--br-font);
-  font-weight: 800;
-  box-shadow: 4px 4px 0 0 var(--br-shadow-c);
+  /* Token dp-* di kedua tema — kontras mengikuti pasangan kartu/teks standar
+     app (bukan lagi kuning brutalist tetap). */
+  border: none;
+  border-radius: var(--dp-radius);
+  background: var(--dp-card);
+  color: var(--dp-text);
+  font-family: inherit;
+  font-weight: 700;
+  box-shadow: var(--dp-shadow-sm);
   animation: brutal-toast-in .25s ease-out;
 }
 @keyframes brutal-toast-in {
@@ -1736,7 +1741,9 @@
 }
 .advice-sev {
   flex: 0 0 auto;
-  font: 800 .5938rem/1 inherit;
+  font-weight: 800;
+  font-size: .5938rem;
+  line-height: 1;
   letter-spacing: .09em;
   padding: 4px 7px;
   border-radius: 4px;
@@ -1800,7 +1807,9 @@
   gap: 7px;
 }
 .score-chip {
-  font: 800 .5938rem/1 inherit;
+  font-weight: 800;
+  font-size: .5938rem;
+  line-height: 1;
   letter-spacing: .09em;
   padding: 5px 8px;
   border-radius: 4px;
@@ -1871,7 +1880,9 @@
   white-space: nowrap;
 }
 .alloc-chip {
-  font: 700 .65rem/1 inherit;
+  font-weight: 700;
+  font-size: .65rem;
+  line-height: 1;
   letter-spacing: .05em;
   padding: 4px 7px;
   border-radius: 999px;
@@ -1907,7 +1918,12 @@
   gap: 10px;
 }
 .alloc-tag {
-  font: 800 .68rem/1 inherit;
+  /* CATATAN: `font: 800 .68rem/1 inherit` TIDAK VALID (kata kunci inherit tak
+     boleh jadi komponen shorthand) — seluruh deklarasi dibuang parser dan tag
+     jatuh ke 16px. Pakai longhand. */
+  font-weight: 800;
+  font-size: .68rem;
+  line-height: 1;
   letter-spacing: .06em;
   padding: 5px 8px;
   border-radius: 4px;
@@ -1931,7 +1947,9 @@
   white-space: nowrap;
 }
 .alloc-status {
-  font: 800 .62rem/1 inherit;
+  font-weight: 800;
+  font-size: .62rem;
+  line-height: 1;
   letter-spacing: .08em;
   text-transform: uppercase;
   padding: 4px 6px;
@@ -1943,6 +1961,34 @@
   font-size: .92rem;
   line-height: 1.55;
   font-weight: 600;
+}
+/* Layar sempit (device fisik ±360dp): kolom `auto` baris alloc berukuran
+   intrinsik (tag uppercase + angka nowrap + chip status) ≈290px; tanpa
+   penyesuaian ini dokumen meluap ±1px → halaman bisa di-pan horizontal.
+   Kecilkan sel non-fleksibel supaya intrinsik turun ke ±235px. */
+@media (max-width: 400px) {
+  .alloc-row { gap: 8px; grid-template-columns: auto minmax(0, 1fr) auto auto; }
+  .alloc-row > b { font-size: .72rem; }
+  .alloc-tag { font-weight: 800; font-size: .62rem; line-height: 1; letter-spacing: .04em; padding: 4px 6px; }
+  .alloc-status { font-size: .56rem; padding: 3px 5px; }
+  /* Kelola Kategori: baris intrinsik ±344px (emoji + nama + chip alokasi +
+     chip bawaan) meluap di layar sempit → kecilkan sel non-fleksibel dan
+     ellipsis nama agar baris bisa menyusut. */
+  .category-row { gap: 6px; padding: 6px 8px; }
+  .category-emoji { width: 30px; height: 30px; }
+  .category-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .alloc-chip { font-size: .56rem; padding: 3px 6px; }
+  .dp-page .category-row em { font-size: .56rem; padding: 3px 7px; }
+  /* Avatar & Misi: pilihan memakai --av-size tetap 64px → min-content kartu
+     ±357px vs kontainer 324px di 360dp. Buat frame fluid mengikuti track
+     grid (svg sudah width/height 100%). */
+  .avatar-grid .avatar-frame {
+    --av-size: auto;
+    width: 100%;
+    max-width: 72px;
+    height: auto;
+    aspect-ratio: 1;
+  }
 }
 .alloc-hint {
   margin: 0;
@@ -3743,15 +3789,15 @@
   padding: 9px 12px;
 }
 
-/* --- 6. Pesan status pengingat di kartu gelap ikut tema --- */
-[data-theme='dark'] .reminder-card .form-message {
-  color: #FF8A80;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .reminder-card .form-message { color: #FF8A80; }
-}
+/* --- 6. Pesan status pengingat: pill ber-token dp-* di SEMUA state tema.
+   (Dulu teks polos tanpa background + hardcode #FF8A80 di dark → tak terbaca.) */
 .reminder-card .form-message {
   margin-top: 10px;
+  padding: 9px 12px;
+  border-radius: var(--dp-radius);
+  background: var(--dp-panel-2, rgba(127, 127, 127, .12));
+  color: var(--dp-text);
+  font-weight: 600;
 }
 
 /* --- 7. Segmen rentang PDF Ekspor & Impor: track + indikator aktif --- */

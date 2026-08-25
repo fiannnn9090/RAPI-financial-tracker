@@ -492,6 +492,43 @@ lanjut ke bawah. Scope detail tiap fase didiskusikan saat gilirannya tiba.
       (hormati prefers-reduced-motion). Verifikasi CDP live ✓ (Perunggu &
       Platinum terbuka dengan toast, persist lintas restart, checklist live,
       overflow 0). Pilih border manual = backlog.
+- [x] **Fix bug device fisik — overflow & nav hilang** *(tuntas)*: laporan dari
+      HP fisik: konten lebih besar dari layar (perlu geser horizontal) +
+      bottom nav ikut terpotong/bergeser. Akar berlapis: (1) `.alloc-row`
+      (Analisis) punya kolom `auto` intrinsik ±290px (tag uppercase + angka
+      nowrap + chip status) → meluap di viewport 360dp (emulator 411dp lolos
+      karena slack 50px) dan membuat seluruh dokumen bisa di-pan; (2)
+      `.bottom-nav` memakai centering `left:50%+translateX(-50%)` — pola
+      fixed+transform yang rentan "hilang" saat halaman dalam keadaan
+      pan/zoom di WebView Android. Fix level-dasar: media query ≤400px
+      mengecilkan tag/status/gap alloc (intrinsik turun ke ±235px), nav
+      diganti `inset-inline:0+margin-inline:auto` (tanpa transform), plus
+      safety-net global `html,body{overflow-x:clip}`. Bonus: 4 rule CSS
+      `font: … inherit` TIDAK VALID sejak F8 (shorthand dibuang parser →
+      chip jatuh ke 16px) — diganti longhand. Tooling permanen:
+      `scripts/check-overflow.mjs` = gerbang wajib scan 340/360/384/411dp ×
+      5 tab + SEMUA sub-halaman menu Profil (60 kombinasi, exit 1 bila
+      meluap); verifikasi akhir tiap fase kini butuh device fisik juga
+      (CDP emulator terbukti buta terhadap kelas bug ini).
+- [x] **Overflow sub-halaman + overhaul notifikasi** *(tuntas)*: (a) gerbang
+      kemarin ternyata buta terhadap sub-halaman — Kelola Kategori meluap
+      hingga +42dp di 360dp (baris intrinsik ±344px: emoji+nama+chip alokasi+
+      chip bawaan) dan Avatar & Misi terpotong (pilihan grid `--av-size`
+      tetap 64px → kartu 357px vs kontainer 324px). Fix: media query ≤400px
+      mengecilkan sel non-fleksibel + ellipsis nama; `.avatar-grid
+      .avatar-frame` fluid (width:100%, aspect-ratio 1, max 72px); versionCode
+      dinaikkan 1→2 (1.1) supaya sideload tak gagal diam-diam. (b) Sistem
+      notifikasi dirapikan: komponen baru `CelebrateModal` (reuse shell
+      LevelUpModal + confetti, tutup manual via tombol/back/ESC) untuk 4
+      momen perayaan — border misi terbuka, avatar tersimpan, tantangan
+      selesai, dan claim goal yang sebelumnya SENYAP tanpa notifikasi;
+      toast informasional kini auto-dismiss universal 3,2 dtk (dulu hanya
+      toast pertama yang punya timer — sisanya menggantung selamanya) dan
+      distyle ulang dengan token dp-* di kedua tema; pesan status kartu
+      Pengingat diberi pill ber-token dp-* (dulu teks polos + hardcode
+      #FF8A80 di dark). Verifikasi CDP: toast & pill terukur benar di
+      light+dark, auto-dismiss bekerja, modal buka/tutup + konfetti ✓,
+      gerbang overflow 60/60 hijau.
 - [ ] **Leaderboard**: opt-in, pakai nickname bukan nama asli.
 - [ ] **Mode Tanpa-Login / Guest Mode** *(paling akhir — proyek arsitektur
       besar)*: data guest tersimpan lokal + migrasi ke cloud saat login;

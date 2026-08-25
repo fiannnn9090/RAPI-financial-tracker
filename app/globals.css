@@ -19,3 +19,11 @@
 .confetti-layer i{position:absolute;top:-16px;border-radius:3px;opacity:.95;animation:confetti-fall linear forwards}
 .confetti-layer i.round{border-radius:50%}
 @keyframes confetti-fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(75vh) rotate(var(--spin,300deg));opacity:0}}
+
+/* Safety-net global: aplikasi tidak pernah butuh pan horizontal. Tanpa ini,
+   satu elemen intrinsik-lebar mana pun membuat seluruh dokumen bisa digeser
+   (dan menyeret posisi elemen position:fixed di WebView Android).
+   `clip` dipilih daripada `hidden`: tidak menciptakan scroll container baru. */
+html, body {
+  overflow-x: clip;
+}
