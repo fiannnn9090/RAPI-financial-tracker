@@ -1971,14 +1971,24 @@
   .alloc-row > b { font-size: .72rem; }
   .alloc-tag { font-weight: 800; font-size: .62rem; line-height: 1; letter-spacing: .04em; padding: 4px 6px; }
   .alloc-status { font-size: .56rem; padding: 3px 5px; }
-  /* Kelola Kategori: baris intrinsik ±344px (emoji + nama + chip alokasi +
-     chip bawaan) meluap di layar sempit → kecilkan sel non-fleksibel dan
-     ellipsis nama agar baris bisa menyusut. */
-  .category-row { gap: 6px; padding: 6px 8px; }
-  .category-emoji { width: 30px; height: 30px; }
-  .category-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .alloc-chip { font-size: .56rem; padding: 3px 6px; }
+  /* Kelola Kategori: baris intrinsik ±334px meluap di layar sempit.
+     Fix DUA lapis: (1) min-width:0 di semua grid children supaya profil-stack
+     track tak diekspansi ke min-content; (2) spesifisitas `.dp-page` untuk
+     override rule dp-page yang lebih spesifik (alloc-chip padding5px11px).
+     overflow:hidden di card sebagai seatbelt supaya baris yang sedikit lebih
+     lebar terpotong rapi, bukan mendorong track melebihi viewport. */
+  .profil-stack.profile-sub > * { min-width: 0; }
+  .category-manage-card { overflow: hidden; }
+  .dp-page .category-row { gap: 6px; padding: 6px 8px; }
+  .dp-page .category-emoji { width: 30px; height: 30px; }
+  .dp-page .category-row strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dp-page .category-row button.alloc-chip { font-size: .56rem; padding: 3px 6px; }
   .dp-page .category-row em { font-size: .56rem; padding: 3px 7px; }
+  /* Sub-header kategori juga menyumbang min-content track → kecilkan
+     judul & tombol aksi supaya tak memaksa track melebihi viewport. */
+  .sub-header { gap: 6px; }
+  .sub-header h2 { font-size: .82rem; }
+  .sub-header .sub-action { font-size: .62rem; padding: 5px 8px; }
   /* Avatar & Misi: pilihan memakai --av-size tetap 64px → min-content kartu
      ±357px vs kontainer 324px di 360dp. Buat frame fluid mengikuti track
      grid (svg sudah width/height 100%). */

@@ -265,6 +265,10 @@ Jangan mulai fase berikutnya sebelum fase berjalan tuntas; rinci scope saat gili
   fixed+transform rentan "hilang" saat halaman dalam keadaan pan/zoom di WebView
   Android; pakai `inset-inline:0 + margin-inline:auto`. Guard global
   `html,body{overflow-x:clip}` ada sebagai safety-net — jangan dihapus
+- Grid children dengan `min-width: auto` (default) MEMAKSA track melebihi
+  container jika konten lebih lebar — tambah `min-width: 0` di grid children
+  profil-stack (`.profil-stack.profile-sub > *`) di ≤400px; overflow:hidden
+  di card sebagai seatbelt agar baris terpotong rapi, bukan mendorong viewport.
 - Grid/flex dengan kolom `auto` berukuran intrinsik (label uppercase, angka
   `nowrap`, chip ber-border) bisa meluap di layar sempit — kecilkan via media
   query ≤400px atau pakai `minmax(0,…)`; lihat `.alloc-row` di premium.css

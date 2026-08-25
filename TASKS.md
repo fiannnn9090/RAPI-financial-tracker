@@ -509,15 +509,24 @@ lanjut ke bawah. Scope detail tiap fase didiskusikan saat gilirannya tiba.
       `scripts/check-overflow.mjs` = gerbang wajib scan 340/360/384/411dp ×
       5 tab + SEMUA sub-halaman menu Profil (60 kombinasi, exit 1 bila
       meluap); verifikasi akhir tiap fase kini butuh device fisik juga
-      (CDP emulator terbukti buta terhadap kelas bug ini).
+      (CDP emulator terbukti buta terhadap kelas bug ini). CATATAN:
+      min-width:0 pada grid children profil-stack TANPA overflow:hidden pada
+      card SUDAH lebih dari cukup — overflow-x:clip global mencegah dokumen
+      melebar; namun card tetap melebihi viewport secara visual. Fix lengkap:
+      min-width:0 + overflow:hidden card + dp-page scoped overrides +
+      sub-header tight + nama flex ellipsis.
 - [x] **Overflow sub-halaman + overhaul notifikasi** *(tuntas)*: (a) gerbang
       kemarin ternyata buta terhadap sub-halaman — Kelola Kategori meluap
       hingga +42dp di 360dp (baris intrinsik ±344px: emoji+nama+chip alokasi+
       chip bawaan) dan Avatar & Misi terpotong (pilihan grid `--av-size`
       tetap 64px → kartu 357px vs kontainer 324px). Fix: media query ≤400px
-      mengecilkan sel non-fleksibel + ellipsis nama; `.avatar-grid
-      .avatar-frame` fluid (width:100%, aspect-ratio 1, max 72px); versionCode
-      dinaikkan 1→2 (1.1) supaya sideload tak gagal diam-diam. (b) Sistem
+      mengecilkan sel non-fleksibel + ellipsis nama + `min-width:0` di
+      grid children profil-stack supaya track tak diekspansi ke min-content
+      (fix DUA lapis yang diperlukan: tanpa min-width:0, flex per-row tak
+      cukup — card tetap melebihi viewport). `.avatar-grid .avatar-frame`
+      fluid (width:100%, aspect-ratio 1, max 72px). Nama kategori custom
+      panjang apapun ter-truncasi dengan ellipsis (terverifikasi). VersionCode
+      dinaikkan 1→3 (1.2) supaya sideload tak gagal diam-diam. (b) Sistem
       notifikasi dirapikan: komponen baru `CelebrateModal` (reuse shell
       LevelUpModal + confetti, tutup manual via tombol/back/ESC) untuk 4
       momen perayaan — border misi terbuka, avatar tersimpan, tantangan
