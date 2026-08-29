@@ -1322,3 +1322,113 @@
   transform: translateY(1px);
   filter: brightness(0.92);
 }
+
+/* =========================================================
+   Fase Redesign 7 — Auth (login/register) + modal perayaan (GP7).
+   - Panel intro Auth: "kartu malam" permanen #0F0F13 di kedua tema
+     TIDAK disentuh (identitas Dark Premium, established).
+   - Input auth: PILL (radius penuh), selaras gaya GP.
+   - Submit: pill kuning solid → CTA. Switch mode: pill.
+   - LevelUpModal/CelebrateModal/modal klaim goal: frame flat rounded,
+     CTA pill kuning. CONFETTI TIDAK disentuh sama sekali.
+   ========================================================= */
+
+/* ---------- Kartu form Auth ---------- */
+.auth-page.dp-auth .form-wrap.dp-card {
+  background: var(--dp-card);
+  border: none;
+  border-radius: 20px;
+  box-shadow: var(--dp-shadow-md);
+}
+.auth-page.dp-auth .form-wrap .welcome { color: var(--dp-muted); }
+.auth-page.dp-auth .form-wrap h2 { color: var(--dp-text); }
+.auth-page.dp-auth .form-wrap .form-description { color: var(--dp-muted); }
+
+/* Input — PILL (radius penuh), latar elev, fokus ring aksen kuning */
+.auth-page.dp-auth .form-wrap input {
+  min-height: 48px;
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  padding: 12px 18px;
+  box-shadow: none;
+  transition: box-shadow .15s ease;
+}
+.auth-page.dp-auth .form-wrap input:focus {
+  outline: none;
+  border: none;
+  box-shadow: 0 0 0 2px var(--dp-accent);
+}
+.auth-page.dp-auth .form-wrap ::placeholder { color: var(--dp-muted); opacity: 1; }
+.auth-page.dp-auth .form-wrap label { color: var(--dp-muted); }
+
+/* Submit → pill CTA kuning solid */
+.auth-page.dp-auth .primary-button.dp-button,
+.auth-page.dp-auth .form-wrap .clay-button.brutal-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: var(--gp-shadow-cta);
+  font-weight: 700;
+  padding: 13px 20px;
+}
+.auth-page.dp-auth .primary-button.dp-button:active,
+.auth-page.dp-auth .form-wrap .clay-button.brutal-button:active {
+  transform: translateY(1px) scale(0.985);
+  filter: brightness(0.96);
+}
+
+/* Switch mode (login<->register) → pill gold tint (bukan underline) */
+.auth-page.dp-auth .switch-form button {
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dp-accent) 18%, transparent);
+  color: var(--gp-hero-a);
+  padding: 7px 16px;
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 4px;
+}
+.auth-page.dp-auth .switch-form button:active {
+  transform: translateY(1px) scale(0.985);
+}
+.auth-page.dp-auth .privacy { color: var(--dp-muted); }
+.auth-page.dp-auth .form-message { color: var(--dp-expense-ink); }
+
+/* ---------- LevelUpModal / CelebrateModal / claim goal ---------- */
+/* Frame flat rounded; confetti (.confetti-layer) TIDAK disentuh. */
+.levelup-modal.brutal-levelup.dp-levelup {
+  background: var(--dp-card);
+  border: none;
+  border-radius: 20px;
+  box-shadow: var(--dp-shadow-md), 0 12px 48px color-mix(in srgb, var(--dp-accent) 18%, transparent);
+  color: var(--dp-text);
+}
+.levelup-modal.dp-levelup .levelup-emoji { filter: none; }
+.levelup-modal.dp-levelup .kicker { color: var(--dp-muted); text-transform: none; letter-spacing: .01em; }
+.levelup-modal.dp-levelup h2 { color: var(--dp-text); }
+.levelup-modal.dp-levelup .levelup-copy { color: var(--dp-muted); }
+.levelup-modal.dp-levelup .levelup-copy strong { color: var(--dp-gold-ink); }
+.levelup-modal.dp-levelup .levelup-xp {
+  background: color-mix(in srgb, var(--dp-accent) 18%, transparent);
+  color: var(--gp-hero-a);
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+/* CTA modal → pill kuning solid (konsisten semua modal perayaan) */
+.levelup-modal.dp-levelup .primary-button.dp-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: var(--gp-shadow-cta);
+  font-weight: 700;
+  padding: 12px 24px;
+}
+.levelup-modal.dp-levelup .primary-button.dp-button:active {
+  transform: translateY(1px) scale(0.985);
+  filter: brightness(0.96);
+}
