@@ -1,7 +1,11 @@
 /* Gerbang overflow multi-viewport — jalankan saat app hidup + adb forward tcp:9222.
    Pemakaian: node scripts/check-overflow.mjs
-   Scan 5 tab utama + SEMUA sub-halaman menu Profil, pada 340/360/384/411dp.
-   Exit code 1 bila ada kombinasi yang meluap. */
+   Scan, pada 340/360/384/411dp:
+     - 5 tab utama + SEMUA sub-halaman menu Profil (state login)
+     - halaman Auth (state login DAN register — layoutnya dibedakan)
+   Exit code 1 bila ada kombinasi yang meluap.
+   Catatan: untuk menampilkan halaman Auth tanpa mencabut sesi server, token
+   supabase di localStorage dipertahankan sementara lalu dipulihkan di akhir. */
 import { connect } from './cdp-helper.mjs';
 import { sleep } from './cdp-helper.mjs';
 
@@ -65,6 +69,53 @@ for (const width of [340, 360, 384, 411]) {
   }
   await rawSend('Emulation.clearDeviceMetricsOverride');
 }
+
+/* =========================================================
+   Fase AUTH — jangkau halaman login & register (layout beda).
+   Untuk menampilkan halaman Auth tanpa memanggil signOut (yg
+   mencabut sesi server), token supabase di localStorage DISIMPAN,
+   sementara dihapus lalu reload → app tanpa sesi → menampilkan Auth.
+   Setelah scan semua viewport, token di-PULIHKAN + reload agar app
+   kembali login (tanpa perlu kredensial & tanpa revoke sesi).
+   ========================================================= */
+let authKey = null;
+let savedAuth = null;
+try {
+  authKey = await evalJS(`(function(){for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/auth-token/.test(k))return k;}return null;})()`);
+  if (authKey) {
+    savedAuth = await evalJS(`localStorage.getItem('${authKey}')`);
+    await evalJS(`localStorage.removeItem('${authKey}')`);
+    await rawSend('Page.reload');
+    await sleep(2600);
+  }
+} catch {}
+
+if (authKey) {
+  for (const width of [340, 360, 384, 411]) {
+    await rawSend('Emulation.setDeviceMetricsOverride', { width, height: 800, deviceScaleFactor: 0, mobile: true });
+    await sleep(500);
+    /* Mode default setelah reload = login. Pastikan tombol switch ada (halaman Auth). */
+    const onAuth = await evalJS(`!!document.querySelector('.form-wrap')`);
+    if (onAuth) {
+      const keyLogin = `${width}/auth-login`;
+      results[keyLogin] = JSON.parse(await evalJS(SCAN));
+      if (results[keyLogin].docW > results[keyLogin].vw) failures += 1;
+      /* Toggle ke register via tombol switch. */
+      await evalJS(`(async()=>{const b=document.querySelector('.switch-form button');if(b)b.click();await new Promise(r=>setTimeout(r,450));})()`);
+      const keyRegister = `${width}/auth-register`;
+      results[keyRegister] = JSON.parse(await evalJS(SCAN));
+      if (results[keyRegister].docW > results[keyRegister].vw) failures += 1;
+    }
+    await rawSend('Emulation.clearDeviceMetricsOverride');
+  }
+  /* Pulihkan sesi → app kembali login. */
+  if (savedAuth !== null) {
+    await evalJS(`localStorage.setItem('${authKey}', ${JSON.stringify(savedAuth)}); 1`);
+    await rawSend('Page.reload');
+    await sleep(2600);
+  }
+}
+
 ws.close();
 console.log(JSON.stringify(results, null, 1));
 console.error(`failures=${failures}`);
