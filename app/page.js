@@ -127,7 +127,6 @@ const WALLET_EMOJIS = ['👛', '🏦', '💳', '🪙', '💸', '📱', '🧧', '
 /* Restrukturisasi Profil: baris menu utama (sub-halaman pengingat kondisional & danger ditangani terpisah di JSX) */
 const PROFILE_MENU_ROWS = [
   ['kartu', 'card', 'prof.menu.kartu'],
-  ['avatar', 'sparkle', 'prof.menu.avatar'],
   ['akun', 'key', 'prof.menu.akun'],
   ['pengaturan', 'sliders', 'prof.menu.pengaturan'],
   ['kategori', 'grid', 'cat.title'],

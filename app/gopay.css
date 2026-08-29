@@ -933,3 +933,392 @@
 .modal.dp-sheet .challenge-option:active {
   background: color-mix(in srgb, var(--dp-accent) 14%, transparent);
 }
+
+/* =========================================================
+   Fase Redesign 6 — Tab PROFIL → GoPay-Inspired (GP6).
+   Header identitas, menu rows, semua sub-halaman (kartu profil,
+   akun, pengaturan, kategori, dompet, data, pengingat).
+   Pola GP1-GP5: pill/rounded, kuning solid EKSKLUSIF CTA/aksen.
+   DANGER ZONE dikecualikan: aksi destruktif memakai coral solid
+   + radius TEGAS (bukan pill 999px) agar terasa berbahaya, bukan
+   ramah. Ikon fitur multi-warna dari GP1 dibiarkan.
+   ========================================================= */
+
+/* ---------- Header identitas Profil ---------- */
+.dp-page .profile-head {
+  background: var(--dp-card);
+  border: none;
+  border-radius: 20px;
+  box-shadow: var(--dp-shadow-sm);
+  padding: 16px;
+}
+/* Avatar + border tier tetap utuh (ECO/platinum ring) */
+.dp-page .profile-head .avatar-frame {
+  --av-size: 52px;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+}
+.dp-page .profile-head strong { color: var(--dp-text); }
+.dp-page .profile-head small { color: var(--dp-muted); }
+
+/* ---------- Menu rows Profil ---------- */
+.dp-page .profile-menu.dp-card {
+  background: var(--dp-card);
+  border: none;
+  border-radius: 20px;
+  box-shadow: var(--dp-shadow-sm);
+  padding: 8px;
+}
+.dp-page .profile-menu .profile-menu-row.dp-item {
+  border: none;
+  border-radius: 14px;
+  padding: 12px 12px;
+  color: var(--dp-text);
+}
+.dp-page .profile-menu .profile-menu-row.dp-item:active {
+  background: var(--dp-elev);
+}
+.dp-page .profile-menu .row-icon {
+  border: none;
+  border-radius: 12px;
+  width: 34px;
+  height: 34px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+}
+.dp-page .profile-menu .row-chevron { color: var(--dp-muted); }
+
+/* Row danger di menu — coral (bukan kuning) */
+.dp-page .profile-menu .profile-menu-row.danger.dp-item,
+.dp-page .profile-menu .profile-menu-row.danger .row-label { color: var(--dp-expense-ink); }
+.dp-page .profile-menu .profile-menu-row.danger .row-icon {
+  background: var(--dp-expense-tint);
+  color: var(--dp-expense-ink);
+}
+
+/* Logout — pill netral dengan ink coral */
+.dp-page .logout-full.dp-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  color: var(--dp-expense-ink);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+/* ---------- Header sub-halaman ---------- */
+.dp-page .sub-back {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+}
+.dp-page .sub-header h2 { color: var(--dp-text); }
+.dp-page .sub-icon {
+  border: none;
+  border-radius: 14px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+}
+.dp-page .sub-action.dp-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+/* ---------- Kartu sub-halaman generik ---------- */
+.dp-page .profil-stack .settings-card.dp-card,
+.dp-page .profil-stack .category-manage-card.dp-card,
+.dp-page .profil-stack .recurring-manage-card.dp-card,
+.dp-page .profil-stack .data-card.dp-card,
+.dp-page .profil-stack .reminder-card.dp-card {
+  background: var(--dp-card);
+  border: none;
+  border-radius: 20px;
+  box-shadow: var(--dp-shadow-sm);
+}
+
+/* ---------- Kartu Profil & Share ---------- */
+.dp-page .profil-stack .share-card.dp-card {
+  background: var(--dp-card);
+  border: none;
+  border-radius: 20px;
+  box-shadow: var(--dp-shadow-sm);
+}
+.dp-page .share-card .share-id strong { color: var(--dp-text); }
+.dp-page .share-card .share-id small { color: var(--dp-muted); }
+.dp-page .share-card .share-id .avatar-frame {
+  --av-size: 48px;
+  width: 48px;
+  height: 48px;
+}
+.dp-page .share-card .share-stats li {
+  border: none;
+  background: var(--dp-elev);
+  border-radius: 12px;
+  color: var(--dp-muted);
+}
+.dp-page .card-button.dp-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+}
+.dp-page .card-button.dp-button.brutal-ghost {
+  background: var(--dp-elev);
+  color: var(--dp-text);
+}
+.dp-page .share-card .share-tier,
+.dp-page .share-tier {
+  border: none;
+  border-radius: 999px;
+  padding: 3px 10px;
+  background: var(--dp-elev);
+  color: var(--dp-muted);
+  text-transform: capitalize;
+}
+.dp-page .share-tier.tier-rare { background: color-mix(in srgb, var(--dp-rare) 16%, transparent); color: var(--dp-rare); }
+.dp-page .share-tier.tier-epic { background: color-mix(in srgb, var(--dp-epic) 18%, transparent); color: var(--dp-epic); }
+.dp-page .share-tier.tier-legendary { background: var(--dp-accent); color: var(--dp-on-accent); font-weight: 800; }
+.dp-page .share-card .share-note { color: var(--dp-muted); }
+
+/* ---------- Pengaturan ---------- */
+.dp-page .setting-select {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  box-shadow: none;
+}
+.dp-page .setting-seg {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  padding: 4px;
+}
+.dp-page .setting-seg button {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dp-muted);
+}
+/* Aktif = gold TINT (bukan solid kuning — bukan CTA) */
+.dp-page .setting-seg button.active {
+  background: color-mix(in srgb, var(--dp-accent) 22%, transparent);
+  color: var(--gp-hero-a);
+}
+.dp-page .setting-label { color: var(--dp-text); }
+.dp-page .setting-label .row-icon {
+  border: none;
+  border-radius: 10px;
+  background: var(--dp-elev);
+  color: var(--dp-muted);
+}
+.dp-page .fx-note { color: var(--dp-muted); }
+
+/* ---------- Kelola Kategori ---------- */
+.dp-page .category-manage-card.dp-card .category-row {
+  border: none;
+  border-radius: 16px;
+  background: var(--dp-elev);
+  box-shadow: none;
+  padding: 8px 12px;
+}
+.dp-page .category-manage-card.dp-card .category-row strong { color: var(--dp-text); }
+.dp-page .category-manage-card.dp-card .category-row em {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-bg);
+  color: var(--dp-muted);
+  padding: 3px 10px;
+  font-size: 0.6875rem;
+}
+.dp-page .category-manage-card.dp-card .category-row .category-emoji {
+  border: none;
+  border-radius: 12px;
+  background: var(--dp-bg);
+  font-size: 1.125rem;
+  width: 38px;
+  height: 38px;
+}
+.dp-page .category-manage-card.dp-card .category-row button {
+  border: none;
+  border-radius: 10px;
+  background: var(--dp-expense-tint);
+  color: var(--dp-expense-ink);
+  box-shadow: none;
+  width: 32px;
+  height: 32px;
+}
+.dp-page .category-manage-card.dp-card .alloc-note.muted { color: var(--dp-muted); }
+
+/* ---------- Dompet ---------- */
+.dp-page .recurring-manage-card.dp-card .recurring-row {
+  border: none;
+  border-radius: 16px;
+  background: var(--dp-elev);
+  box-shadow: none;
+}
+.dp-page .recurring-manage-card.dp-card .recurring-row .category-emoji {
+  border: none;
+  border-radius: 12px;
+  background: var(--dp-bg);
+  font-size: 1.125rem;
+  width: 38px;
+  height: 38px;
+}
+.dp-page .recurring-manage-card.dp-card .recurring-row strong { color: var(--dp-text); }
+.dp-page .recurring-manage-card.dp-card .recurring-row button {
+  border: none;
+  border-radius: 10px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+}
+.dp-page .recurring-manage-card.dp-card .recurring-empty { color: var(--dp-muted); }
+
+/* ---------- Data & Backup ---------- */
+.dp-page .data-card.dp-card .data-note,
+.dp-page .data-card.dp-card .data-label { color: var(--dp-muted); }
+.dp-page .data-card.dp-card .pdf-range {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  padding: 4px;
+}
+.dp-page .data-card.dp-card .pdf-range button {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dp-muted);
+}
+.dp-page .data-card.dp-card .pdf-range button.active {
+  background: color-mix(in srgb, var(--dp-accent) 22%, transparent);
+  color: var(--gp-hero-a);
+}
+.dp-page .data-card.dp-card .pdf-custom input {
+  border: none;
+  border-radius: 12px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  padding: 8px 10px;
+}
+.dp-page .data-card.dp-card .data-actions .clay-button.brutal-button {
+  border: none;
+  border-radius: 999px;
+  box-shadow: none;
+  font-weight: 700;
+}
+.dp-page .data-card.dp-card .data-actions .clay-button.brutal-button.brutal-ghost {
+  background: var(--dp-elev);
+  color: var(--dp-text);
+}
+.dp-page .data-card.dp-card .data-actions .data-primary,
+.dp-page .data-card.dp-card .data-actions .clay-button.brutal-button:not(.brutal-ghost) {
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+}
+
+/* ---------- Pengingat ---------- */
+.dp-page .reminder-card.dp-card .reminder-row {
+  border: none;
+  border-radius: 16px;
+  background: var(--dp-elev);
+}
+.dp-page .reminder-card.dp-card .reminder-row strong { color: var(--dp-text); }
+.dp-page .reminder-card.dp-card .reminder-row p,
+.dp-page .reminder-card.dp-card .reminder-hour { color: var(--dp-muted); }
+.dp-page .reminder-card.dp-card .reminder-hour select {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  padding: 6px 10px;
+}
+.dp-page .reminder-card.dp-card .reminder-toggle {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-bg);
+}
+.dp-page .reminder-card.dp-card .reminder-toggle.on { background: var(--dp-accent); }
+.dp-page .reminder-card.dp-card .reminder-toggle i {
+  border: none;
+  background: #fff;
+  box-shadow: none;
+  width: 22px;
+  height: 22px;
+}
+.dp-page .reminder-card.dp-card .reminder-toggle.on i { transform: translateX(26px); }
+.dp-page .reminder-card.dp-card .reminder-test.clay-button.brutal-button.brutal-ghost {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+/* ---------- Akun ---------- */
+.dp-page .account-settings input {
+  min-height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  box-shadow: none;
+}
+.dp-page .account-settings input:focus {
+  outline: none;
+  border: none;
+  box-shadow: 0 0 0 2px var(--dp-accent);
+}
+.dp-page .account-settings ::placeholder { color: var(--dp-muted); opacity: 1; }
+.dp-page .account-settings .clay-button.brutal-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+}
+.dp-page .account-settings .form-message { color: var(--dp-expense-ink); }
+
+/* ---------- DANGER ZONE — aksi destruktif (pengecualian GP) ----------
+   SEGALA sesuatu di sini sengaja TIDAK pill-friendly:
+   - tombol "Hapus akun": coral solid #FF6B6B + radius TEGAS ~10px
+     (bukan 999px), teks putih, bayangan merah lembut → terasa berat.
+   - kartu: tint + border coral tipis, radius KECIL, tanpa glow hangat. */
+.dp-page .danger-zone.dp-danger,
+.dp-page .profil-stack .danger-zone.dp-danger {
+  background: color-mix(in srgb, var(--dp-expense) 10%, var(--dp-card));
+  border: 1px solid color-mix(in srgb, var(--dp-expense) 40%, transparent);
+  border-radius: 14px;
+  box-shadow: 0 8px 22px -12px rgba(255, 107, 107, 0.45);
+  padding: 18px;
+  margin-top: 12px;
+}
+.dp-page .danger-zone.dp-danger strong { color: var(--dp-expense-ink); }
+.dp-page .danger-zone.dp-danger p { color: var(--dp-muted); }
+.dp-page .danger-zone .danger-button.dp-button,
+.dp-page .profil-stack .danger-zone .danger-button.dp-button {
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #FF8F8F, var(--dp-expense));
+  color: #fff;
+  box-shadow: 0 8px 16px -8px rgba(255, 107, 107, 0.6);
+  font-weight: 800;
+  padding: 12px 18px;
+}
+.dp-page .danger-zone .danger-button.dp-button:active {
+  transform: translateY(1px);
+  filter: brightness(0.92);
+}
