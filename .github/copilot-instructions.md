@@ -166,6 +166,48 @@ premium.css — diposkan SEBELUM seksi-seksi patch dp (urutan = cascade file lam
 jangan pindah ke bawah atau patch dp akan ditimpa). Status: Fase Redesign 2 TUNTAS
 (DP1–DP9); audit kontras WCAG kedua tema bersih, token light/dark lihat blok token atas + catatan DP9 di TASKS.md.
 
+## Fase Redesign 3 — GoPay-Inspired (GP1–GP8)
+Bahasa desain berikutnya: RESTYLING dari Dark Premium, BUKAN rombak struktur/fitur.
+Karakter bahasa desain baru:
+- Base gelap nyaris hitam dari Dark Premium (`#0F0F13` background / `#1C1C24` card,
+  token `--dp-*` light+dark) DIPERTAHANKAN sebagai fondasi.
+- HERO GRADIENT (biru/teal) KECUALI khusus header Beranda — pada area itu aksen
+  kuning `#FFC629` digantikan sementara oleh gradient biru/teal; sisanya tetap flat
+  sesuai token dp.
+- SEMUA tombol/chip/badge BERUBAH jadi bentuk PILL (border-radius penuh ~999px),
+  menggantikan radius 18–24px dari Dark Premium.
+- Ikon fungsional DIGANTI dari SVG monokrom (library `ICON_PATHS` + komponen
+  `<Icon>`) menjadi ILUSTRASI FLAT BERWARNA dari library open-source
+  (flat-color-icons atau setara yang disetujui user) — BUKAN emoji mentah,
+  BUKAN lagi monokrom.
+- Murni visual: TIDAK ada fitur baru, TIDAK ada perubahan struktur navigasi/IA —
+  tetap 4 tab + FAB (+ ActionSheet, + RiwayatPage, seluruh alur/state yang sudah
+  ada) berjalan persis seperti sekarang.
+
+Pola migrasi (sama seperti transisi DP dulu): class `gp-*` DITAMBAHKAN
+berdampingan dengan rule dp-* dahulu; rule dp-* lama dihapus di akhir fase (GP8)
+setelah semua layar terverifikasi. Begitu fase dimulai: JANGAN menambah rule dp-*
+baru lagi — semua style baru masuk bahasa gp-*.
+
+Urutan milestone (jangan lompat urutan tanpa konfirmasi user):
+- **GP1 — Fondasi**: instalasi library ikon ilustrasi flat berwarna + token hero
+  gradient biru/teal + primitif pill `gp-*` (tombol/chip/badge radius penuh);
+  belum menyentuh page.js (pola sama dengan DP1).
+- **GP2 — Beranda**: hero gradient di header + pill pada CTA/balance/stat/level/
+  streak/budget.
+- **GP3 — Transaksi + Riwayat**: item list, filter pills, ActionSheet, RiwayatPage.
+- **GP4 — Analisis**: recap/skor/saran/50-30-20/simulasi dengan primitif gp.
+- **GP5 — Target**: goal/badge/challenge.
+- **GP6 — Profil**: menu, sub-halaman, kartu profil & share.
+- **GP7 — Auth + modals**: auth page, LevelUpModal/CelebrateModal, sheet-sheet.
+- **GP8 — Cleanup**: hapus rule dp-* lama + audit kontras light+dark + AUDIT
+  OVERFLOW WAJIB via `node scripts/check-overflow.mjs` (60 kombinasi, exit 1 bila
+  meluap) + verifikasi di device fisik — riwayat project membuktikan redesign
+  visual sering memunculkan overflow baru yang lolos dari CDP emulator.
+
+Status: phase ini BELUM DIMULAI — jangan eksekusi kode apa pun sampai user
+memberi konfirmasi.
+
 ## Fase Pasca-Redesign — Roadmap (urutan terkunci)
 1. **DP9b — Bugfix & Konsistensi Visual** — TUNTAS PENUH 2026-08-24 (termasuk
    #11 sistem ikon): 16 item review ditangani (lihat rincian TASKS.md). Yang

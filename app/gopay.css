@@ -1,0 +1,292 @@
+/* =========================================================
+   Fase Redesign 3 — GoPay-Inspired (GP1) — FONDASI
+   Token hero gradient + primitif pill gp-* + integrasi ikon
+   ilustrasi berwarna. BELUM dipakai komponen mana pun (page.js
+   tidak disentuh — lihat .github/copilot-instructions.md →
+   "Fase Redesign 3"). Sejak fase ini berjalan JANGAN menambah
+   rule dp-* baru; semua style baru masuk bahasa gp-*.
+
+   Karakter: base gelap nyaris hitam Dark Premium DIPERTAHANKAN
+   (token --dp-* light+dark tetap sumber permukaan/teks/radius),
+   TAMBAH hero gradient biru→teal khusus header Beranda, dan
+   SEMUA tombol/chip/badge menjadi PILL (radius penuh ~999px).
+
+   Posisi kaskade: wajib dimuat SETELAH premium.css (ditambahkan
+   di layout.js setelahnya) agar gp-* bisa menimpa dp-* kapan pun.
+   ========================================================= */
+
+/* ============ Token GP — default (light) ============ */
+:root {
+  /* Hero gradient biru → teal (khusus header Beranda + CTA pill) */
+  --gp-hero-a: #0C8FE8;         /* biru GoPay */
+  --gp-hero-b: #16B4F2;         /* biru muda */
+  --gp-hero-c: #00C9A5;         /* teal */
+  --gp-hero-grad: linear-gradient(130deg, var(--gp-hero-a) 0%, var(--gp-hero-b) 52%, var(--gp-hero-c) 100%);
+  --gp-hero-ink: #FFFFFF;       /* teks di atas gradient + CTA */
+
+  /* Tinta pill & permukaan — TIDAK redeklarasi, pin ke token Dark Premium */
+  --gp-chip-bg: var(--dp-elev); /* chip netral (filter/segmen) */
+  --gp-chip-ink: var(--dp-text);
+  --gp-chip-muted: var(--dp-muted);
+  --gp-hairline: var(--dp-hairline);
+
+  /* Tint ikon: latar colokan ikon (seperti chip kategori GoPay).
+     color-mix → WebView modern aman (Chrome 111+, target Android ini). */
+  --gp-ico-tint: color-mix(in srgb, var(--gp-hero-a) 16%, transparent);
+
+  /* Shadow untuk CTA/hero — lebih berani dari dp (elemen gradient) */
+  --gp-shadow-cta: 0 6px 16px rgba(12, 143, 232, 0.30);
+}
+
+/* ============ Token GP — dark (mengikuti sistem) ============ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    /* Hero tetap cerah di dark (GoPay) — teal sedikit diredam supaya
+       tidak silau di latar #0F0F13 */
+    --gp-hero-a: #0E7FE0;
+    --gp-hero-b: #12A8E8;
+    --gp-hero-c: #00BFA2;
+    --gp-ico-tint: color-mix(in srgb, var(--gp-hero-a) 26%, transparent);
+    --gp-shadow-cta: 0 6px 16px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* ============ Token GP — dark (manual) ============ */
+[data-theme='dark'] {
+  --gp-hero-a: #0E7FE0;
+  --gp-hero-b: #12A8E8;
+  --gp-hero-c: #00BFA2;
+  --gp-ico-tint: color-mix(in srgb, var(--gp-hero-a) 26%, transparent);
+  --gp-shadow-cta: 0 6px 16px rgba(0, 0, 0, 0.45);
+}
+
+/* ============ Primitif pill — radius PENUH ============ */
+/* Basis: semua tombol/chip/badge memakai bentuk ini. Radius 999px = pill
+   sempurna, MENGgantikan --dp-radius-sm/radius/radius-lg (18–24px). */
+.gp-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: 999px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s ease, filter 0.12s ease, box-shadow 0.12s ease;
+}
+
+.gp-pill:active {
+  transform: translateY(1px) scale(0.985);
+}
+
+/* CTA utama — gradient hero, teks putih (tombol penting: tambah, simpan) */
+.gp-pill-cta {
+  background: var(--gp-hero-grad);
+  color: var(--gp-hero-ink);
+  padding: 13px 20px;
+  font-size: 15px;
+  box-shadow: var(--gp-shadow-cta);
+}
+
+.gp-pill-cta:active {
+  filter: brightness(0.96);
+}
+
+/* Ghost — netral di atas permukaan (aksi sekunder, gunakan hairline bukan
+   border penuh supaya tetap "tanpa garis" khas DP) */
+.gp-pill-ghost {
+  background: color-mix(in srgb, var(--dp-card) 70%, transparent);
+  color: var(--gp-chip-ink);
+  padding: 11px 18px;
+  font-size: 14px;
+  box-shadow: inset 0 0 0 1px var(--gp-hairline);
+}
+
+/* Chip filter/segmen — aktif memakai tint hero */
+.gp-pill-chip {
+  background: var(--gp-chip-bg);
+  color: var(--gp-chip-muted);
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gp-pill-chip.on {
+  background: var(--gp-ico-tint);
+  color: var(--gp-hero-a);
+}
+
+/* Badge kecil — level/streak/tier di atas kartu */
+.gp-pill-badge {
+  background: var(--gp-ico-tint);
+  color: var(--gp-hero-a);
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ============ Integrasi ikon berwarna ============ */
+/* <GpIcon> (lib/gopayIcons.js) menghasilkan <svg class="gp-icon ...">.
+   Body berisi fill penuh warna asli library — jangan sentuh stroke/color. */
+.gp-icon {
+  display: inline-flex;
+  flex: none;
+  line-height: 0;
+}
+
+/* Colokan ikon (chip bulat) — seperti chip kategori GoPay: tint hero di
+   belakang ilustrasi. Pakai ukuran kotak eksplisit via style size. */
+.gp-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--gp-ico-tint);
+  padding: 8px;
+}
+
+.gp-ico.round {
+  border-radius: 999px;
+}
+
+/* =========================================================
+   GP2 — BERANDA
+   BalanceCard = kartu gradient ROUNDED (radius+shadow) di atas
+   bg gelap DP biasa — BUKAN hero full-bleed, karena RAPI punya
+   banyak section di bawah (struktur beda dari Beranda GoPay).
+   Saldo adalah ELEMEN DOMINAN; info lain sekunder/satu baris.
+   ========================================================= */
+
+/* Kartu saldo — boundary tetap (radius besar + shadow berani) */
+.gp-balance {
+  display: block;
+  min-height: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--dp-radius-lg);
+  background: var(--gp-hero-grad);
+  box-shadow: var(--gp-shadow-cta);
+  padding: 20px 20px 16px;
+  color: #FFFFFF;
+}
+.gp-balance::after { content: none; }
+
+/* Sub-status di bawah saldo — SATU baris kecil, tidak makan ruang */
+.gp-balance-status {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* Baris label + toggle mata */
+.gp-balance .balance-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 10px;
+}
+.gp-balance .balance-label-row p {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.86);
+  margin: 0;
+}
+.gp-balance .gp-eye {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: #FFFFFF;
+  padding: 0;
+  box-shadow: none;
+}
+.gp-balance .gp-eye:active { background: rgba(255, 255, 255, 0.30); }
+
+/* Angka saldo besar — "Rp" kecil + angka BOLD: FOKUS UTAMA kartu */
+.gp-balance-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin: 2px 0 0;
+}
+.gp-balance-amount .gp-currency {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+}
+.gp-balance-amount strong {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(1.7rem, 6.4vw, 2.3rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: #FFFFFF;
+  white-space: nowrap;
+}
+
+/* Baris tipis kekayaan bersih → chevron, bukan section */
+.gp-balance .net-worth-row {
+  margin-top: 14px;
+  padding: 0 0 2px;
+  border-radius: 0;
+  background: none;
+  border: 0;
+  color: #FFFFFF;
+  box-shadow: none;
+}
+.gp-balance .net-worth-row span {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.gp-balance .net-worth-row b {
+  color: #FFFFFF;
+  font-size: 0.88rem;
+}
+.gp-balance .net-worth-row .gp-icon { color: #FFFFFF; }
+
+/* Lv/XP/Streak — beberapa pill kecil (2-3), bukan satu baris panjang:
+   ringkas tapi UTUH terbaca (tanpa ellipsis), boleh wrap bila sempit. */
+.gp-balance .gp-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 14px 0 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.82);
+}
+.gp-balance .gp-meta-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  white-space: nowrap;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.gp-balance .gp-meta-pill b {
+  font-weight: 800;
+  color: #FFFFFF;
+}
+.gp-balance .gp-meta-pill i {
+  font-style: normal;
+  opacity: 0.8;
+}
+
+/* Ikon ilustrasi di dalam colokan stat/transaksi — rata & tidak melebar */
+.stat-icon .gp-icon,
+.transaction-icon .gp-icon { display: block; }
+.stat-icon .gp-icon { margin: auto; }

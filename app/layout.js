@@ -1,5 +1,6 @@
 import './globals.css';
 import './premium.css';
+import './gopay.css';
 
 export const metadata = {
   title: 'Rapi | Catatan Keuangan',

@@ -375,6 +375,30 @@ tab Analisis. Detail lengkap: `.github/copilot-instructions.md` →
 
 ---
 
+## Fase Redesign 3 — GoPay-Inspired
+
+RESTYLING dari Dark Premium, bukan rombak struktur/fitur. Prinsip & pola migrasi
+(`gp-*` berdampingan dulu, dp-* dihapus di GP8) → lihat
+`.github/copilot-instructions.md` → "Fase Redesign 3 — GoPay-Inspired (GP1–GP8)".
+Murni visual: tanpa fitur baru, struktur navigasi/IA TETAP (4 tab + FAB + ActionSheet
++ RiwayatPage + semua alur).
+
+- [ ] **GP1 — Fondasi**: instalasi library ikon ilustrasi flat berwarna (flat-color-icons
+      atau setara, pilih bersama user) + token hero gradient biru/teal + primitif pill
+      `gp-*` (tombol/chip/badge radius penuh); belum menyentuh page.js
+- [ ] **GP2 — Beranda**: hero gradient di header + pill pada CTA/balance/stat/level/
+      streak/budget
+- [ ] **GP3 — Transaksi + Riwayat**: item list, filter pills, ActionSheet, RiwayatPage
+- [ ] **GP4 — Analisis**: recap/skor/saran/50-30-20/simulasi dengan primitif gp
+- [ ] **GP5 — Target**: goal/badge/challenge
+- [ ] **GP6 — Profil**: menu, sub-halaman, kartu profil & share
+- [ ] **GP7 — Auth + modals**: auth page, LevelUpModal/CelebrateModal, sheet-sheet
+- [ ] **GP8 — Cleanup**: hapus rule dp-* lama + audit kontras light+dark + audit overflow
+      WAJIB `node scripts/check-overflow.mjs` (60/60 hijau, exit 1 bila meluap) + verifikasi
+      device fisik
+
+---
+
 # Fase Pasca-Redesign — Roadmap
 
 Urutan pelaksanaan terkunci dari atas ke bawah; satu fase tuntas dulu baru
@@ -538,6 +562,27 @@ lanjut ke bawah. Scope detail tiap fase didiskusikan saat gilirannya tiba.
       #FF8A80 di dark). Verifikasi CDP: toast & pill terukur benar di
       light+dark, auto-dismiss bekerja, modal buka/tutup + konfetti ✓,
       gerbang overflow 60/60 hijau.
+- [x] **Restrukturisasi Beranda + Navigasi v2** *(tuntas)*:
+      8 perubahan terkait navigasi & beranda dalam satu batch atomik:
+      (1) Beranda diperas — kicker dihapus, greeting+add button merger jadi
+      satu baris, statcard income/expense side-by-side, BalanceCard kompak
+      (level+XP+streak dalam satu baris ringkas "Lv 3 · 165/250 XP · 🔥 3 hari");
+      (2) Money check-in + Budget bulanan dipindah dari Beranda ke Analisis;
+      (3) Preview 5 transaksi terakhir muncul di Beranda + tombol "Lihat Semua"
+      yang membuka halaman Riwayat baru (gabungan transaksi+rutin, 2 segmen tab);
+      (4) Nav bar jadi 4 tab (Beranda/Analisis/Target/Profil) — tab Transaksi
+      dihapus dari NAV_TABS; (5) FAB "+" jadi action sheet (3 pilihan: Catat
+      Transaksi, Atur Budget, Tambah Rutin); (6) Rutin dihapus dari
+      PROFILE_MENU_ROWS (sudah diakses via Riwayat); (7) Tombol "Tes notifikasi"
+      di Pengingat pakai pill styling (accent bg, border-radius 999px); (8) Avatar
+      + border (F9) dipropagasi ke header Profil (size 52) dan Kartu Profil &
+      Share (size 46), mengganti avatar inisial lama.
+      RiwayatPage baru: state `historyOpen`, full-screen overlay (z-50) dengan
+      back handler; ActionSheet: state `actionSheet`, overlay (z-45).
+      Back handler priority chain diperbarui (17 level): modals → actionSheet →
+      showForm → budgetSheet → ... → debtsOpen → historyOpen → profileView →
+      tab → exitApp. Dependencies array bertambah `historyOpen` + `actionSheet`.
+      Gate 60/60 hijau. versionCode 4 (1.3).
 - [ ] **Leaderboard**: opt-in, pakai nickname bukan nama asli.
 - [ ] **Mode Tanpa-Login / Guest Mode** *(paling akhir — proyek arsitektur
       besar)*: data guest tersimpan lokal + migrasi ke cloud saat login;

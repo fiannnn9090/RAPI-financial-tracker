@@ -204,9 +204,16 @@
   gap: 12px;
   padding: 2px 4px;
 }
-.profile-head .avatar {
+.profile-head .avatar,
+.profile-head .avatar-frame {
   width: 52px;
   height: 52px;
+}
+.profile-head .avatar-frame {
+  --av-size: 52px;
+  flex: 0 0 52px;
+}
+.profile-head .avatar {
   font-size: 1.3125rem;
 }
 .share-card.clay-card {
@@ -1264,6 +1271,15 @@
 }
 .reminder-test {
   width: 100%;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  font-weight: 700;
+  font-size: .8rem;
+  letter-spacing: .01em;
+  box-shadow: var(--dp-shadow-sm);
+  margin-top: 8px;
 }
 .balance-label-row {
   display: flex;
@@ -1598,11 +1614,18 @@
   align-items: center;
   gap: 12px;
 }
-.share-id .avatar {
+.share-id .avatar,
+.share-id .avatar-frame {
   width: 46px;
   height: 46px;
-  font-size: 1.15rem;
   flex-shrink: 0;
+}
+.share-id .avatar-frame {
+  --av-size: 46px;
+  flex: 0 0 46px;
+}
+.share-id .avatar {
+  font-size: 1.15rem;
 }
 .share-id > div {
   min-width: 0;
@@ -2364,7 +2387,7 @@
 .bottom-nav.dp-nav {
   display: grid;
   /* IA: 4 tab + slot FAB di kolom tengah geometris */
-  grid-template-columns: 1.5fr 1.5fr 64px 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 64px 1fr 1fr;
   background: var(--dp-card);
   border-top: none;
   box-shadow: var(--dp-shadow-nav);
@@ -4419,3 +4442,52 @@
 .mission-checklist li::before { content: '○ '; }
 .mission-checklist li.ok { color: var(--dp-accent, #c9f24b); }
 .mission-checklist li.ok::before { content: '● '; }
+
+/* === Fase 2: Restrukturisasi Beranda + Navigasi v2 === */
+
+/* Compact header: avatar (anchor utama) + greeting di bawah */
+.compact-header { display: flex; align-items: center; gap: 12px; padding: 10px 4px; }
+.compact-header .home-avatar { flex: 0 0 auto; padding: 0; border-radius: 50%; }
+.compact-header .home-avatar .avatar-frame { --av-size: 44px; width: 44px; height: 44px; }
+.greeting-col { flex: 1; min-width: 0; }
+.greeting-inline { font-size: 1.1rem; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Stat row: income + expense side-by-side */
+.stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat-row .stat-card { min-width: 0; }
+.stat-row .stat-card strong { font-size: .82rem; word-break: break-word; line-height: 1.3; }
+
+/* Compact summary grid */
+.compact-summary { display: flex; flex-direction: column; gap: 8px; }
+
+/* Balance card compact variant */
+.balance-card.compact .level-strip { display: none; }
+.level-compact { display: flex; align-items: center; gap: 6px; font-size: .7rem; color: var(--dp-muted, #8b93a5); margin-top: 4px; }
+.level-compact b { color: var(--dp-text, #ededf2); font-weight: 700; }
+
+/* Transaction preview on beranda */
+.tx-preview-section { margin-top: 4px; }
+.tx-preview-section .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.tx-preview-section .section-header h2 { margin: 0; font-size: .88rem; }
+.tx-preview-section .dp-link { font-size: .7rem; color: var(--dp-accent); background: var(--dp-panel-2, #1c2230); border: 1px solid var(--dp-line, #2a3140); border-radius: 999px; padding: 5px 14px; cursor: pointer; font-weight: 700; white-space: nowrap; }
+.tx-preview-section .dp-link:active { background: var(--dp-line, #2a3140); }
+.tx-preview-empty { font-size: .75rem; color: var(--dp-muted); padding: 12px 0; text-align: center; }
+
+/* Riwayat full-screen page */
+.riwayat-page { position: fixed; inset: 0; z-index: 50; background: var(--dp-bg, #0e1117); display: flex; flex-direction: column; overflow: hidden; }
+.riwayat-head { display: flex; flex-direction: column; gap: 10px; padding: calc(12px + env(safe-area-inset-top)) 14px 12px; background: var(--dp-card, #161b22); border-bottom: 1px solid var(--dp-line, #2a3140); flex: 0 0 auto; }
+.riwayat-head-row { display: flex; align-items: center; gap: 8px; }
+.riwayat-head .sub-back { background: none; border: none; color: var(--dp-text); cursor: pointer; padding: 4px; display: grid; place-items: center; }
+.riwayat-head h2 { flex: 1; margin: 0; font-size: .95rem; }
+.riwayat-seg { display: flex; gap: 4px; }
+.riwayat-seg button { font-size: .7rem; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--dp-line); background: transparent; color: var(--dp-muted); cursor: pointer; font-weight: 600; }
+.riwayat-seg button.active { background: var(--dp-accent); color: var(--dp-on-accent); border-color: var(--dp-accent); }
+.riwayat-body { flex: 1; overflow-y: auto; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); }
+.riwayat-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+
+/* Action sheet overlay (FAB) */
+.action-sheet-overlay { position: fixed; inset: 0; z-index: 45; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; }
+.action-sheet { background: var(--dp-card, #161b22); border-radius: 20px 20px 0 0; width: 100%; max-width: 420px; padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 8px; box-shadow: 0 -4px 20px rgba(0,0,0,.35); }
+.action-sheet button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 14px 16px; border: none; border-radius: 14px; background: var(--dp-panel-2, #1c2230); color: var(--dp-text); font-size: .85rem; font-weight: 600; cursor: pointer; text-align: left; }
+.action-sheet button:active { background: var(--dp-line, #2a3140); }
+.action-sheet button .action-icon { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: var(--dp-accent); color: var(--dp-on-accent); font-size: .9rem; flex: 0 0 auto; }

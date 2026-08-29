@@ -24,6 +24,7 @@ import {
   totalsByDirection,
 } from '../lib/debts';
 import { MISSIONS as AVATAR_MISSIONS, avatarSvg, borderRank, evaluateMissions, highestTier, seedsBatch } from '../lib/avatar';
+import { GpIcon, gpKeyForCategory } from '../lib/gopayIcons';
 import { buildRecap } from '../lib/recap';
 import { buildAdvice } from '../lib/advice';
 import { buildScore, previousMonthEnd } from '../lib/score';
@@ -62,7 +63,7 @@ const DEFAULT_CATEGORIES = [
 /* DP9b #11 — sistem ikon UI konsisten: SVG inline stroke=currentColor
    (~1.9px) menggantikan emoji fungsional. Emoji KONTEN USER (kategori,
    dompet, tantangan, badge) tetap emoji karena merepresentasikan data. */
-const NAV_TABS = [['beranda', 'nav.beranda'], ['transaksi', 'nav.transaksi'], ['analisis', 'nav.analisis'], ['target', 'nav.target'], ['profil', 'nav.profil']];
+const NAV_TABS = [['beranda', 'nav.beranda'], ['analisis', 'nav.analisis'], ['target', 'nav.target'], ['profil', 'nav.profil']];
 const ICON_PATHS = {
   /* nav */
   beranda: <><path d="M4 11.2 12 4.5l8 6.7" /><path d="M6.2 10.6V19h11.6v-8.4" /></>,
@@ -130,7 +131,6 @@ const PROFILE_MENU_ROWS = [
   ['akun', 'key', 'prof.menu.akun'],
   ['pengaturan', 'sliders', 'prof.menu.pengaturan'],
   ['kategori', 'grid', 'cat.title'],
-  ['rutin', 'repeat', 'recM.title'],
   ['dompet', 'wallet', 'prof.menu.dompet'],
   ['data', 'box', 'data.title'],
 ];
@@ -494,6 +494,63 @@ function Auth({ onEnter }) {
   </main>;
 }
 
+/* Action sheet — muncul saat FAB "+" di-tap, menampilkan 3 pilihan aksi */
+function ActionSheet({ onSelect, onClose }) {
+  return <div className="action-sheet-overlay" onClick={onClose}>
+    <div className="action-sheet" onClick={(e) => e.stopPropagation()}>
+      <button type="button" onClick={() => onSelect('transaction')}><span className="action-icon">+</span>{t('act.tx')}</button>
+      <button type="button" onClick={() => onSelect('budget')}><span className="action-icon">%</span>{t('act.budget')}</button>
+      <button type="button" onClick={() => onSelect('recurring')}><span className="action-icon">↻</span>{t('act.recurring')}</button>
+    </div>
+  </div>;
+}
+
+/* Riwayat — halaman layar penuh yang menampilkan gabungan transaksi + rutin.
+   Diakses dari tombol "Lihat Semua" di Beranda (menggantikan tab Transaksi). */
+function RiwayatPage({ transactions, recurrings, emojiMap, money, onDelete, onRemoveRecurring, onAdd, onBack }) {
+  const [seg, setSeg] = useState('transaksi');
+  const [filter, setFilter] = useState('all');
+  const [sortMode, setSortMode] = useState('newest');
+  const visible = useMemo(() => {
+    let list = [...transactions];
+    if (filter !== 'all') list = list.filter((item) => item.type === filter);
+    if (sortMode === 'amount') list.sort((a, b) => b.amount - a.amount);
+    else list.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return list;
+  }, [transactions, filter, sortMode]);
+  return <section className="riwayat-page dp-page">
+    <header className="riwayat-head">
+      <div className="riwayat-head-row">
+        <button type="button" className="sub-back" aria-label={t('prof.back')} onClick={onBack}><Icon name="chevronLeft" size={20} /></button>
+        <h2>{seg === 'rutin' ? t('recM.title') : t('tx.title')}</h2>
+      </div>
+      <div className="riwayat-seg dp-seg" role="group"><button type="button" className={seg === 'transaksi' ? 'active' : ''} onClick={() => setSeg('transaksi')}>{t('tx.segShort')}</button><button type="button" className={seg === 'rutin' ? 'active' : ''} onClick={() => setSeg('rutin')}>{t('recM.segShort')}</button></div>
+    </header>
+    {seg === 'transaksi' && <div className="riwayat-body">
+      <div className="riwayat-toolbar">
+        <div className="filters brutal-filters dp-pills">{['all', 'income', 'expense'].map((id) => <button key={id} className={filter === id ? 'active' : ''} onClick={() => setFilter(id)}>{t(`filter.${id}`)}</button>)}</div>
+        <div className="sort-toggle dp-seg" role="group"><button type="button" className={sortMode === 'newest' ? 'active' : ''} onClick={() => setSortMode('newest')}>{t('sort.newest')}</button><button type="button" className={sortMode === 'amount' ? 'active' : ''} onClick={() => setSortMode('amount')}>{t('sort.biggest')}</button></div>
+      </div>
+      <div className="transaction-list">
+        {visible.length ? visible.map((item) => <Transaction key={item.id} item={item} emojiMap={emojiMap} money={money} onDelete={onDelete} />) : <EmptyState filter={filter} filtered={filter !== 'all'} onAdd={onAdd} />}
+      </div>
+    </div>}
+    {seg === 'rutin' && <div className="riwayat-body">
+      <article className="brutal-card recurring-manage-card dp-card">
+        {recurrings.length ? recurrings.map((rule) => <div className="recurring-row" key={rule.id}>
+          <span className="category-emoji">{emojiMap[rule.category] ?? '🔁'}</span>
+          <div className="recurring-info">
+            <strong>{rule.title}</strong>
+            <small>{money.format(rule.amount)} · {rule.frequency === 'monthly' ? t('rec.everyMonthDay', { d: rule.dayOfPeriod }) : t('rec.everyWeekday', { day: rule.dayOfPeriod ? t(`wdF.${rule.dayOfPeriod}`) : '' })}</small>
+            <small className="muted">{t('rec.next')} {dateFmt().format(new Date(`${rule.nextRunDate}T00:00:00`))}</small>
+          </div>
+          <button type="button" aria-label={t('tx.deleteAria', { title: rule.title })} onClick={() => onRemoveRecurring(rule.id)}>×</button>
+        </div>) : <p className="recurring-empty">{t('recM.empty')}</p>}
+      </article>
+    </div>}
+  </section>;
+}
+
 function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', onChangeFontScale, onChangeLang, lang = 'id', theme = 'system', onChangeTheme }) {
   const [tab, setTab] = useState('beranda');
   const [showForm, setShowForm] = useState(false);
@@ -526,6 +583,8 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
   const [importPreview, setImportPreview] = useState(null);
   /* F8 — hutang & piutang: view layar penuh + 2 sheet (form tambah/edit, detail+bayar) */
   const [debtsOpen, setDebtsOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [actionSheet, setActionSheet] = useState(null);
   const [debtFormSheet, setDebtFormSheet] = useState(null); /* {} = baru, objek debt = edit */
   const [debtDetailId, setDebtDetailId] = useState(null);
   const [importBusy, setImportBusy] = useState(false);
@@ -604,6 +663,7 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
     const subscription = CapacitorApp.addListener('backButton', () => {
       if (levelUp) setLevelUp(null);
       else if (celebrate) setCelebrate(null);
+      else if (actionSheet) setActionSheet(null);
       else if (showForm) setShowForm(false);
       else if (budgetSheet) setBudgetSheet(null);
       else if (goalSheet) setGoalSheet(false);
@@ -615,12 +675,13 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
       else if (debtFormSheet) setDebtFormSheet(null);
       else if (debtDetailId) setDebtDetailId(null);
       else if (debtsOpen) setDebtsOpen(false);
+      else if (historyOpen) setHistoryOpen(false);
       else if (profileView) setProfileView(null);
       else if (tab !== 'beranda') setTab('beranda');
       else CapacitorApp.exitApp();
     });
     return () => subscription.remove();
-  }, [tab, showForm, budgetSheet, goalSheet, categorySheet, recurringSheet, walletSheet, challengeSheetOpen, importSheetOpen, levelUp, celebrate, profileView, debtsOpen, debtFormSheet, debtDetailId]);
+  }, [tab, showForm, budgetSheet, goalSheet, categorySheet, recurringSheet, walletSheet, challengeSheetOpen, importSheetOpen, levelUp, celebrate, profileView, debtsOpen, debtFormSheet, debtDetailId, historyOpen, actionSheet]);
   /* F4 — dompet: daftar untuk UI dan resolusi wallet_id saat menulis.
      Pra-migrasi hasWallets=false → field wallet_id tidak pernah dikirim.
      Pasca-migrasi SQL seed/guard enterApp menjamin ada dompet default.
@@ -1047,7 +1108,7 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
     setData((current) => ({ ...current, activeUserId: null }));
   }
   async function buildCardBlob() {
-    const canvas = await drawProfileCard({ username: user.username, level: user.level ?? 1, levelTitle: titleForLevel(user.level ?? 1, lang), streak: user.streakCurrent ?? 0, badgesUnlocked: unlockedBadges, badgesTotal: badgeViews.length, tier: topCardTier, lang });
+    const canvas = await drawProfileCard({ username: user.username, level: user.level ?? 1, levelTitle: titleForLevel(user.level ?? 1, lang), streak: user.streakCurrent ?? 0, badgesUnlocked: unlockedBadges, badgesTotal: badgeViews.length, tier: topCardTier, lang, avatarSeed: user.avatarSeed ?? null, avatarBorder: activeBorder });
     return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
   }
   async function downloadProfileCard() {
@@ -1259,13 +1320,12 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
       akun: ['key', 'prof.menu.akun'],
       pengaturan: ['sliders', 'prof.menu.pengaturan'],
       kategori: ['grid', 'cat.title'],
-      rutin: ['repeat', 'recM.title'],
       dompet: ['wallet', 'prof.menu.dompet'],
       data: ['box', 'data.title'],
       pengingat: ['bell', 'rem.title'],
       danger: ['alert', 'danger.title'],
     }[view] ?? ['file', ''];
-    const addAction = view === 'kategori' ? () => setCategorySheet(true) : view === 'rutin' ? () => setRecurringSheet(true) : view === 'dompet' ? () => setWalletSheet({}) : null;
+    const addAction = view === 'kategori' ? () => setCategorySheet(true) : view === 'dompet' ? () => setWalletSheet({}) : null;
     return <div className="profil-stack profile-sub">
       <header className="sub-header">
         <button type="button" className="sub-back" aria-label={t('prof.back')} onClick={onBack}><Icon name="chevronLeft" size={22} /></button>
@@ -1274,7 +1334,7 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
         {addAction && <button type="button" className="clay-button brutal-button sub-action dp-button" onClick={addAction}>{view === 'kategori' ? t('cat.add') : view === 'dompet' ? t('wallet.add') : t('recM.add')}</button>}
       </header>
       {view === 'avatar' && <AvatarSection user={user} missionViews={missionViews} ownedMissions={ownedMissions} usedFeatures={usedFeatures} onSaveSeed={saveAvatarSeed} />}
-      {view === 'kartu' && <article className="share-card clay-card brutal-card brutal-share dp-card"><p className="kicker">{t('share.kicker')}</p><div className="share-id"><span className="avatar big" aria-hidden="true">{user.username.slice(0, 1).toUpperCase()}</span><div><strong>{user.username}</strong><small>{t('prof.lvTitle', { lvl: profInfo.level, title: titleForLevel(user.level ?? 1, lang) })}</small></div><b className={`share-tier tier-${topCardTier}`}>{topCardTier}</b></div><ul className="share-stats"><li>🔥<span>{t('pc.statsStreak', { n: user.streakCurrent ?? 0 })}</span></li><li>🏅<span>{t('pc.statsBadge', { a: unlockedBadges, b: badgeViews.length })}</span></li></ul><p className="share-note">{t('share.note')}</p><div className="card-actions"><button className="card-button clay-button brutal-button dp-button" onClick={downloadProfileCard}>{t('share.download')}</button>{canShareCard && <button className="card-button ghost-button clay-button brutal-button brutal-ghost dp-button" onClick={shareProfileCard}>{t('share.shareBtn')}</button>}</div></article>}
+      {view === 'kartu' && <article className="share-card clay-card brutal-card brutal-share dp-card"><p className="kicker">{t('share.kicker')}</p><div className="share-id"><AvatarFrame seed={user.avatarSeed} username={user.username} size={48} tier={activeBorder} /><div><strong>{user.username}</strong><small>{t('prof.lvTitle', { lvl: profInfo.level, title: titleForLevel(user.level ?? 1, lang) })}</small></div><b className={`share-tier tier-${topCardTier}`}>{topCardTier}</b></div><ul className="share-stats"><li>🔥<span>{t('pc.statsStreak', { n: user.streakCurrent ?? 0 })}</span></li><li>🏅<span>{t('pc.statsBadge', { a: unlockedBadges, b: badgeViews.length })}</span></li></ul><p className="share-note">{t('share.note')}</p><div className="card-actions"><button className="card-button clay-button brutal-button dp-button" onClick={downloadProfileCard}>{t('share.download')}</button>{canShareCard && <button className="card-button ghost-button clay-button brutal-button brutal-ghost dp-button" onClick={shareProfileCard}>{t('share.shareBtn')}</button>}</div></article>}
       {view === 'pengaturan' && <article className="brutal-card settings-card dp-card">
         <div className="setting-row" role="group" aria-label={t('settings.currency')}>
           <p className="setting-label"><span className="row-icon" aria-hidden="true"><Icon name="exchange" size={18} /></span>{t('settings.currency')}</p>
@@ -1312,17 +1372,6 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
         <CategoryRows label={t('form.income')} items={categories.filter((item) => item.type !== 'expense')} onDelete={removeCategory} onCycleAllocation={cycleAllocation} />
         <CategoryRows label={t('form.expense')} items={categories.filter((item) => item.type !== 'income')} onDelete={removeCategory} onCycleAllocation={cycleAllocation} />
         <p className="alloc-note muted">{t('alloc.note')}</p>
-      </article>}
-      {view === 'rutin' && <article className="brutal-card recurring-manage-card dp-card">
-        {recurrings.length ? recurrings.map((rule) => <div className="recurring-row" key={rule.id}>
-          <span className="category-emoji">{emojiMap[rule.category] ?? '🔁'}</span>
-          <div className="recurring-info">
-            <strong>{rule.title}</strong>
-            <small>{money.format(rule.amount)} · {rule.frequency === 'monthly' ? t('rec.everyMonthDay', { d: rule.dayOfPeriod }) : t('rec.everyWeekday', { day: rule.dayOfPeriod ? t(`wdF.${rule.dayOfPeriod}`) : '' })}</small>
-            <small className="muted">{t('rec.next')} {dateFmt().format(new Date(`${rule.nextRunDate}T00:00:00`))}</small>
-          </div>
-          <button type="button" aria-label={t('tx.deleteAria', { title: rule.title })} onClick={() => removeRecurring(rule.id)}>×</button>
-        </div>) : <p className="recurring-empty">{t('recM.empty')}</p>}
       </article>}
       {view === 'dompet' && <article className="brutal-card recurring-manage-card dp-card">
         {wallets.map((item) => <div className="recurring-row" key={item.id}>
@@ -1367,22 +1416,33 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
 
   return <main className="dashboard-page dp-page">
     <div className="dashboard app-frame" id="dashboard">
-      {debtsOpen ? <DebtsPage debts={debts} hasDebts={hasDebts} money={money} emojiMap={emojiMap} onBack={() => setDebtsOpen(false)} onAdd={() => setDebtFormSheet({})} onEdit={(item) => { setDebtFormSheet(item); }} onOpenDetail={setDebtDetailId} onPayInstallment={payDebtInstallment} onPayFlex={(item, amount) => payDebtFlex(item, amount)} onSettle={settleDebt} onDelete={removeDebt} debtDetailId={debtDetailId} onCloseDetail={() => setDebtDetailId(null)} /> : <>
+      {debtsOpen ? <DebtsPage debts={debts} hasDebts={hasDebts} money={money} emojiMap={emojiMap} onBack={() => setDebtsOpen(false)} onAdd={() => setDebtFormSheet({})} onEdit={(item) => { setDebtFormSheet(item); }} onOpenDetail={setDebtDetailId} onPayInstallment={payDebtInstallment} onPayFlex={(item, amount) => payDebtFlex(item, amount)} onSettle={settleDebt} onDelete={removeDebt} debtDetailId={debtDetailId} onCloseDetail={() => setDebtDetailId(null)} /> : historyOpen ? <RiwayatPage transactions={transactions} recurrings={recurrings} emojiMap={emojiMap} money={money} onDelete={removeTransaction} onRemoveRecurring={removeRecurring} onAdd={() => setShowForm(true)} onBack={() => setHistoryOpen(false)} /> : <>
       {tab === 'beranda' && <>
-      <header className="mobile-header"><a className="brand dark brutal-brand" href="#dashboard"><span>r</span> rapi</a></header>
-      {hasWallets && wallets.length > 1 && <WalletSwitcher wallets={wallets} active={activeWalletKey} onChange={changeActiveWallet} />}
-      <section className="dashboard-heading clay-heading brutal-heading dp-heading">
-        {hasAvatarSupport && <button type="button" className="home-avatar" aria-label={t('av.openAria')} onClick={() => { setTab('profil'); setProfileView('avatar'); window.scrollTo(0, 0); }}>
-          <AvatarFrame seed={user.avatarSeed} username={user.username} size={40} tier={activeBorder} />
-        </button>}
-        <div><p className="kicker">{t('home.kicker')}</p><h1>{t('home.greeting', { name: user.username })} <span aria-hidden="true">👋</span></h1></div>
-        <button className="clay-button brutal-button dp-button" onClick={() => setShowForm(true)}><span>+</span> {t('btn.addTx')}</button>
-      </section>
-      <section className="summary-grid">
-        <BalanceCard balance={balance} hidden={hideBalance} money={money} onToggleHidden={toggleHideBalance} xp={user.xp ?? 0} streak={user.streakCurrent ?? 0} lang={lang} showNet={hasDebts} netWorth={netWorthValue} onOpenDebts={() => { setDebtsOpen(true); window.scrollTo(0, 0); }} />
-        <StatCard label={t('stat.income')} amount={income} icon="arrowDown" variant="income" hidden={hideBalance} money={money} />
-        <StatCard label={t('stat.expense')} amount={expense} icon="arrowUp" variant="expense" hidden={hideBalance} money={money} />
-      </section>
+        {/* GP2 — BalanceCard = kartu gradient ROUNDED di atas bg gelap DP.
+            Saldo = elemen dominan; Lv/XP/streak = satu baris teks sekunder. */}
+        {hasWallets && wallets.length > 1 && <WalletSwitcher wallets={wallets} active={activeWalletKey} onChange={changeActiveWallet} />}
+        <section className="dashboard-heading compact-header">
+          {hasAvatarSupport && <button type="button" className="home-avatar" aria-label={t('av.openAria')} onClick={() => { setTab('profil'); setProfileView('avatar'); window.scrollTo(0, 0); }}>
+            <AvatarFrame seed={user.avatarSeed} username={user.username} size={44} tier={activeBorder} />
+          </button>}
+          <div className="greeting-col">
+            <h1 className="greeting-inline">{t('home.greeting', { name: user.username })} <span aria-hidden="true">👋</span></h1>
+          </div>
+        </section>
+        <section className="summary-grid compact-summary">
+          <BalanceCard balance={balance} hidden={hideBalance} money={money} onToggleHidden={toggleHideBalance} xp={user.xp ?? 0} streak={user.streakCurrent ?? 0} lang={lang} showNet={hasDebts} netWorth={netWorthValue} onOpenDebts={() => { setDebtsOpen(true); window.scrollTo(0, 0); }} />
+          <div className="stat-row">
+            <StatCard label={t('stat.income')} amount={income} icon="paid" variant="income" hidden={hideBalance} money={money} />
+            <StatCard label={t('stat.expense')} amount={expense} icon="export" variant="expense" hidden={hideBalance} money={money} />
+          </div>
+        </section>
+        <section className="tx-preview-section brutal-section">
+          <div className="section-header"><h2>{t('tx.title')}</h2><button className="dp-link gp-pill" onClick={() => setHistoryOpen(true)}>{t('tx.viewAll')}</button></div>
+          <div className="transaction-list">
+            {[...lensedTransactions].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5).map((item) => <Transaction key={item.id} item={item} emojiMap={emojiMap} money={money} onDelete={removeTransaction} />)}
+            {!lensedTransactions.length && <p className="tx-preview-empty">{t('tx.emptyHint')}</p>}
+          </div>
+        </section>
       </>}
       {tab === 'analisis' && <>
       {/* IA baru: Recap Cerita jadi headline tab Analisis (dipindah dari Beranda) */}
@@ -1417,6 +1477,8 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
           </>}
         </article>
       </section>
+      <section className="insight-section clay-insight brutal-section"><div className="section-header"><div><h2>{t('insight.title')}</h2><p>{t('insight.sub')}</p></div></div><div className="insight-grid"><article className="insight-card clay-card brutal-card dp-card"><span className="insight-ico"><Icon name="bulb" size={26} /></span><div><p className="kicker">{topSpending ? t('insight.topKicker') : t('insight.title')}</p><strong>{topSpending ? `${emojiMap[topSpending.category] ?? '✨'} ${topSpending.category}` : t('insight.none')}</strong>{topSpending && <span className="insight-amount">{money.format(topSpending.amount)}</span>}<p className="insight-caption">{topSpending ? t('insight.captionTop') : t('insight.captionEmpty')}</p></div></article><article className="chart-card clay-card brutal-card dp-card"><div className="chart-title"><strong>{t('chart.title')}</strong><span>{t('chart.period')}</span></div>{categorySummary.length ? <div className="chart-bars">{categorySummary.map((item) => <div className="chart-row" key={item.category}><span>{emojiMap[item.category] ?? '✨'}</span><div><div><strong>{item.category}</strong><b>{money.format(item.amount)}</b></div><i><em style={{ width: `${item.amount / chartMax * 100}%` }} /></i></div></div>)}</div> : <p className="chart-empty">{t('chart.empty')}</p>}</article></div></section>
+      <section className="budget-section clay-budget brutal-section"><div className="section-header"><div><h2>{t('budget.title')}</h2><p>{t('budget.sub')}{hasWallets && wallets.length > 1 ? ` · ${t('budget.scopeAll')}` : ''}</p></div><button className="budget-add clay-button brutal-button dp-button" onClick={() => setBudgetSheet({})}>{t('budget.add')}</button></div>{budgetEntries.length ? <div className="budget-grid">{budgetEntries.map(([category, limit]) => { const spent = spendingFor(category); const ratio = spent / limit; const state = ratio >= 1 ? 'over' : ratio >= .8 ? 'near' : 'safe'; return <article className="budget-item clay-card brutal-card dp-card" key={category}><div><span>{emojiMap[category] ?? '✨'}</span><strong>{category}</strong><button onClick={() => setBudgetSheet({ category })} aria-label={t('budget.editAria', { category })}>⋯</button></div><div className="budget-bar"><span className={state} style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div><p><b>{money.format(spent)}</b> / {money.format(limit)} <em>{state === 'over' ? t('budget.over') : state === 'near' ? t('budget.near') : t('budget.safe')}</em></p></article>; })}</div> : <div className="budget-empty brutal-empty dp-card"><span className="empty-ico"><Icon name="sparkle" size={28} /></span><div><strong>{t('budget.emptyT')}</strong><p>{t('budget.emptyD')}</p></div><button className="clay-button brutal-button dp-button" onClick={() => setBudgetSheet({})}>{t('budget.createBtn')}</button></div>}</section>
       </>}
       {tab === 'target' && <>
       <section className="playful-grid tab-target">
@@ -1456,33 +1518,8 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
         </article>}
       </section>
       </>}
-      {tab === 'beranda' && <>
-      <section className="insight-section clay-insight brutal-section"><div className="section-header"><div><h2>{t('insight.title')}</h2><p>{t('insight.sub')}</p></div></div><div className="insight-grid"><article className="insight-card clay-card brutal-card dp-card"><span className="insight-ico"><Icon name="bulb" size={26} /></span><div><p className="kicker">{topSpending ? t('insight.topKicker') : t('insight.title')}</p><strong>{topSpending ? `${emojiMap[topSpending.category] ?? '✨'} ${topSpending.category}` : t('insight.none')}</strong>{topSpending && <span className="insight-amount">{money.format(topSpending.amount)}</span>}<p className="insight-caption">{topSpending ? t('insight.captionTop') : t('insight.captionEmpty')}</p></div></article><article className="chart-card clay-card brutal-card dp-card"><div className="chart-title"><strong>{t('chart.title')}</strong><span>{t('chart.period')}</span></div>{categorySummary.length ? <div className="chart-bars">{categorySummary.map((item) => <div className="chart-row" key={item.category}><span>{emojiMap[item.category] ?? '✨'}</span><div><div><strong>{item.category}</strong><b>{money.format(item.amount)}</b></div><i><em style={{ width: `${item.amount / chartMax * 100}%` }} /></i></div></div>)}</div> : <p className="chart-empty">{t('chart.empty')}</p>}</article></div></section>
-      <section className="budget-section clay-budget brutal-section"><div className="section-header"><div><h2>{t('budget.title')}</h2><p>{t('budget.sub')}{hasWallets && wallets.length > 1 ? ` · ${t('budget.scopeAll')}` : ''}</p></div><button className="budget-add clay-button brutal-button dp-button" onClick={() => setBudgetSheet({})}>{t('budget.add')}</button></div>{budgetEntries.length ? <div className="budget-grid">{budgetEntries.map(([category, limit]) => { const spent = spendingFor(category); const ratio = spent / limit; const state = ratio >= 1 ? 'over' : ratio >= .8 ? 'near' : 'safe'; return <article className="budget-item clay-card brutal-card dp-card" key={category}><div><span>{emojiMap[category] ?? '✨'}</span><strong>{category}</strong><button onClick={() => setBudgetSheet({ category })} aria-label={t('budget.editAria', { category })}>⋯</button></div><div className="budget-bar"><span className={state} style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div><p><b>{money.format(spent)}</b> / {money.format(limit)} <em>{state === 'over' ? t('budget.over') : state === 'near' ? t('budget.near') : t('budget.safe')}</em></p></article>; })}</div> : <div className="budget-empty brutal-empty dp-card"><span className="empty-ico"><Icon name="sparkle" size={28} /></span><div><strong>{t('budget.emptyT')}</strong><p>{t('budget.emptyD')}</p></div><button className="clay-button brutal-button dp-button" onClick={() => setBudgetSheet({})}>{t('budget.createBtn')}</button></div>}</section>
-      </>}
-      {tab === 'transaksi' && <>
-      <section className="transactions-section clay-transactions brutal-section">
-        <div className="section-header"><div><h2>{t('tx.title')}</h2><p>{t('tx.count', { n: transactions.length })}</p></div><div className="filters brutal-filters dp-pills">{['all', 'income', 'expense'].map((id) => <button key={id} className={filter === id ? 'active' : ''} onClick={() => setFilter(id)}>{t(`filter.${id}`)}</button>)}</div></div>
-        <div className="list-toolbar">
-          {hasWallets && wallets.length > 1 && <div className="wallet-switcher tx-scope" role="group" aria-label={t('wallet.switchAria')}>
-            <button type="button" className={txWalletFilter === 'all' ? 'active' : ''} aria-pressed={txWalletFilter === 'all'} onClick={() => setTxWalletFilter('all')}>Σ {t('wallet.all')}</button>
-            {wallets.map((item) => <button key={item.id} type="button" className={txWalletFilter === item.id ? 'active' : ''} aria-pressed={txWalletFilter === item.id} onClick={() => setTxWalletFilter(item.id)}>{item.emoji}</button>)}
-          </div>}
-          <div className="category-filters" role="group" aria-label={t('tx.filterAria')}>
-            {categoryChips.map((item) => <button key={item.id} type="button" className={categoryFilter === item.name ? 'active' : ''} aria-pressed={categoryFilter === item.name} onClick={() => setCategoryFilter(categoryFilter === item.name ? '' : item.name)}>{item.emoji} {item.name}</button>)}
-          </div>
-          <div className="sort-toggle dp-seg" role="group" aria-label={t('tx.sortAria')}>
-            <button type="button" className={sortMode === 'newest' ? 'active' : ''} onClick={() => setSortMode('newest')}>{t('sort.newest')}</button>
-            <button type="button" className={sortMode === 'amount' ? 'active' : ''} onClick={() => setSortMode('amount')}>{t('sort.biggest')}</button>
-          </div>
-        </div>
-        <div className="transaction-list">
-          {visibleTransactions.length ? visibleTransactions.map((item) => <Transaction key={item.id} item={item} emojiMap={emojiMap} money={money} onDelete={removeTransaction} />) : <EmptyState filter={filter} filtered={filter !== 'all' || Boolean(categoryFilter)} onAdd={() => setShowForm(true)} />}
-        </div>
-      </section>
-      </>}
       {tab === 'profil' && (profileView ? <ProfileSubPage view={profileView} onBack={() => setProfileView(null)} /> : <section className="profil-stack">
-      <div className="profile-head"><span className="avatar big">{user.username.slice(0, 1).toUpperCase()}</span><div><strong>{user.username}</strong><small>{t('prof.lvTitle', { lvl: profInfo.level, title: titleForLevel(user.level ?? 1, lang) })}</small></div></div>
+      <div className="profile-head"><AvatarFrame seed={user.avatarSeed} username={user.username} size={52} tier={activeBorder} /><div><strong>{user.username}</strong><small>{t('prof.lvTitle', { lvl: profInfo.level, title: titleForLevel(user.level ?? 1, lang) })}</small></div></div>
       <nav className="profile-menu brutal-card dp-card" aria-label={t('prof.menu.aria')}>
         {PROFILE_MENU_ROWS.filter(([id]) => id !== 'avatar' || hasAvatarSupport).map(([id, icon, labelKey]) => <button key={id} type="button" className="profile-menu-row dp-item" onClick={() => setProfileView(id)}><span className="row-icon" aria-hidden="true"><Icon name={icon} size={20} /></span><span className="row-label">{t(labelKey)}</span><span className="row-chevron" aria-hidden="true">›</span></button>)}
         {showReminderCard && <button type="button" className="profile-menu-row dp-item" onClick={() => setProfileView('pengingat')}><span className="row-icon" aria-hidden="true"><Icon name="bell" size={20} /></span><span className="row-label">{t('rem.title')}</span><span className="row-chevron" aria-hidden="true">›</span></button>}
@@ -1493,7 +1530,8 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
       </>}
     </div>
     {toast && <div className="brutal-toast" role="status">{toast}</div>}
-    <BottomNav active={tab} onChange={setTab} onAdd={() => setShowForm(true)} />
+    <BottomNav active={tab} onChange={setTab} onAdd={() => setActionSheet('menu')} />
+    {actionSheet && <ActionSheet onSelect={(type) => { setActionSheet(null); if (type === 'transaction') setShowForm(true); else if (type === 'budget') setBudgetSheet({}); else if (type === 'recurring') setRecurringSheet(true); }} onClose={() => setActionSheet(null)} />}
     {showForm && <TransactionForm expenseOptions={expenseCategories} incomeOptions={incomeCategories} wallets={wallets} hasWallets={hasWallets} defaultWalletId={defaultWallet?.id ?? null} onClose={() => setShowForm(false)} onSubmit={addTransaction} />}
     {budgetSheet && <BudgetSheet options={expenseCategories} initialCategory={budgetSheet.category ?? ''} currentLimit={budgetSheet.category ? budgets[budgetSheet.category] : ''} onClose={() => setBudgetSheet(null)} onSubmit={saveBudget} />}
     {goalSheet && <GoalSheet goal={goal} onClose={() => setGoalSheet(false)} onSubmit={saveGoal} />}
@@ -1510,9 +1548,24 @@ function Dashboard({ user, data, setData, autoGenerated = 0, fontScale = '1', on
 
 function BalanceCard({ balance, hidden = false, onToggleHidden, xp, streak = 0, money, lang = 'id', showNet = false, netWorth = 0, onOpenDebts }) {
   const info = levelProgress(xp, lang);
-  return <article className="balance-card clay-card brutal-card dp-card"><div><div className="balance-label-row"><p>{t('balance.label')}</p><button type="button" className="eye-toggle" aria-pressed={hidden} aria-label={hidden ? t('balance.ariaShow') : t('balance.ariaHide')} onClick={onToggleHidden}><Icon name={hidden ? 'eyeOff' : 'eye'} size={20} /></button></div><strong>{hidden ? MASKED_AMOUNT : money.format(balance)}</strong><small>{balance >= 0 ? t('balance.ok') : t('balance.neg')}</small>{showNet && <button type="button" className="net-worth-row" aria-label={t('debts.openAria')} onClick={onOpenDebts}><span>{t('debts.netWorth')}</span><b>{hidden ? MASKED_AMOUNT : money.format(netWorth)}</b><Icon name="chevronRight" size={14} /></button>}<div className="level-strip"><div className="level-chip"><b>Lv {info.level}</b><span>{info.title}</span></div><div className="level-bar" role="progressbar" aria-valuenow={info.percent} aria-valuemin={0} aria-valuemax={100} aria-label={t('xp.progressAria', { lvl: info.level + 1 })}><span style={{ width: `${info.percent}%` }} /></div><small>{t('xp.toNext', { a: info.xpIntoLevel, b: info.xpForNextLevel, lvl: info.level + 1 })}</small><div className={`streak-chip ${streak > 0 ? 'active' : 'idle'}`}>{streak > 0 ? t('streak.active', { n: streak }) : t('streak.start')}</div></div></div><div className="balance-mark">Rp</div></article>;
+  const parts = (() => {
+    const str = money.format(hidden ? 0 : balance);
+    const m = str.match(/^(\D*?)\s+(.+)$/);
+    return m ? { sym: m[1], num: m[2] } : { sym: '', num: str };
+  })();
+  return <article className="balance-card gp-balance">
+    <div className="balance-label-row gp-balance-top"><p>{t('balance.label')}</p><button type="button" className="eye-toggle gp-eye" aria-pressed={hidden} aria-label={hidden ? t('balance.ariaShow') : t('balance.ariaHide')} onClick={onToggleHidden}><GpIcon name="eye" size={18} /></button></div>
+    <div className="gp-balance-amount">{hidden ? <strong>{MASKED_AMOUNT}</strong> : <><span className="gp-currency">{parts.sym}</span><strong>{parts.num}</strong></>}</div>
+    <small className="gp-balance-status">{balance >= 0 ? t('balance.ok') : t('balance.neg')}</small>
+    {showNet && <button type="button" className="net-worth-row gp-net" aria-label={t('debts.openAria')} onClick={onOpenDebts}><span>{t('debts.netWorth')}</span><b>{hidden ? MASKED_AMOUNT : money.format(netWorth)}</b><GpIcon name="chevronRight" size={14} /></button>}
+    <div className="gp-meta" title={t('xp.toNext', { a: info.xpIntoLevel, b: info.xpForNextLevel, lvl: info.level + 1 })}>
+      <span className="gp-meta-pill"><b>Lv {info.level}</b><i>{info.title}</i></span>
+      <span className="gp-meta-pill"><b>{info.xpIntoLevel}</b>{info.xpForNextLevel} XP</span>
+      <span className="gp-meta-pill">{streak > 0 ? t('streak.active', { n: streak }) : t('streak.start')}</span>
+    </div>
+  </article>;
 }
-function StatCard({ label, amount, icon, variant, hidden = false, money }) { return <article className={`stat-card clay-card brutal-card dp-card ${variant}`}><span className={`stat-icon ${variant}`}><Icon name={icon} size={22} /></span><div><p>{label}</p><strong>{hidden ? MASKED_AMOUNT : money.format(amount)}</strong><small>{variant === 'income' ? t('stat.incomeSub') : t('stat.expenseSub')}</small></div></article>; }
+function StatCard({ label, amount, icon, variant, hidden = false, money }) { return <article className={`stat-card clay-card brutal-card dp-card ${variant}`}><span className={`stat-icon ${variant}`}><GpIcon name={icon} size={22} /></span><div><p>{label}</p><strong>{hidden ? MASKED_AMOUNT : money.format(amount)}</strong><small>{variant === 'income' ? t('stat.incomeSub') : t('stat.expenseSub')}</small></div></article>; }
 
 /* F4b — switcher dompet Beranda: chip scroll-snap ala toolbar kategori.
    Muncul hanya saat >1 dompet; pilihan "Semua" = gabungan seluruh dompet. */
@@ -1525,7 +1578,7 @@ function WalletSwitcher({ wallets = [], active, onChange }) {
 
 function Transaction({ item, emojiMap = {}, onDelete , money }) {
   const income = item.type === 'income';
-  return <article className="transaction clay-card brutal-card brutal-row dp-item"><span className={`transaction-icon ${income ? 'income' : 'expense'}`}>{emojiMap[item.category] || '✨'}</span><div className="transaction-info"><strong>{item.title}</strong><span>{item.category} <i>•</i> {dateFmt().format(new Date(`${item.date}T00:00:00`))}</span></div><strong className={income ? 'amount income-text' : 'amount expense-text'}>{income ? '+' : '−'} {money.format(item.amount)}</strong><button className="delete-transaction" aria-label={t('tx.deleteAria', { title: item.title })} onClick={() => onDelete(item.id)}>×</button></article>;
+  return <article className="transaction clay-card brutal-card brutal-row dp-item"><span className={`transaction-icon ${income ? 'income' : 'expense'}`}><GpIcon name={gpKeyForCategory(item.category)} size={20} /></span><div className="transaction-info"><strong>{item.title}</strong><span>{item.category} <i>•</i> {dateFmt().format(new Date(`${item.date}T00:00:00`))}</span></div><strong className={income ? 'amount income-text' : 'amount expense-text'}>{income ? '+' : '−'} {money.format(item.amount)}</strong><button className="delete-transaction" aria-label={t('tx.deleteAria', { title: item.title })} onClick={() => onDelete(item.id)}>×</button></article>;
 }
 
 function EmptyState({ filter, filtered = false, onAdd }) { return <div className="empty brutal-empty-state dp-card"><span>⌁</span><h3>{filtered ? t('empty.filtered') : filter === 'all' ? t('empty.all') : t('empty.type')}</h3><p>{filtered ? t('empty.filteredHint') : t('empty.hint')}</p>{filter === 'all' && !filtered && <button className="empty-button clay-button brutal-button dp-button" onClick={onAdd}>{t('btn.addTx')}</button>}</div>; }
