@@ -524,12 +524,12 @@ function RiwayatPage({ transactions, recurrings, emojiMap, money, onDelete, onRe
         <button type="button" className="sub-back" aria-label={t('prof.back')} onClick={onBack}><Icon name="chevronLeft" size={20} /></button>
         <h2>{seg === 'rutin' ? t('recM.title') : t('tx.title')}</h2>
       </div>
-      <div className="riwayat-seg dp-seg" role="group"><button type="button" className={seg === 'transaksi' ? 'active' : ''} onClick={() => setSeg('transaksi')}>{t('tx.segShort')}</button><button type="button" className={seg === 'rutin' ? 'active' : ''} onClick={() => setSeg('rutin')}>{t('recM.segShort')}</button></div>
+      <div className="riwayat-seg gp-seg" role="group"><button type="button" className={`gp-pill gp-pill-chip ${seg === 'transaksi' ? 'on' : ''}`} onClick={() => setSeg('transaksi')}>{t('tx.segShort')}</button><button type="button" className={`gp-pill gp-pill-chip ${seg === 'rutin' ? 'on' : ''}`} onClick={() => setSeg('rutin')}>{t('recM.segShort')}</button></div>
     </header>
     {seg === 'transaksi' && <div className="riwayat-body">
       <div className="riwayat-toolbar">
-        <div className="filters brutal-filters dp-pills">{['all', 'income', 'expense'].map((id) => <button key={id} className={filter === id ? 'active' : ''} onClick={() => setFilter(id)}>{t(`filter.${id}`)}</button>)}</div>
-        <div className="sort-toggle dp-seg" role="group"><button type="button" className={sortMode === 'newest' ? 'active' : ''} onClick={() => setSortMode('newest')}>{t('sort.newest')}</button><button type="button" className={sortMode === 'amount' ? 'active' : ''} onClick={() => setSortMode('amount')}>{t('sort.biggest')}</button></div>
+        <div className="filters gp-filters">{['all', 'income', 'expense'].map((id) => <button key={id} className={`gp-pill gp-pill-chip ${filter === id ? 'on' : ''}`} onClick={() => setFilter(id)}>{t(`filter.${id}`)}</button>)}</div>
+        <div className="sort-toggle gp-seg" role="group"><button type="button" className={`gp-pill gp-pill-chip ${sortMode === 'newest' ? 'on' : ''}`} onClick={() => setSortMode('newest')}>{t('sort.newest')}</button><button type="button" className={`gp-pill gp-pill-chip ${sortMode === 'amount' ? 'on' : ''}`} onClick={() => setSortMode('amount')}>{t('sort.biggest')}</button></div>
       </div>
       <div className="transaction-list">
         {visible.length ? visible.map((item) => <Transaction key={item.id} item={item} emojiMap={emojiMap} money={money} onDelete={onDelete} />) : <EmptyState filter={filter} filtered={filter !== 'all'} onAdd={onAdd} />}
@@ -538,7 +538,7 @@ function RiwayatPage({ transactions, recurrings, emojiMap, money, onDelete, onRe
     {seg === 'rutin' && <div className="riwayat-body">
       <article className="brutal-card recurring-manage-card dp-card">
         {recurrings.length ? recurrings.map((rule) => <div className="recurring-row" key={rule.id}>
-          <span className="category-emoji">{emojiMap[rule.category] ?? '🔁'}</span>
+          <span className="recurring-ico gp-ico"><GpIcon name={gpKeyForCategory(rule.category)} size={20} /></span>
           <div className="recurring-info">
             <strong>{rule.title}</strong>
             <small>{money.format(rule.amount)} · {rule.frequency === 'monthly' ? t('rec.everyMonthDay', { d: rule.dayOfPeriod }) : t('rec.everyWeekday', { day: rule.dayOfPeriod ? t(`wdF.${rule.dayOfPeriod}`) : '' })}</small>
@@ -1560,7 +1560,7 @@ function BalanceCard({ balance, hidden = false, onToggleHidden, xp, streak = 0, 
     {showNet && <button type="button" className="net-worth-row gp-net" aria-label={t('debts.openAria')} onClick={onOpenDebts}><span>{t('debts.netWorth')}</span><b>{hidden ? MASKED_AMOUNT : money.format(netWorth)}</b><GpIcon name="chevronRight" size={14} /></button>}
     <div className="gp-meta" title={t('xp.toNext', { a: info.xpIntoLevel, b: info.xpForNextLevel, lvl: info.level + 1 })}>
       <span className="gp-meta-pill"><b>Lv {info.level}</b><i>{info.title}</i></span>
-      <span className="gp-meta-pill"><b>{info.xpIntoLevel}</b>{info.xpForNextLevel} XP</span>
+      <span className="gp-meta-pill"><b>{info.xpIntoLevel}</b>/{info.xpForNextLevel} XP</span>
       <span className="gp-meta-pill">{streak > 0 ? t('streak.active', { n: streak }) : t('streak.start')}</span>
     </div>
   </article>;

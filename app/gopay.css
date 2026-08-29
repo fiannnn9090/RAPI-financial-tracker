@@ -8,8 +8,14 @@
 
    Karakter: base gelap nyaris hitam Dark Premium DIPERTAHANKAN
    (token --dp-* light+dark tetap sumber permukaan/teks/radius),
-   TAMBAH hero gradient biru→teal khusus header Beranda, dan
+   TAMBAH hero gradient KUNING/KEEMASAN khusus header Beranda, dan
    SEMUA tombol/chip/badge menjadi PILL (radius penuh ~999px).
+
+   PENTING (akun warna): aksen dominan RAPI TETAP KUNING
+   (--dp-accent: #FFC629, dari Dark Premium). Yang diadaptasi dari
+   GoPay HANYA bentuk/pola visual (pill, kartu saldo minimalis, ikon
+   ilustrasi per-kategori), BUKAN palet brand. Jadi hero gradient &
+   CTA pill memakai KUNING → KEEMASAN → AMBER (bukan biru-teal GoPay).
 
    Posisi kaskade: wajib dimuat SETELAH premium.css (ditambahkan
    di layout.js setelahnya) agar gp-* bisa menimpa dp-* kapan pun.
@@ -17,10 +23,11 @@
 
 /* ============ Token GP — default (light) ============ */
 :root {
-  /* Hero gradient biru → teal (khusus header Beranda + CTA pill) */
-  --gp-hero-a: #0C8FE8;         /* biru GoPay */
-  --gp-hero-b: #16B4F2;         /* biru muda */
-  --gp-hero-c: #00C9A5;         /* teal */
+  /* Hero gradient KUNING → KEEMASAN → AMBER (identitas RAPI, bukan biru).
+     Radius cukup dalam agar teks putih tetap terbaca di kartu saldo. */
+  --gp-hero-a: #F59E0B;         /* keemasan utama */
+  --gp-hero-b: #E8890C;         /* keemasan tua */
+  --gp-hero-c: #C9760A;         /* amber tua (gradasi kedua) */
   --gp-hero-grad: linear-gradient(130deg, var(--gp-hero-a) 0%, var(--gp-hero-b) 52%, var(--gp-hero-c) 100%);
   --gp-hero-ink: #FFFFFF;       /* teks di atas gradient + CTA */
 
@@ -34,18 +41,18 @@
      color-mix → WebView modern aman (Chrome 111+, target Android ini). */
   --gp-ico-tint: color-mix(in srgb, var(--gp-hero-a) 16%, transparent);
 
-  /* Shadow untuk CTA/hero — lebih berani dari dp (elemen gradient) */
-  --gp-shadow-cta: 0 6px 16px rgba(12, 143, 232, 0.30);
+  /* Shadow untuk CTA/hero — glow hangat keemasan */
+  --gp-shadow-cta: 0 6px 16px rgba(230, 150, 20, 0.40);
 }
 
 /* ============ Token GP — dark (mengikuti sistem) ============ */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    /* Hero tetap cerah di dark (GoPay) — teal sedikit diredam supaya
-       tidak silau di latar #0F0F13 */
-    --gp-hero-a: #0E7FE0;
-    --gp-hero-b: #12A8E8;
-    --gp-hero-c: #00BFA2;
+    /* Hero tetap cerah di dark — amber sedikit diredam supaya tidak
+       silau di latar #0F0F13 */
+    --gp-hero-a: #F5B301;
+    --gp-hero-b: #E8890C;
+    --gp-hero-c: #B45309;
     --gp-ico-tint: color-mix(in srgb, var(--gp-hero-a) 26%, transparent);
     --gp-shadow-cta: 0 6px 16px rgba(0, 0, 0, 0.45);
   }
@@ -53,9 +60,9 @@
 
 /* ============ Token GP — dark (manual) ============ */
 [data-theme='dark'] {
-  --gp-hero-a: #0E7FE0;
-  --gp-hero-b: #12A8E8;
-  --gp-hero-c: #00BFA2;
+  --gp-hero-a: #F5B301;
+  --gp-hero-b: #E8890C;
+  --gp-hero-c: #B45309;
   --gp-ico-tint: color-mix(in srgb, var(--gp-hero-a) 26%, transparent);
   --gp-shadow-cta: 0 6px 16px rgba(0, 0, 0, 0.45);
 }
@@ -290,3 +297,137 @@
 .stat-icon .gp-icon,
 .transaction-icon .gp-icon { display: block; }
 .stat-icon .gp-icon { margin: auto; }
+
+/* =========================================================
+   GP3 — TRANSAKSI & RIWAYAT
+   List item + toolbar halaman Riwayat jadi gaya GP (pill, tint
+   hero, ikon ilustrasi). MENIMPA rule premium: .dp-pills/.dp-seg
+   (2716-2762), .transaction.dp-item (2764-2794),
+   .filters.brutal-filters (872-892),
+   .transaction.brutal-row .transaction-icon (893-902),
+   .category-emoji (1059-1069), .riwayat-* (4477+).
+   HANYA bahasa gp-*.
+   ========================================================= */
+
+/* Segmen (Transaksi/Rutin) + sort — dua pill; aktif pakai tint hero */
+.gp-seg {
+  display: inline-flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.gp-seg .gp-pill-chip {
+  padding: 8px 15px;
+  font-size: 12.5px;
+}
+
+/* Netralkan box .sort-toggle lama saat dipakai sebagai seg GP */
+.sort-toggle.gp-seg {
+  border: none;
+  background: transparent;
+  overflow: visible;
+  box-shadow: none;
+}
+
+/* Toolbar filter Riwayat — pill baris, tidak ada box pilah */
+.riwayat-toolbar .filters.gp-filters,
+.dp-page .filters.gp-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+.gp-filters .gp-pill-chip {
+  padding: 8px 14px;
+  font-size: 12.5px;
+  flex: 0 1 auto;
+}
+.gp-filters .gp-pill-chip,
+.riwayat-toolbar .filters.gp-filters button {
+  border: none;
+  border-radius: 999px;
+  background: var(--gp-chip-bg);
+  color: var(--gp-chip-muted);
+}
+.riwayat-toolbar .filters.gp-filters button.on {
+  background: var(--gp-ico-tint);
+  color: var(--gp-hero-a);
+}
+
+/* Segmen header Riwayat (Transaksi/Rutin) — timpa .riwayat-seg dp */
+.riwayat-seg.gp-seg button {
+  border: none;
+  border-radius: 999px;
+  background: var(--gp-chip-bg);
+  color: var(--gp-chip-muted);
+  font-weight: 600;
+  font-size: 12.5px;
+  padding: 8px 15px;
+}
+.riwayat-seg.gp-seg button.on,
+.riwayat-seg.gp-seg button.active {
+  background: var(--gp-ico-tint);
+  color: var(--gp-hero-a);
+}
+
+/* Item transaksi — kartu flat rounded, ikon ilustrasi di colokan tint */
+.dp-page .transaction.dp-item,
+.transaction.brutal-row {
+  border-radius: 16px;
+  border: none;
+  box-shadow: none;
+}
+.transaction.brutal-row .transaction-icon {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+.transaction.brutal-row .transaction-icon.income {
+  background: var(--dp-income-tint);
+}
+.transaction.brutal-row .transaction-icon.expense {
+  background: var(--dp-expense-tint);
+}
+.transaction.brutal-row .transaction-icon .gp-icon {
+  display: block;
+}
+
+/* Delete/aksi kecil pada baris — pill bulat, tanpa border brutal */
+.transaction.brutal-row .delete-transaction {
+  border: none;
+  border-radius: 50%;
+  background: var(--gp-chip-bg);
+  color: var(--gp-chip-muted);
+  box-shadow: none;
+}
+
+/* Baris Rutin di segmen Rutin — colokan bulat ikon ilustrasi GP */
+.recurring-row .recurring-ico.gp-ico {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.recurring-row .recurring-ico .gp-icon {
+  display: block;
+}
+
+/* Timpa box emoji brutal lama pada baris Rutin */
+.recurring-row .category-emoji {
+  border: none;
+  background: var(--gp-ico-tint);
+}
+
+/* Empty state Riwayat — CTA pill gradient hero, konsisten GP */
+.dp-page .empty.dp-card .empty-button.dp-button {
+  background: var(--gp-hero-grad);
+  color: var(--gp-hero-ink);
+  box-shadow: var(--gp-shadow-cta);
+}
