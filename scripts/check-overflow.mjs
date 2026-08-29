@@ -49,7 +49,7 @@ let failures = 0;
 for (const width of [340, 360, 384, 411]) {
   await rawSend('Emulation.setDeviceMetricsOverride', { width, height: 800, deviceScaleFactor: 0, mobile: true });
   await sleep(500);
-  for (const [tabIdx, name] of [[0, 'beranda'], [1, 'transaksi'], [2, 'analisis'], [3, 'target'], [4, 'profil']]) {
+  for (const [tabIdx, name] of [[0, 'beranda'], [1, 'analisis'], [2, 'target'], [3, 'profil']]) {
     await evalJS(NAV(tabIdx, null));
     const key = `${width}/${name}`;
     results[key] = JSON.parse(await evalJS(SCAN));
@@ -60,7 +60,7 @@ for (const width of [340, 360, 384, 411]) {
   for (let i = 0; i < nRows; i += 1) {
     await evalJS(`(async()=>{const qa=(s)=>[...document.querySelectorAll(s)];
       const back=document.querySelector('.sub-back'); if(back){back.click(); await new Promise(r=>setTimeout(r,300));}
-      qa('.bottom-nav-item')[4].click(); await new Promise(r=>setTimeout(r,400));
+      qa('.bottom-nav-item')[3].click(); await new Promise(r=>setTimeout(r,400));
       const rows=qa('.profile-menu-row'); if(rows[${i}]){rows[${i}].click();}
       await new Promise(r=>setTimeout(r,550));})()`);
     const key = `${width}/profil-sub-${i}`;

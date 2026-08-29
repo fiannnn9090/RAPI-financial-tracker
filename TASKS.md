@@ -383,19 +383,40 @@ RESTYLING dari Dark Premium, bukan rombak struktur/fitur. Prinsip & pola migrasi
 Murni visual: tanpa fitur baru, struktur navigasi/IA TETAP (4 tab + FAB + ActionSheet
 + RiwayatPage + semua alur).
 
-- [ ] **GP1 — Fondasi**: instalasi library ikon ilustrasi flat berwarna (flat-color-icons
+- [x] **GP1 — Fondasi**: instalasi library ikon ilustrasi flat berwarna (flat-color-icons
       atau setara, pilih bersama user) + token hero gradient biru/teal + primitif pill
       `gp-*` (tombol/chip/badge radius penuh); belum menyentuh page.js
-- [ ] **GP2 — Beranda**: hero gradient di header + pill pada CTA/balance/stat/level/
+- [x] **GP2 — Beranda**: hero gradient di header + pill pada CTA/balance/stat/level/
       streak/budget
-- [ ] **GP3 — Transaksi + Riwayat**: item list, filter pills, ActionSheet, RiwayatPage
-- [ ] **GP4 — Analisis**: recap/skor/saran/50-30-20/simulasi dengan primitif gp
-- [ ] **GP5 — Target**: goal/badge/challenge
-- [ ] **GP6 — Profil**: menu, sub-halaman, kartu profil & share
-- [ ] **GP7 — Auth + modals**: auth page, LevelUpModal/CelebrateModal, sheet-sheet
-- [ ] **GP8 — Cleanup**: hapus rule dp-* lama + audit kontras light+dark + audit overflow
-      WAJIB `node scripts/check-overflow.mjs` (60/60 hijau, exit 1 bila meluap) + verifikasi
-      device fisik
+- [x] **GP3 — Transaksi + Riwayat**: item list, filter pills, ActionSheet, RiwayatPage
+- [x] **GP4 — Analisis**: recap/skor/saran/50-30-20/simulasi dengan primitif gp
+- [x] **GP5 — Target**: goal/badge/challenge
+- [x] **GP6 — Profil**: menu, sub-halaman, kartu profil & share
+- [x] **GP7 — Auth + modals**: auth page, LevelUpModal/CelebrateModal, sheet-sheet
+- [x] **GP8 — Cleanup**: hapus rule dp-* lama + audit kontras light+dark + audit overflow
+      WAJIB `node scripts/check-overflow.mjs` (56/56 hijau, exit 1 bila meluap) + verifikasi
+      device fisik. Rincian tuntas GP8:
+  - **B1 (11 blok `/* B1 hapus: */` di premium.css) DIHAPUS** (rule dp-* superseded —
+    mapping 5→4 tab pada `check-overflow.mjs` ikut diperbaiki; brace 827/827, build OK).
+  - **B2 (10 blok dead code) DIBIARKAN** (keputusan user; berisiko dihapus).
+  - **BalanceCard scrim**: `.gp-balance` kini punya overlay gelap `::before`
+    (rgba(0,0,0,.52)→.11) DI ATAS gradient hero + `position:relative;isolation:isolate` +
+    `.gp-balance > *{z-index:1}` — teks putih dijamin kontras; token `--gp-hero-*`
+    disetujui TIDAK diubah. Verifikasi: sampel nyata "Kekayaan Bersih" ratio 5.5:1 PASS.
+  - **Gold text-ink diperbaiki**: 11 aturan gopay yang tadinya `color: var(--gp-hero-a)`
+    (~2:1 di light) diganti `var(--dp-gold-ink)` (#836200 light / #FFD97A dark).
+  - **Gate overflow HIJAU**: `node scripts/check-overflow.mjs` → exit 0, failures=0,
+    56 screen (4 tab + 8 sub-profil → ×4 width + auth login/register ×4) semua tanpa luap.
+  - **Audit kontras WCAG**: 0 computed fails di SEMUA tab (dark+light, 360/411);
+    recap "Minggu" & challenge-chip "+35 XP" diperbaiki; kontras teks kecil ≥4.5.
+  - **Auth intro (kartu malam #0F0F13)** terverifikasi analitik: kicker 5.49, copy 7.52,
+    feature-note 8.76, feat small 4.73 — semua PASS; form sisi kanan pakai token dp
+    terverifikasi.
+  - **Modals perayaan (LevelUp/Celebrate/goal/tx)** memakai token dp (kicker=dp-muted,
+    CTA=accent+on-accent, emoji filter:none) — kontras aman.
+  - **Ikon multi-warna** (emoji, avatar-frame, digital-glow kuota) dibiarkan: pengantar
+    warna grafis/inkorporal bukan teks — kontras teks sekitarnya tetap dipatuhi.
+  - Kerangka layout `dp-*` dan 95% premium.css wajib DIPERTAHANKAN (lihat note fase).
 
 ---
 

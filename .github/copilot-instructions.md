@@ -201,12 +201,32 @@ Urutan milestone (jangan lompat urutan tanpa konfirmasi user):
 - **GP6 — Profil**: menu, sub-halaman, kartu profil & share.
 - **GP7 — Auth + modals**: auth page, LevelUpModal/CelebrateModal, sheet-sheet.
 - **GP8 — Cleanup**: hapus rule dp-* lama + audit kontras light+dark + AUDIT
-  OVERFLOW WAJIB via `node scripts/check-overflow.mjs` (60 kombinasi, exit 1 bila
-  meluap) + verifikasi di device fisik — riwayat project membuktikan redesign
-  visual sering memunculkan overflow baru yang lolos dari CDP emulator.
+  OVERFLOW WAJIB via `node scripts/check-overflow.mjs` (56 kombinasi: 4 tab + 8
+  sub-profil + auth, ×4 width; exit 1 bila meluap) + verifikasi di device fisik —
+  riwayat project membuktikan redesign visual sering memunculkan overflow baru yang
+  lolos dari CDP emulator.
 
-Status: phase ini BELUM DIMULAI — jangan eksekusi kode apa pun sampai user
-memberi konfirmasi.
+Status: Fase Redesign 3 TUNTAS (GP1–GP8; selesai 2026-08-29). Ringkasan penutup:
+- **Kunci keputusan yang TIDAK berubah**: base gelap nyaris hitam `#0F0F13`/`#1C1C24`
+  (token `--dp-*` light+dark) dipertahankan; kerangka layout/95% premium.css WAJIB
+  dipertahankan; NAV tetap **4 tab** (`page.js` `NAV_TABS` = beranda/analisis/target/
+  profil; TIDAK ada tab Transaksi — BottomNav = slice(0,2)+FAB+slice(2)); hero gradient
+  HANYA khusus header Beranda, aksen kuning kembali `#FFC629` flat di area lain.
+- **GP8 hapus-rule**: B1 (11 blok `/* B1 hapus: */` dp-* superseded) DIHAPUS;
+  B2 (10 blok dead code) DIBIARKAN atas keputusan user.
+- **BalanceCard (Beranda)**: overlay scrim gelap `::before` di atas gradient +
+  `position:relative;isolation:isolate` + `.gp-balance > *{z-index:1}` → teks putih
+  kontras aman; token `--gp-hero-*` TIDAK diubah. JANGAN ubah `.gp-balance` stacking
+  di masa depan.
+- **Gold teks-ink WAJIB `var(--dp-gold-ink)`** (#836200 light / #FFD97A dark) —
+  JANGAN pakai `var(--gp-hero-a)` sebagai warna teks (hanya ~2:1 di light).
+- **Gate overflow**: `node scripts/check-overflow.mjs` → failures=0, **56/56 hijau**
+  (4 tab + 8 sub-profil + auth, ×4 width); mapping tab 5→4 sudah disesuaikan.
+- **Audit kontras WCAG**: 0 computed fails di semua tab light+dark (360/411);
+  auth-intro kartu malam `#0F0F13` terverifikasi analitik (kicker 5.49, copy 7.52,
+  feature-note 8.76, small 4.73); form Auth + modals perayaan pakai token dp terverifikasi.
+- Ikon multi-warna (emoji/avatar-frame/digital-glow) adalah pengantar warna, bukan teks
+  — teks sekitar tetap memenuhi kontras.
 
 ## Fase Pasca-Redesign — Roadmap (urutan terkunci)
 1. **DP9b — Bugfix & Konsistensi Visual** — TUNTAS PENUH 2026-08-24 (termasuk

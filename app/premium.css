@@ -294,23 +294,8 @@
   background: linear-gradient(90deg, var(--clay-lilac), var(--clay-coral));
   transition: width .3s ease;
 }
-.badge-card.clay-badge .badge.tier-legendary::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, .55) 50%, transparent 68%);
-  transform: translateX(-130%);
-  animation: badge-shine 3.4s ease-in-out infinite;
-  pointer-events: none;
-}
-@keyframes badge-shine {
-  0%, 55% { transform: translateX(-130%); }
-  85%, 100% { transform: translateX(130%); }
-}
-@media (prefers-reduced-motion: reduce) {.badge-card.clay-badge .badge.tier-legendary::after {
-    animation: none;
-    opacity: 0;
-  }}
+/* B1 hapus: badge legendary shine + keyframes + reduced-motion */
+/* digantikan gopay .tier-legendary::after{animation:none;opacity:0} (L818) */
 .clay-transactions .filters {
   border: none;
   background: rgba(96, 62, 110, .07);
@@ -2617,22 +2602,7 @@
   color: var(--dp-on-accent);
 }
 
-/* Toggle Minggu/Bulan recap & sort-toggle turunannya */
-.dp-page .sort-toggle.recap-toggle {
-  border: none;
-  border-radius: 999px;
-  background: var(--dp-elev);
-  overflow: hidden;
-}
-.dp-page .sort-toggle.recap-toggle button {
-  font-family: inherit;
-  font-weight: 700;
-  color: var(--dp-muted);
-}
-.dp-page .sort-toggle.recap-toggle button.active {
-  background: var(--dp-accent);
-  color: var(--dp-on-accent);
-}
+/* B1 hapus: recap-toggle pill ele -> gopay L456-477 */
 
 /* Teaser saran tinggi */
 .dp-page .advice-teaser {
@@ -3088,19 +3058,7 @@
    DP6 — Tab Analisis: gauge, slider, 50/30/20, saran, chip level
    ========================================================= */
 
-/* ---- Kartu kontainer analisis ---- */
-.dp-page .advice-page.brutal-card {
-  background: var(--dp-card);
-  border: none;
-  border-radius: var(--dp-radius-lg);
-  box-shadow: var(--dp-shadow-sm);
-}
-.dp-page .sim-body.brutal-card {
-  background: var(--dp-elev);
-  border: none;
-  border-radius: var(--dp-radius);
-  box-shadow: none;
-}
+/* B1 hapus: containers advice-page/sim-body -> gopay L483/L549 */
 
 /* ---- Gauge skor: track netral + arc level + dot ujung + tick ambang ---- */
 .gauge-track,
@@ -3122,27 +3080,9 @@
 }
 [data-theme='dark'] .gauge-track { stroke: #2A2A35; }
 
-/* ---- Chip level skor & delta ---- */
-.dp-page .score-chip {
-  border: none;
-  border-radius: 999px;
-  padding: 3px 10px;
-  font-weight: 800;
-}
-.dp-page .score-chip.sehat { background: var(--dp-income-tint); color: var(--dp-income-ink); }
-.dp-page .score-chip.waspada { background: rgba(255, 198, 41, 0.15); color: var(--dp-gold-ink); }
-.dp-page .score-chip.perhatian { background: var(--dp-expense-tint); color: var(--dp-expense-ink); }
-.dp-page .score-delta.up { color: var(--dp-income-ink); }
-.dp-page .score-delta.down { color: var(--dp-expense-ink); }
-.dp-page .score-num { color: var(--dp-text); }
+/* B1 hapus: score-chip + variants + delta + num -> gopay L525-536 */
 
-/* Breakdown komponen skor — bar flat pill */
-.dp-page .score-row > i {
-  border: none;
-  background: var(--dp-elev);
-  border-radius: 999px;
-}
-.dp-page .score-row > i em { background: var(--dp-accent); }
+/* B1 hapus: score-row bar pill -> gopay L539-546 */
 
 /* ---- Slider simulasi: track tipis + fill kuning + thumb kuning solid ---- */
 .dp-page input[type='range']#sim-extra-range {
@@ -3168,76 +3108,15 @@
 .dp-page input[type='range']#sim-extra-range:focus-visible::-webkit-slider-thumb {
   box-shadow: 0 0 0 3px rgba(255, 198, 41, 0.35);
 }
-.dp-page .sim-scale span { color: var(--dp-muted); }
+/* B1 hapus: sim-scale span -> gopay L569 */
 
-/* Chip sim (win/hot/netral) */
-.dp-page .sim-chip { border: none; border-radius: 999px; background: var(--dp-elev); color: var(--dp-muted); }
-.dp-page .sim-chip.win { background: var(--dp-income-tint); color: var(--dp-income-ink); }
-.dp-page .sim-chip.hot { background: var(--dp-expense-tint); color: var(--dp-expense-ink); }
-.dp-page .sim-eta.win { color: var(--dp-income-ink); }
+/* B1 hapus: sim-chip/win/hot/eta -> gopay L570-578 */
 
-/* ---- 50/30/20 — bar flat seragam kuning, tag netral ---- */
-.dp-page .alloc-tag {
-  border: none;
-  border-radius: 999px;
-  background: var(--dp-elev);
-  color: var(--dp-muted);
-}
-.dp-page .alloc-rows i {
-  border: none;
-  background: var(--dp-elev);
-  border-radius: 999px;
-}
-.dp-page .alloc-rows i em { background: var(--dp-accent); }
-.dp-page .alloc-status.ok { color: var(--dp-income-ink); }
-.dp-page .alloc-status.warn { color: var(--dp-gold-ink); }
-.dp-page .alloc-status.bad { color: var(--dp-expense-ink); }
+/* B1 hapus: alloc 50/30/20 -> gopay L582-597 */
 
-/* ---- Saran F1 — severity via tint + ink, tanpa border ---- */
-.dp-page .advice-item {
-  background: var(--dp-elev);
-  border: none;
-  border-radius: 16px;
-  box-shadow: none;
-}
-.dp-page .advice-item strong { color: var(--dp-text); }
-.dp-page .advice-item-body p { color: var(--dp-muted); }
-.dp-page .advice-item-body p em {
-  font-style: normal;
-  color: var(--dp-gold-ink);
-  background: rgba(255, 198, 41, 0.15);
-  border-radius: 6px;
-  padding: 0 3px;
-}
-.dp-page .advice-item-icon {
-  border: none;
-  border-radius: 12px;
-}
-.dp-page .advice-item.sev-tinggi .advice-item-icon { background: rgba(255, 107, 107, 0.14); }
-.dp-page .advice-item.sev-sedang .advice-item-icon { background: rgba(255, 198, 41, 0.15); }
-.dp-page .advice-item.sev-ringan .advice-item-icon { background: var(--dp-bg); }
-.dp-page .advice-sev {
-  border: none;
-  border-radius: 999px;
-  padding: 2px 8px;
-  font-weight: 700;
-  background: var(--dp-elev);
-  color: var(--dp-muted);
-}
-.dp-page .advice-item.sev-tinggi .advice-sev {
-  background: rgba(255, 107, 107, 0.14);
-  color: var(--dp-expense-ink);
-}
-.dp-page .advice-item.sev-sedang .advice-sev {
-  background: rgba(255, 198, 41, 0.15);
-  color: var(--dp-gold-ink);
-}
-.dp-page .advice-item.sev-ringan .advice-sev { background: transparent; color: var(--dp-muted); }
+/* B1 hapus: advice-item + advice-sev + sev-* -> gopay L600-631 */
 
-/* Disclaimer & empty state */
-.dp-page .advice-disclaimer { color: var(--dp-muted); }
-.dp-page .advice-empty strong { color: var(--dp-text); }
-.dp-page .advice-empty p { color: var(--dp-muted); }
+/* B1 hapus: advice-disclaimer + advice-empty -> gopay L634-639 */
 
 /* =========================================================
    DP7 — Tab Profil: head, menu, sub-halaman, akun, danger
@@ -3526,13 +3405,7 @@
   box-shadow: none;
   font-weight: 700;
 }
-.auth-page.dp-auth .switch-form button {
-  border: none;
-  background: none;
-  color: var(--dp-gold-ink);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
+/* B1 hapus: auth switch-form underline -> gopay L1384-1392 (pill gold tint) */
 .auth-page.dp-auth .form-message { color: var(--dp-expense-ink); }
 
 /* ---- LevelUpModal — frame dp, confetti tidak disentuh ---- */

@@ -131,13 +131,13 @@
 
 .gp-pill-chip.on {
   background: var(--gp-ico-tint);
-  color: var(--gp-hero-a);
+  color: var(--dp-gold-ink);
 }
 
 /* Badge kecil — level/streak/tier di atas kartu */
 .gp-pill-badge {
   background: var(--gp-ico-tint);
-  color: var(--gp-hero-a);
+  color: var(--dp-gold-ink);
   padding: 5px 12px;
   font-size: 12px;
   font-weight: 700;
@@ -189,14 +189,40 @@
 }
 .gp-balance::after { content: none; }
 
+/* GP8 — scrim gelap semi-transparan DI ATAS gradient amber agar teks
+   putih WCAG-aman (>=4.5 teks kecil, >=3 angka besar) di SEMUA area kartu,
+   tanpa mengubah token --gp-hero-a/b/c (gold cerah tetap). Kuat di atas
+   (label+angka), pudar ke bawah (net-worth/meta). */
+.gp-balance {
+  position: relative;
+  isolation: isolate;
+}
+.gp-balance::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg,
+    rgba(0, 0, 0, .52) 0%,
+    rgba(0, 0, 0, .34) 34%,
+    rgba(0, 0, 0, .20) 62%,
+    rgba(0, 0, 0, .11) 100%);
+  pointer-events: none;
+}
+.gp-balance > * { position: relative; z-index: 1; }
+
 /* Sub-status di bawah saldo — SATU baris kecil, tidak makan ruang */
-.gp-balance-status {
+.gp-balance .gp-balance-status {
   display: block;
   margin-top: 4px;
   font-size: 0.74rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.78);
 }
+/* Lindungi teks putih hero dari override legacy light (.balance-card small → muted):
+   naikkan spesifisitas melewati [data-theme='light'] .balance-card small */
+.dp-page .gp-balance .gp-balance-status { color: rgba(255, 255, 255, 0.78); }
 
 /* Baris label + toggle mata */
 .gp-balance .balance-label-row {
@@ -363,7 +389,7 @@
 }
 .riwayat-toolbar .filters.gp-filters button.on {
   background: var(--gp-ico-tint);
-  color: var(--gp-hero-a);
+  color: var(--dp-gold-ink);
 }
 
 /* Segmen header Riwayat (Transaksi/Rutin) — timpa .riwayat-seg dp */
@@ -379,7 +405,7 @@
 .riwayat-seg.gp-seg button.on,
 .riwayat-seg.gp-seg button.active {
   background: var(--gp-ico-tint);
-  color: var(--gp-hero-a);
+  color: var(--dp-gold-ink);
 }
 
 /* Item transaksi — kartu flat rounded, ikon ilustrasi di colokan tint */
@@ -473,7 +499,7 @@
 /* Active = pill gold-tint (konsisten GP3), kuning solid exclusif CTA */
 .dp-page .sort-toggle.recap-toggle button.active {
   background: var(--gp-ico-tint);
-  color: var(--gp-hero-a);
+  color: var(--dp-gold-ink);
 }
 .dp-page .recap-card .recap-stats b.in { color: var(--dp-income); }
 .dp-page .recap-card .recap-stats b.out { color: var(--dp-expense); }
@@ -862,7 +888,7 @@
   border: none;
   border-radius: 999px;
   background: color-mix(in srgb, var(--dp-accent) 16%, transparent);
-  color: var(--gp-hero-a);
+  color: var(--dp-gold-ink);
   padding: 4px 12px;
   font-weight: 700;
 }
@@ -922,7 +948,7 @@
   border: none;
   border-radius: 999px;
   background: color-mix(in srgb, var(--dp-accent) 16%, transparent);
-  color: var(--gp-hero-a);
+  color: var(--dp-gold-ink);
   padding: 4px 12px;
   font-weight: 700;
 }
@@ -1111,7 +1137,7 @@
 /* Aktif = gold TINT (bukan solid kuning — bukan CTA) */
 .dp-page .setting-seg button.active {
   background: color-mix(in srgb, var(--dp-accent) 22%, transparent);
-  color: var(--gp-hero-a);
+  color: var(--dp-gold-ink);
 }
 .dp-page .setting-label { color: var(--dp-text); }
 .dp-page .setting-label .row-icon {
@@ -1203,7 +1229,7 @@
 }
 .dp-page .data-card.dp-card .pdf-range button.active {
   background: color-mix(in srgb, var(--dp-accent) 22%, transparent);
-  color: var(--gp-hero-a);
+  color: var(--dp-gold-ink);
 }
 .dp-page .data-card.dp-card .pdf-custom input {
   border: none;
@@ -1385,7 +1411,7 @@
   border: none;
   border-radius: 999px;
   background: color-mix(in srgb, var(--dp-accent) 18%, transparent);
-  color: var(--gp-hero-a);
+  color: var(--dp-gold-ink);
   padding: 7px 16px;
   font-weight: 700;
   text-decoration: none;
@@ -1413,7 +1439,7 @@
 .levelup-modal.dp-levelup .levelup-copy strong { color: var(--dp-gold-ink); }
 .levelup-modal.dp-levelup .levelup-xp {
   background: color-mix(in srgb, var(--dp-accent) 18%, transparent);
-  color: var(--gp-hero-a);
+  color: var(--dp-gold-ink);
   border-radius: 999px;
   font-weight: 700;
 }
