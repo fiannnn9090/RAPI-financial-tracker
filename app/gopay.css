@@ -637,3 +637,299 @@
 .dp-page .advice-sub,
 .dp-page .alloc-msg,
 .dp-page .alloc-hint { color: var(--dp-muted); }
+/* =========================================================
+   Fase Redesign 5 — Tab TARGET: kartu saldo/goal, koleksi badge,
+   Tantangan Minggu Ini (GP5). Timpa rule brutal/dp lawas dengan
+   bahasa gp-*: kartu flat rounded, chip pill, CTA kuning solid.
+   Kuning solid EKSKLUSIF CTA + legendary badge + glow goal-reached
+   (pengecualian resmi: pencapaian/mahkota, bukan severity).
+   Rarity lain NON-kuning (common netral, rare biru, epic ungu).
+   ========================================================= */
+
+/* ---------- Goal card (kartu saldo Target) ---------- */
+.dp-page .tab-target .goal-card.dp-card {
+  background: var(--dp-card);
+  border: none;
+  border-radius: 20px;
+  box-shadow: var(--dp-shadow-sm);
+  padding: 20px;
+}
+.dp-page .tab-target .goal-card.dp-card::before { content: none; }
+.dp-page .tab-target .goal-card.dp-card h2 { color: var(--dp-text); }
+.dp-page .tab-target .goal-card.dp-card .goal-caption { color: var(--dp-muted); }
+.dp-page .tab-target .goal-card.dp-card .goal-caption strong { color: var(--dp-text); }
+
+/* Progress bar pill kuning (fill aksen) */
+.dp-page .tab-target .goal-card.dp-card .goal-progress {
+  height: 8px;
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+}
+.dp-page .tab-target .goal-card.dp-card .goal-progress span {
+  background: var(--dp-accent);
+  border-radius: 999px;
+}
+
+/* Link buka simulasi — aksen kuning, tanpa garis tebal */
+.dp-page .tab-target .goal-card.dp-card .goal-sim-link.dp-link {
+  color: var(--dp-accent);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 1px dashed color-mix(in srgb, var(--dp-accent) 50%, transparent);
+}
+
+/* Tombol goal/claim → pill CTA kuning solid */
+.dp-page .tab-target .goal-card.dp-card .goal-button.dp-button,
+.dp-page .tab-target .goal-card.dp-card .claim-goal.dp-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+  padding: 10px 18px;
+}
+.dp-page .tab-target .goal-card.dp-card .goal-button.dp-button:active,
+.dp-page .tab-target .goal-card.dp-card .claim-goal.dp-button:active {
+  transform: translateY(1px) scale(0.985);
+  filter: brightness(0.96);
+}
+
+/* goal-reached — JAGA ambient glow kuning halus (celebratory, bukan
+   severity). BUKAN tombol solid → tidak salah-fungsi sebagai CTA. */
+.dp-page .tab-target .goal-card.dp-card.goal-reached {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--dp-accent) 25%, transparent),
+    0 8px 32px color-mix(in srgb, var(--dp-accent) 14%, transparent);
+}
+.dp-page .tab-target .goal-card.dp-card.goal-reached .kicker {
+  display: inline-block;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dp-accent) 15%, transparent);
+  color: var(--dp-gold-ink);
+  padding: 3px 10px;
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.dp-page .tab-target .goal-card.dp-card.goal-reached:hover {
+  transform: none;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--dp-accent) 25%, transparent),
+    0 8px 32px color-mix(in srgb, var(--dp-accent) 14%, transparent);
+}
+
+/* ---------- Kartu koleksi badge ---------- */
+.dp-page .tab-target .badge-card.dp-card {
+  background: var(--dp-card);
+  border: none;
+  border-radius: 20px;
+  box-shadow: var(--dp-shadow-sm);
+  padding: 20px;
+}
+.dp-page .tab-target .badge-card.dp-card::after { content: none; }
+.dp-page .tab-target .badge-card.dp-card h2 { color: var(--dp-text); }
+.dp-page .tab-target .badge-card.dp-card .kicker { color: var(--dp-muted); }
+
+/* Counter badge (unlocked/total) → pill gold tint */
+.dp-page .tab-target .badge-card.dp-card .badge-heading > span {
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dp-accent) 15%, transparent);
+  color: var(--dp-gold-ink);
+  padding: 3px 10px;
+  font-weight: 800;
+}
+
+/* Baris badge → kartu flat rounded */
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item {
+  border: none;
+  border-radius: 16px;
+  background: var(--dp-elev);
+  box-shadow: none;
+  padding: 10px;
+  transition: none;
+}
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item:hover { transform: none; }
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item strong { color: var(--dp-text); }
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item small { color: var(--dp-muted); }
+
+/* Ikon badge → colokan rounded, tint per tier (non-kuning kecuali legendary) */
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item > span {
+  border: none;
+  border-radius: 12px;
+  background: var(--dp-elev);
+}
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item.unlocked.tier-common > span { background: var(--dp-elev); }
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item.unlocked.tier-rare > span { background: color-mix(in srgb, var(--dp-rare) 14%, transparent); }
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item.unlocked.tier-epic > span { background: color-mix(in srgb, var(--dp-epic) 16%, transparent); }
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item.unlocked.tier-legendary > span {
+  background: color-mix(in srgb, var(--dp-accent) 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dp-accent) 35%, transparent);
+}
+
+/* Chip label tier → pill. Legendary SATU-SATUNYA chip solid kuning (mahkota). */
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item .badge-tier {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  color: var(--dp-muted);
+  padding: 3px 10px;
+  font-weight: 700;
+}
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item.locked .badge-tier {
+  background: transparent;
+  color: var(--dp-muted);
+}
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item.unlocked.tier-rare .badge-tier {
+  background: color-mix(in srgb, var(--dp-rare) 14%, transparent);
+  color: var(--dp-rare);
+}
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item.unlocked.tier-epic .badge-tier {
+  background: color-mix(in srgb, var(--dp-epic) 16%, transparent);
+  color: var(--dp-epic);
+}
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item.unlocked.tier-legendary .badge-tier {
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  font-weight: 800;
+}
+
+/* Locked — redup, tanpa border */
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item.locked {
+  background: var(--dp-bg);
+}
+
+/* Progress bar badge locked — tipis pill fill abu (bukan kuning) */
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item .badge-progress {
+  height: 6px;
+  margin-top: 6px;
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-bg);
+}
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item .badge-progress em {
+  background: var(--dp-muted);
+  border-radius: 999px;
+}
+
+/* Shine legendary — tetap aktif legal (celebratory) */
+.dp-page .tab-target .badge-card.dp-card .badges .badge.dp-item.tier-legendary::after { animation: none; opacity: 0; }
+
+/* ---------- Tantangan Minggu Ini ---------- */
+.dp-page .challenge-section .challenge-card.dp-card {
+  background: var(--dp-card);
+  border: none;
+  border-radius: 20px;
+  box-shadow: var(--dp-shadow-sm);
+  padding: 16px;
+}
+.dp-page .challenge-section .challenge-card.dp-card:hover { transform: none; }
+.dp-page .challenge-section .challenge-card.dp-card .challenge-body strong { color: var(--dp-text); }
+.dp-page .challenge-section .challenge-card.dp-card .challenge-body small,
+.dp-page .challenge-section .challenge-card.dp-card .challenge-body em { color: var(--dp-muted); font-style: normal; }
+
+/* Ikon tantangan → colokan rounded tint (boleh multi-warna ilustrasi) */
+.dp-page .challenge-section .challenge-card.dp-card .challenge-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 14px;
+  background: var(--dp-elev);
+  font-size: 22px;
+}
+
+/* Bar progress tantangan → pill fill kuning (tujuan live) */
+.dp-page .challenge-section .challenge-card.dp-card .challenge-bar {
+  margin-top: 6px;
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-elev);
+  height: 8px;
+  overflow: hidden;
+}
+.dp-page .challenge-section .challenge-card.dp-card .challenge-bar span {
+  background: var(--dp-accent);
+  border-radius: 999px;
+}
+
+/* Chip XP/status → pill. XP = tint kuning (bukan solid). done/failed semantik. */
+.dp-page .challenge-section .challenge-card.dp-card .challenge-chip {
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dp-accent) 16%, transparent);
+  color: var(--gp-hero-a);
+  padding: 4px 12px;
+  font-weight: 700;
+}
+.dp-page .challenge-section .challenge-card.dp-card.challenge-done .challenge-chip {
+  background: var(--dp-income-tint);
+  color: var(--dp-income-ink);
+}
+.dp-page .challenge-section .challenge-card.dp-card.challenge-failed .challenge-chip {
+  background: var(--dp-expense-tint);
+  color: var(--dp-expense-ink);
+}
+
+/* Kartu kosong tantangan */
+.dp-page .challenge-section .challenge-empty {
+  background: var(--dp-elev);
+  border: none;
+  border-radius: 20px;
+  box-shadow: none;
+  padding: 16px;
+}
+.dp-page .challenge-section .challenge-empty strong { color: var(--dp-text); }
+.dp-page .challenge-section .challenge-empty p { color: var(--dp-muted); }
+.dp-page .challenge-section .challenge-empty .clay-button.brutal-button {
+  border: none;
+  border-radius: 999px;
+  background: var(--dp-accent);
+  color: var(--dp-on-accent);
+  box-shadow: none;
+  font-weight: 700;
+  padding: 10px 18px;
+}
+.dp-page .challenge-section .challenge-empty .clay-button.brutal-button:active {
+  transform: translateY(1px) scale(0.985);
+  filter: brightness(0.96);
+}
+
+/* ---------- ChallengeSheet (pilih tantangan) ---------- */
+.modal.dp-sheet .challenge-option {
+  border: none;
+  border-radius: 18px;
+  background: var(--dp-card);
+  box-shadow: var(--dp-shadow-sm);
+  color: var(--dp-text);
+}
+.modal.dp-sheet .challenge-option .category-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border-radius: 14px;
+  background: var(--dp-elev);
+  font-size: 22px;
+}
+.modal.dp-sheet .challenge-option .challenge-chip {
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dp-accent) 16%, transparent);
+  color: var(--gp-hero-a);
+  padding: 4px 12px;
+  font-weight: 700;
+}
+.modal.dp-sheet .challenge-option .challenge-chip.muted {
+  background: var(--dp-elev);
+  color: var(--dp-muted);
+}
+.modal.dp-sheet .challenge-option:active {
+  background: color-mix(in srgb, var(--dp-accent) 14%, transparent);
+}
