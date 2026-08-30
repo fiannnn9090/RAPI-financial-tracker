@@ -27,3 +27,10 @@
 html, body {
   overflow-x: clip;
 }
+
+/* Auth — widget mascot koin dekoratif + ikon di dalam input (GoPay-style) */
+.auth-mascot{width:68px;height:68px;border-radius:50%;margin:0 auto 16px;background:radial-gradient(circle at 32% 28%,#ffe08a,#e8bd62 55%,#d9a63f);box-shadow:0 8px 20px rgba(212,166,72,.35);display:grid;place-items:center;color:#fff}
+.auth-mascot .gp-icon{filter:drop-shadow(0 2px 4px rgba(0,0,0,.20))}
+.auth-input{position:relative;display:block}
+.auth-input .gp-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#7c8580;pointer-events:none}
+.auth-input input{width:100%;padding-left:38px}

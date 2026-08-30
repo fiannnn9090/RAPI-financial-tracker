@@ -37,6 +37,8 @@
   /* Varian untuk TEKS di atas permukaan (kontras WCAG di light) */
   --dp-income-ink: #087954;
   --dp-expense-ink: #B3382F;   /* DP9: lolos AA di tint 12% atas putih/elev */
+  --dp-cyan: #22A3C4;
+  --dp-cyan-ink: #0E7490;
 
   /* Radius — skala 18–24px sesuai konteks */
   --dp-radius-sm: 18px;        /* kontrol kecil: input, chip besar */
@@ -69,6 +71,8 @@
     --dp-expense: #FF6B6B;
     --dp-income-ink: #34D399;  /* di dark, warna penuh aman jadi teks */
     --dp-expense-ink: #FF6B6B;
+    --dp-cyan: #22D3EE;
+    --dp-cyan-ink: #22D3EE;
 
     /* Elevasi dark dibaca dari permukaan lebih terang; shadow hanya
        menegaskan kedalaman, bukan garis */
@@ -98,6 +102,8 @@
   --dp-expense: #FF6B6B;
   --dp-income-ink: #34D399;
   --dp-expense-ink: #FF6B6B;
+  --dp-cyan: #22D3EE;
+  --dp-cyan-ink: #22D3EE;
 
   --dp-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
   --dp-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.40);
@@ -4324,6 +4330,25 @@
 .compact-header .home-avatar .avatar-frame { --av-size: 44px; width: 44px; height: 44px; }
 .greeting-col { flex: 1; min-width: 0; }
 .greeting-inline { font-size: 1.1rem; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Streak pill header kanan-atas — angka + logo api (emoji), rounded-full ala
+   prototype, theme-aware netral agar tetap jelas di light & dark. */
+.streak-pill {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--gp-glass-border);
+  background: var(--gp-glass-bg);
+  color: var(--dp-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.streak-pill .gp-icon { color: inherit; }
+
 
 /* Stat row: income + expense side-by-side */
 .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

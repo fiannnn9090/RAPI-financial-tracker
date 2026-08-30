@@ -317,7 +317,9 @@
   white-space: nowrap;
   padding: 3px 10px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.72);
+  color: #FFFFFF;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10);
 }
 .gp-balance .gp-meta-pill b {
   font-weight: 800;
@@ -325,7 +327,7 @@
 }
 .gp-balance .gp-meta-pill i {
   font-style: normal;
-  opacity: 0.8;
+  opacity: 0.88;
 }
 
 /* Ikon ilustrasi di dalam colokan stat/transaksi — rata & tidak melebar */
@@ -379,6 +381,293 @@
   --gp-glass-border: rgba(255, 255, 255, 0.06);
   --gp-glass-glow: rgba(16, 185, 129, 0.16);
 }
+
+/* =========================================================
+   GP-HOME — Beranda gaya prototype
+   Money check-in (1 kartu topSpending) + riwayat transaksi
+   proto (avatar emoji lingkaran, subtitle, jumlah warna,
+   tombol "Lihat Semua Histori").
+   ========================================================= */
+
+/* Money check-in — kartu tunggal glass ala kartu home lainnya */
+.dp-page .money-checkin-card.dp-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 18px 18px 16px;
+  border: 1px solid var(--gp-glass-border);
+  background: var(--gp-glass-bg);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: none;
+  border-radius: var(--dp-radius-lg);
+}
+.dp-page .money-checkin-card .insight-ico {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  transform: none;
+  filter: none;
+  margin: 0;
+  background: var(--gp-ico-tint);
+  color: var(--dp-gold-ink);
+}
+.dp-page .money-checkin-card .kicker {
+  margin: 0 0 4px;
+  color: var(--dp-muted);
+}
+.dp-page .money-checkin-card strong {
+  display: block;
+  font-size: 1.05rem;
+  line-height: 1.25;
+  color: var(--dp-text);
+  margin: 0 0 2px;
+}
+.dp-page .money-checkin-card .insight-amount {
+  display: block;
+  font: 700 1.05rem 'DM Sans', sans-serif;
+  color: var(--dp-gold-ink);
+  margin: 0 0 4px;
+}
+.dp-page .money-checkin-card .insight-caption {
+  margin: 0;
+  color: var(--dp-muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+/* Tombol "Lihat Semua" di header riwayat — text link polos ala prototype
+   (gold, tanpa pill/border), aria tetap button. */
+.tx-preview-section .tx-link {
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--dp-accent);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.12s ease;
+}
+.tx-preview-section .tx-link:active { color: var(--dp-gold-ink); }
+
+/* Riwayat transaksi prototype — avatar emoji lingkaran warna.
+   Dipakai di Beranda (preview) & RiwayatPage penuh. */
+.tx-preview-section .transaction-list,
+.riwayat-body .transaction-list {
+  border-top: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tx-row-pp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  border-radius: 14px;
+}
+/* Timpa legacy globals .income/.expense (latar pink/hijau muda) agar baris tidak
+   putih-on-tint saat dark. Baris transparan duduk langsung di atas bg. */
+.tx-row-pp.income,
+.tx-row-pp.expense { background: transparent; }
+.tx-row-pp .tx-row-pp-icon {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+.tx-row-pp.income .tx-row-pp-icon { background: var(--dp-income-tint); }
+.tx-row-pp.expense .tx-row-pp-icon { background: var(--gp-chip-bg); }
+.tx-row-pp .tx-row-pp-emoji { font-size: 1.35rem; line-height: 1; }
+.tx-row-pp .transaction-info { flex: 1; min-width: 0; }
+.tx-row-pp .transaction-info strong { font-size: 0.9rem; color: var(--dp-text); }
+.tx-row-pp .transaction-info span { font-size: 0.74rem; color: var(--dp-muted); }
+.tx-row-pp .transaction-info i { font-style: normal; padding: 0 4px; opacity: 0.6; }
+.tx-row-pp .amount { font-weight: 700; font-size: 0.9rem; white-space: nowrap; }
+.tx-row-pp .amount.expense-text { color: var(--dp-text); }
+.tx-row-pp .amount.income-text { color: var(--dp-income-ink); }
+.tx-row-pp .delete-transaction {
+  flex: 0 0 auto;
+  border: none;
+  border-radius: 50%;
+  background: var(--gp-chip-bg);
+  color: var(--gp-chip-muted);
+  box-shadow: none;
+  cursor: pointer;
+}
+.tx-row-pp .delete-transaction:active { color: var(--dp-expense-ink); }
+
+/* Riwayat — baris klik → detail; grup per hari (prototype histori). */
+.riwayat-body .tx-row-pp { cursor: pointer; transition: background 0.12s ease; }
+.riwayat-body .tx-row-pp:hover { background: var(--dp-surface-variant); }
+.riwayat-body .tx-row-pp:active { background: var(--dp-surface-variant); }
+.tx-day-group { margin-top: 14px; }
+.tx-day-group:first-child { margin-top: 4px; }
+.tx-day-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dp-muted);
+  padding: 0 4px 6px;
+}
+
+/* Detail transaksi (prototype detail_transaksi) */
+.tx-detail-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0 16px;
+  text-align: center;
+}
+.tx-detail-emoji {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--dp-elev);
+  display: grid;
+  place-items: center;
+  font-size: 1.7rem;
+}
+.tx-detail-amount { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.01em; }
+.tx-detail-amount.income-text { color: var(--dp-income-ink); }
+.tx-detail-amount.expense-text { color: var(--dp-expense-ink); }
+.tx-detail-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dp-income-ink);
+  background: var(--dp-income-tint);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+.tx-detail-card {
+  background: var(--dp-card);
+  border: 1px solid var(--dp-hairline);
+  border-radius: 16px;
+  padding: 6px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tx-detail-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+.tx-detail-row-icon {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--dp-elev); display: grid; place-items: center;
+  color: var(--dp-muted); flex: 0 0 auto;
+}
+.tx-detail-row > div { display: flex; flex-direction: column; }
+.tx-detail-label { font-size: 0.72rem; color: var(--dp-muted); }
+.tx-detail-row strong, .tx-detail-inline strong, .tx-detail-note div { font-size: 0.9rem; color: var(--dp-text); }
+.tx-detail-divider { height: 1px; background: var(--dp-hairline); }
+.tx-detail-inline { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+.tx-detail-inline span { font-size: 0.8rem; color: var(--dp-muted); }
+.tx-detail-inline strong { text-align: right; }
+.tx-detail-note { display: flex; flex-direction: column; gap: 4px; padding: 6px 0; }
+.tx-detail-note span { font-size: 0.78rem; color: var(--dp-muted); }
+.tx-detail-note div {
+  background: var(--dp-elev);
+  border: 1px solid var(--dp-hairline);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.tx-detail-xp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--dp-card);
+  border: 1px solid var(--dp-hairline);
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 14px;
+}
+.tx-detail-xp-ico {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--dp-elev);
+  color: var(--dp-accent); display: grid; place-items: center; flex: 0 0 auto;
+}
+.tx-detail-xp > div { flex: 1; display: flex; flex-direction: column; }
+.tx-detail-xp strong { font-size: 0.9rem; color: var(--dp-accent); }
+.tx-detail-xp span { font-size: 0.78rem; color: var(--dp-muted); }
+.tx-detail-xp-val { color: var(--dp-accent); font-size: 1.05rem; font-weight: 800; }
+.tx-detail-actions { display: flex; gap: 10px; margin-top: 16px; }
+.tx-detail-actions button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 999px;
+  padding: 13px 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tx-detail-share {
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  border: 1px solid var(--dp-hairline);
+}
+.tx-detail-edit { background: var(--dp-accent); color: var(--dp-on-accent); border: none; }
+.tx-detail-delete {
+  width: 100%;
+  margin-top: 10px;
+  background: transparent;
+  color: var(--dp-expense-ink);
+  border: 1px solid var(--dp-hairline);
+  border-radius: 999px;
+  padding: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Form transaksi — catatan & waktu (prototype edit_transaksi) */
+.form-textarea {
+  width: 100%;
+  resize: none;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--dp-hairline);
+  background: var(--dp-elev);
+  color: var(--dp-text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+.form-note-label { display: flex; flex-direction: column; }
+
+/* Tombol bawah "Lihat Semua Histori" */
+.tx-preview-all {
+  margin-top: 6px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 999px;
+  border: 1px solid var(--gp-glass-border);
+  background: var(--gp-glass-bg);
+  color: var(--dp-text);
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  box-shadow: none;
+}
+.tx-preview-all:active { background: var(--gp-chip-bg); }
+.tx-preview-all svg { color: var(--dp-accent); }
+
 
 /* =========================================================
    GP3 — TRANSAKSI & RIWAYAT
@@ -551,6 +840,44 @@
 .dp-page .recap-card .recap-stats b.in { color: var(--dp-income); }
 .dp-page .recap-card .recap-stats b.out { color: var(--dp-expense); }
 
+/* ---- Recap jadi teaser card (tap buka modal detail) ---- */
+.dp-page .recap-teaser.brutal-card.dp-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: none;
+  border-radius: var(--dp-radius);
+  padding: 18px;
+  background: var(--dp-card);
+  color: var(--dp-text);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--dp-shadow-sm);
+}
+.recap-teaser-ico {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--dp-accent);
+  background: color-mix(in srgb, var(--dp-accent) 16%, transparent);
+}
+.recap-teaser-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.recap-teaser-copy strong { font-size: .9rem; font-weight: 800; letter-spacing: -.01em; color: var(--dp-text); }
+.recap-teaser-copy small { font-size: .78rem; color: var(--dp-muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.recap-teaser-arrow { flex: none; color: var(--dp-muted); }
+.modal .recap-empty-inline { margin: 12px 0 0; color: var(--dp-muted); }
+.modal .recap-toggle { justify-content: center; margin: 0 0 16px; }
+
 /* ---- Kartu kontainer Analisis: advice-page = kartu utama; child
    section (score/sim/alloc) = inset elev supaya tetap terpisah ---- */
 .dp-page .advice-page.brutal-card {
@@ -568,7 +895,7 @@
   padding: 18px;
 }
 
-/* ---- Gauge skor: semicircle dipertahankan, track pill tebal + arc semantik ---- */
+/* ---- Gauge skor: gaya prototype — track pill gelap + arc isian EMAS ---- */
 .score-gauge {
   width: 100%;
   height: auto;
@@ -577,22 +904,66 @@
 }
 .gauge-track {
   stroke: var(--dp-elev);
-  stroke-width: 12;
+  stroke-width: 13;
   stroke-linecap: round;
 }
-.gauge-value { stroke-width: 12; stroke-linecap: round; }
-[data-theme='light'] .gauge-track, :root:not([data-theme='dark']) .gauge-track { stroke: var(--dp-elev); }
+.gauge-value { stroke-width: 13; stroke-linecap: round; }
+[data-theme='light'] .gauge-track, :root:not([data-theme='dark']) .gauge-track { stroke: #E4E4EC; }
 [data-theme='dark'] .gauge-track { stroke: #2A2A35; }
-/* Level memakai warna SEMANTIK (bukan kuning solid) */
-.gauge-value.lvl-low  { stroke: var(--dp-expense); }
-.gauge-value.lvl-mid  { stroke: var(--dp-income); }
-.gauge-value.lvl-high { stroke: var(--dp-income); }
-.gauge-dot.lvl-low  { fill: var(--dp-expense); }
-.gauge-dot.lvl-mid  { fill: var(--dp-income); }
-.gauge-dot.lvl-high { fill: var(--dp-income); }
-.gauge-dot { stroke: var(--dp-card); stroke-width: 3; }
-.gauge-tick { stroke: var(--dp-muted); stroke-width: 2; stroke-linecap: round; opacity: 0.45; }
-.score-panel-head .score-gauge-wrap.big { flex: 0 0 128px; }
+/* Isian skor = EMAS (mengikuti prototype 85% gold); gauge = data-viz, bukan CTA */
+.dp-page .gauge-value { stroke: var(--dp-accent); }
+
+/* Tata letak gauge tengah + skor & label level di tengah bawah (persis prototype) */
+.score-panel-head.proto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.score-panel-head.proto .gauge-kicker { opacity: .65; }
+.gauge-wrap-center {
+  position: relative;
+  width: 100%;
+  max-width: 230px;
+  margin: 0 auto;
+}
+.gauge-frame {
+  display: block;
+  width: 100%;
+}
+.gauge-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  pointer-events: none;
+}
+.gauge-score {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+:root:not([data-theme='dark']) .gauge-score { color: var(--dp-text); }
+[data-theme='dark'] .gauge-score { color: var(--dp-accent); }
+.gauge-prof {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--dp-muted);
+}
+.score-footer-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
 
 /* ---- Score chip + delta: pill semantik ---- */
 .dp-page .score-chip {
@@ -618,6 +989,65 @@
 .dp-page .score-row > span { color: var(--dp-text); }
 .dp-page .score-row > b { color: var(--dp-muted); }
 
+/* Breakdown skor jadi grid 2 kolom kartu horizontal (persis prototype:
+   ikon lingkaran kiri + label + status; kartu ke-5 full-width) */
+.score-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 4px;
+}
+.score-mini {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--dp-radius-sm);
+  background: var(--dp-card);
+  box-shadow: var(--dp-shadow-sm);
+}
+.score-mini-full {
+  grid-column: 1 / -1;
+}
+.score-mini-ico {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.score-mini-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.score-mini-label {
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  color: var(--dp-text);
+  line-height: 1.2;
+}
+.score-mini-badge {
+  font-size: .66rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .03em;
+}
+.score-mini-ico-score {
+  display: none;
+}
+.score-mini-good .score-mini-ico { background: color-mix(in srgb, var(--dp-income) 18%, transparent); color: var(--dp-income-ink); }
+.score-mini-good .score-mini-badge { color: var(--dp-income-ink); }
+.score-mini-mid  .score-mini-ico { background: color-mix(in srgb, var(--gp-sev-amber) 18%, transparent); color: var(--gp-sev-amber-ink); }
+.score-mini-mid  .score-mini-badge { color: var(--gp-sev-amber-ink); }
+.score-mini-low  .score-mini-ico { background: var(--dp-expense-tint); color: var(--dp-expense-ink); }
+.score-mini-low  .score-mini-badge { color: var(--dp-expense-ink); }
+
 /* ---- SimulationPanel: kartu + slider pill kuning + chip ---- */
 .dp-page .sim-body.brutal-card {
   background: var(--dp-elev);
@@ -640,6 +1070,42 @@
   box-shadow: 0 1px 4px rgba(15, 15, 19, 0.25);
 }
 .dp-page .sim-scale span { color: var(--dp-muted); }
+.dp-page .sim-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.dp-page .sim-scale .sim-min,
+.dp-page .sim-scale .sim-max {
+  font-size: .72rem;
+  font-weight: 700;
+}
+.dp-page .sim-proj-year {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 14px;
+  border-radius: var(--dp-radius-sm);
+  background: var(--dp-card);
+  border: 1px solid color-mix(in srgb, var(--dp-accent) 22%, transparent);
+  text-align: center;
+}
+.dp-page .sim-proj-year small {
+  font-size: .72rem;
+  color: var(--dp-muted);
+}
+.dp-page .sim-proj-year small em {
+  font-style: normal;
+  color: var(--dp-accent-ink, var(--dp-accent));
+}
+.dp-page .sim-proj-year b {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--dp-text);
+}
 .dp-page .sim-chip {
   border: none;
   border-radius: 999px;
@@ -664,44 +1130,159 @@
   border-radius: 999px;
 }
 .dp-page .alloc-rows i em { background: var(--dp-accent); }
+/* 50/30/20 — warna UNIK per bucket (Kebutuhan biru netral — bukan kuning CTA;
+   Keinginan hijau; Tabungan cyan) menimpa accent seragam di atas */
+.dp-page .alloc-tag.kebutuhan { background: color-mix(in srgb, var(--dp-rare) 14%, transparent); color: var(--dp-rare); }
+.dp-page .alloc-tag.keinginan { background: color-mix(in srgb, var(--dp-income) 14%, transparent); color: var(--dp-income-ink); }
+.dp-page .alloc-tag.tabungan   { background: color-mix(in srgb, var(--dp-cyan) 14%, transparent); color: var(--dp-cyan-ink); }
+.dp-page .alloc-row .alloc-tag.kebutuhan ~ i em { background: var(--dp-rare); }
+.dp-page .alloc-row .alloc-tag.keinginan ~ i em { background: var(--dp-income); }
+.dp-page .alloc-row .alloc-tag.tabungan ~ i em   { background: var(--dp-cyan); }
 .dp-page .alloc-status { border-radius: 999px; }
 .dp-page .alloc-status.ok   { color: var(--dp-income-ink); }
 .dp-page .alloc-status.warn { color: var(--gp-sev-amber-ink); }
 .dp-page .alloc-status.bad  { color: var(--dp-expense-ink); }
 
-/* ---- Saran F1: card pill + severity SEMANTIK (bukan kuning solid) ---- */
-.dp-page .advice-item {
+/* 50/30/20 — satu bar segmen horizontal + baris legenda (persis prototype) */
+.alloc-bar {
+  display: flex;
+  height: 14px;
+  width: 100%;
+  border-radius: 999px;
+  overflow: hidden;
   background: var(--dp-elev);
-  border: none;
-  border-radius: 16px;
-  box-shadow: none;
 }
-.dp-page .advice-item strong { color: var(--dp-text); }
-.dp-page .advice-item-body p { color: var(--dp-muted); }
-.dp-page .advice-item-body p em {
+.alloc-seg {
+  display: block;
+  height: 100%;
+}
+.dp-page .alloc-seg.kebutuhan { background: var(--dp-income); }
+.dp-page .alloc-seg.keinginan { background: var(--dp-accent); }
+.dp-page .alloc-seg.tabungan  { background: var(--dp-cyan); }
+.alloc-legend {
+  display: grid;
+  gap: 8px;
+}
+.alloc-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.alloc-dot {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.dp-page .alloc-dot.kebutuhan { background: var(--dp-income); }
+.dp-page .alloc-dot.keinginan { background: var(--dp-accent); }
+.dp-page .alloc-dot.tabungan  { background: var(--dp-cyan); }
+.alloc-name {
+  flex: 1 1 auto;
+  font-size: .86rem;
+  font-weight: 700;
+  color: var(--dp-text);
+}
+.alloc-pct {
+  font: 800 .8rem 'DM Sans', sans-serif;
+  color: var(--dp-text);
+  white-space: nowrap;
+}
+
+
+/* ---- Saran F1: kartu horizontal snap-scroll (persis prototype) ---- */
+.advice-carousel {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scroll-snap-type: x mandatory;
+  margin: 0 -4px;
+}
+.advice-carousel > * {
+  flex: 0 0 78%;
+  scroll-snap-align: center;
+}
+.advice-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--dp-card);
+  border-radius: var(--dp-radius);
+  padding: 14px;
+  box-shadow: var(--dp-shadow-sm);
+}
+.advice-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.advice-ci {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  color: var(--dp-muted);
+}
+.advice-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: .6rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.advice-card-title {
+  margin: 0 0 4px;
+  font-size: .95rem;
+  font-weight: 800;
+  color: var(--dp-text);
+}
+.advice-card-desc {
+  margin: 0 0 12px;
+  font-size: .8rem;
+  line-height: 1.5;
+  color: var(--dp-muted);
+}
+.advice-card-desc em,
+.advice-card-reason em {
   font-style: normal;
   color: var(--gp-sev-amber-ink);
   background: color-mix(in srgb, var(--gp-sev-amber) 16%, transparent);
   border-radius: 6px;
   padding: 0 3px;
 }
-.dp-page .advice-item-icon {
-  border: none;
-  border-radius: 12px;
+.advice-card-reason {
+  margin: 0 0 12px;
+  font-size: .76rem;
+  line-height: 1.5;
+  color: var(--dp-muted);
 }
-.dp-page .advice-item.sev-tinggi .advice-item-icon { background: var(--dp-expense-tint); }
-.dp-page .advice-item.sev-sedang .advice-item-icon { background: color-mix(in srgb, var(--gp-sev-amber) 16%, transparent); }
-.dp-page .advice-item.sev-ringan .advice-item-icon { background: var(--dp-bg); }
-.dp-page .advice-sev {
+.advice-card-btn {
+  margin-top: auto;
+  width: 100%;
+  padding: 10px;
   border: none;
   border-radius: 999px;
-  padding: 2px 10px;
+  background: var(--dp-elev);
+  color: var(--dp-text);
   font-weight: 700;
+  font-size: .8rem;
+  cursor: pointer;
 }
-/* tinggi = coral, sedang = oranye/amber, ringan = grey/muted (kuning exclusif CTA) */
-.dp-page .advice-item.sev-tinggi .advice-sev { background: var(--dp-expense-tint); color: var(--dp-expense-ink); }
-.dp-page .advice-item.sev-sedang .advice-sev { background: color-mix(in srgb, var(--gp-sev-amber) 16%, transparent); color: var(--gp-sev-amber-ink); }
-.dp-page .advice-item.sev-ringan .advice-sev { background: transparent; color: var(--dp-muted); }
+/* Colored accent card (tinggi = coral, sedang = amber, ringan = neutral) */
+.advice-card.sev-tinggi { border: 1px solid color-mix(in srgb, var(--dp-expense-ink) 30%, transparent); }
+.advice-card.sev-sedang { border: 1px solid color-mix(in srgb, var(--gp-sev-amber) 30%, transparent); }
+.advice-card.sev-ringan { border: 1px solid color-mix(in srgb, var(--dp-muted) 25%, transparent); }
+.advice-card.sev-tinggi .advice-ci,
+.advice-badge.sev-tinggi { background: var(--dp-expense-tint); color: var(--dp-expense-ink); }
+.advice-card.sev-sedang .advice-ci,
+.advice-badge.sev-sedang { background: color-mix(in srgb, var(--gp-sev-amber) 16%, transparent); color: var(--gp-sev-amber-ink); }
+.advice-card.sev-ringan .advice-ci,
+.advice-badge.sev-ringan { background: var(--dp-bg); color: var(--dp-muted); }
 
 /* Disclaimer & empty state */
 .dp-page .advice-disclaimer { color: var(--dp-muted); }
