@@ -317,7 +317,7 @@
   white-space: nowrap;
   padding: 3px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.45);
 }
 .gp-balance .gp-meta-pill b {
   font-weight: 800;
@@ -332,6 +332,53 @@
 .stat-icon .gp-icon,
 .transaction-icon .gp-icon { display: block; }
 .stat-icon .gp-icon { margin: auto; }
+
+/* Kartu Pemasukan/Pengeluaran — "glass" ala prototype (tetap 2 kartu terpisah):
+   permukaan translusen + border halus + blur; ikon tetap sirkular ber-tint semantik.
+   Menggantikan permukaan solid dp-card agar terasa mengambang di atas bg. */
+.dp-page .stat-row .stat-card.dp-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--gp-glass-border);
+  background: var(--gp-glass-bg);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: none;
+}
+/* Aksen glow lembut sesuai varian (income hijau / expense coral), dekoratif hanya */
+.dp-page .stat-row .stat-card.dp-card::before {
+  content: '';
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--gp-glass-glow);
+  filter: blur(14px);
+  pointer-events: none;
+}
+.dp-page .stat-row .stat-card.dp-card > * { position: relative; }
+.dp-page .stat-row .stat-card.dp-card .stat-icon.income { background: var(--dp-income-tint); color: var(--dp-income-ink); }
+.dp-page .stat-row .stat-card.dp-card .stat-icon.expense { background: var(--dp-expense-tint); color: var(--dp-expense-ink); }
+.dp-page .stat-row .stat-card.dp-card p,
+.dp-page .stat-row .stat-card.dp-card small { color: var(--dp-muted); }
+.dp-page .stat-row .stat-card.dp-card strong { color: var(--dp-text); }
+.dp-page .stat-row .stat-card.dp-card.income strong { color: var(--dp-income-ink); }
+.dp-page .stat-row .stat-card.dp-card.expense strong { color: var(--dp-expense-ink); }
+
+/* Token glass — tema-aware (dark pakai tone gelap, light pakai tone terang) */
+:root {
+  --gp-glass-bg: rgba(255, 255, 255, 0.72);
+  --gp-glass-border: rgba(23, 23, 28, 0.08);
+  --gp-glass-glow: rgba(16, 185, 129, 0.14);
+}
+:root:not([data-theme='light']),
+:root[data-theme='dark'] {
+  --gp-glass-bg: rgba(38, 38, 47, 0.66);
+  --gp-glass-border: rgba(255, 255, 255, 0.06);
+  --gp-glass-glow: rgba(16, 185, 129, 0.16);
+}
 
 /* =========================================================
    GP3 — TRANSAKSI & RIWAYAT
@@ -1032,6 +1079,46 @@
   box-shadow: none;
   font-weight: 700;
 }
+
+/* ---------- Profil bento: divider antar baris + Zona Berbahaya ---------- */
+.dp-page .menu-divider {
+  height: 1px;
+  background: var(--dp-line, rgba(127, 127, 140, 0.16));
+  margin: 4px 12px 4px 58px;
+}
+.dp-page .profile-menu-group.profile-menu .profile-menu-row { border-radius: 8px; }
+.dp-page .profil-stack { gap: 14px; }
+.dp-page .danger-zone-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 2px 0;
+}
+.dp-page .danger-zone-label {
+  margin: 0 4px 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--dp-muted);
+}
+.dp-page .danger-account.dp-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 10px;
+  padding: 15px 16px;
+  background: #FF6B6B;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: none;
+}
+.dp-page .danger-account-icon { display: inline-flex; align-items: center; }
+
 
 /* ---------- Header sub-halaman ---------- */
 .dp-page .sub-back {
